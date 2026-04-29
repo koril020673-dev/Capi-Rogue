@@ -1,3 +1,16 @@
+import analystImage from '../assets/advisor_image/advisor_analyst.png';
+import gamblerImage from '../assets/advisor_image/advisor_gambler.png';
+import guardianImage from '../assets/advisor_image/advisor_guardian.png';
+import raiderImage from '../assets/advisor_image/advisor_raider.png';
+import { useGameStore } from '../store/useGameStore';
+
+const ADVISOR_IMAGES = Object.freeze({
+  analyst: analystImage,
+  gambler: gamblerImage,
+  guardian: guardianImage,
+  raider: raiderImage,
+});
+
 const TEXT = Object.freeze({
   aria: '\uC218\uC694 \uC9C0\uB3C4',
   demand: '\uC218\uC694',
@@ -26,6 +39,7 @@ export default function DemandMap({ totalDemand, participants, revealDemand = fa
 }
 
 function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
+  const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
   const sharePercent = Math.round(participant.marketShare * 100);
   const healthPercent = Math.max(0, Math.min(100, Math.round((participant.health ?? 1) * 100)));
   const arrowClass = revealDemand ? getShareClass(participant.marketShare) : 'cr2-demand-arrow--md';
@@ -34,8 +48,22 @@ function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
     <article className={isPlayer ? 'cr2-demand-node cr2-demand-node--player' : 'cr2-demand-node'}>
       <div className={`cr2-demand-arrow ${arrowClass}`} />
       <div className="cr2-demand-card">
-        <span>{participant.slotLabel}</span>
-        <strong>{participant.name}</strong>
+        {isPlayer ? (
+          <div className="cr2-demand-player-row">
+            <div>
+              <span>{participant.slotLabel}</span>
+              <strong>{participant.name}</strong>
+            </div>
+            <span className="cr2-demand-advisor-portrait">
+              <img src={ADVISOR_IMAGES[selectedAdvisorId]} alt="" />
+            </span>
+          </div>
+        ) : (
+          <>
+            <span>{participant.slotLabel}</span>
+            <strong>{participant.name}</strong>
+          </>
+        )}
         <small>{revealDemand ? `${sharePercent}% / ${participant.demand.toLocaleString()}` : TEXT.concealed}</small>
         {!isPlayer ? (
           <div className="cr2-rival-health" title={`${TEXT.health} ${healthPercent}%`}>
