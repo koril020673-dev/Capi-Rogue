@@ -3,6 +3,21 @@ import { getAdvisorById } from '../logic/advisorEngine';
 import { getMomentumLabel } from '../logic/momentumEngine';
 import { useGameStore } from '../store/useGameStore';
 
+const TEXT = Object.freeze({
+  floor: '\uC6D4\uCC28',
+  phase: '\uACBD\uAE30',
+  health: '\uCCB4\uB825',
+  credit: '\uD06C\uB808\uB527',
+  momentum: '\uD750\uB984',
+  reward: '\uBCF4\uC0C1',
+  advisor: '\uC790\uBB38\uAC00',
+  thisMonth: '\uC774\uBC88 \uB2EC',
+  monthsLater: '\uAC1C\uC6D4 \uD6C4',
+  recover: '\uD68C\uBCF5',
+  demand: '\uC218\uC694',
+  freeze: '\uACAC\uC81C',
+});
+
 export default function StatusBar() {
   const floor = useGameStore((state) => state.floor);
   const phase = useGameStore((state) => state.phase);
@@ -11,23 +26,18 @@ export default function StatusBar() {
   const momentumHistory = useGameStore((state) => state.momentumHistory);
   const useCreditToken = useGameStore((state) => state.useCreditToken);
   const advisor = getAdvisorById(selectedAdvisorId);
+  const maxHealth = player.maxHealth ?? 10;
   const nextRewardIn = floor % 5 === 0 ? 0 : 5 - (floor % 5);
   const hasCredit = player.creditTokens > 0;
 
   return (
     <header className="cr2-status-bar">
-      <div className="cr2-status-block">
-        <span className="cr2-status-label">월차</span>
-        <strong className="cr2-status-value">{floor}/120개월</strong>
-      </div>
-      <div className="cr2-status-block">
-        <span className="cr2-status-label">경기</span>
-        <strong className="cr2-status-value">{ECONOMIC_PHASE_LABELS[phase]}</strong>
-      </div>
+      <StatusBlock label={TEXT.floor} value={`${floor}/120`} />
+      <StatusBlock label={TEXT.phase} value={ECONOMIC_PHASE_LABELS[phase]} />
       <div className="cr2-status-block cr2-status-block--wide">
-        <span className="cr2-status-label">체력</span>
-        <div className="cr2-health-slots" aria-label={`체력 ${player.health}`}>
-          {Array.from({ length: 10 }, (_, index) => (
+        <span className="cr2-status-label">{TEXT.health}</span>
+        <div className="cr2-health-slots" aria-label={`${TEXT.health} ${player.health}`}>
+          {Array.from({ length: maxHealth }, (_, index) => (
             <span
               className={
                 index < player.health ? 'cr2-health-slot cr2-health-slot--on' : 'cr2-health-slot'
@@ -37,58 +47,62 @@ export default function StatusBar() {
           ))}
         </div>
       </div>
+      <StatusBlock label={TEXT.credit} value={player.creditTokens} />
+      <StatusBlock label={TEXT.momentum} value={getMomentumLabel(momentumHistory)} />
+      <StatusBlock
+        label={TEXT.reward}
+        value={nextRewardIn === 0 ? TEXT.thisMonth : `${nextRewardIn}${TEXT.monthsLater}`}
+      />
       <div className="cr2-status-block">
-        <span className="cr2-status-label">크레딧</span>
-        <strong className="cr2-status-value">{player.creditTokens}</strong>
-      </div>
-      <div className="cr2-status-block">
-        <span className="cr2-status-label">흐름</span>
-        <strong className="cr2-status-value">{getMomentumLabel(momentumHistory)}</strong>
-      </div>
-      <div className="cr2-status-block">
-        <span className="cr2-status-label">보상</span>
-        <strong className="cr2-status-value">
-          {nextRewardIn === 0 ? '이번 달' : `${nextRewardIn}개월 후`}
-        </strong>
-      </div>
-      <div className="cr2-status-block">
-        <span className="cr2-status-label">자문가</span>
+        <span className="cr2-status-label">{TEXT.advisor}</span>
         <strong className={`cr2-status-value cr2-advisor-tone--${advisor.id}`}>
-          {advisor.label}
+          {advisor.name}
         </strong>
       </div>
       <div className="cr2-credit-actions">
-        <button
-          aria-label="크레딧 1개로 체력 회복"
-          className="cr2-icon-button"
+        <CreditButton
           disabled={!hasCredit}
-          title="크레딧 1개로 체력 +2"
-          type="button"
+          label={TEXT.recover}
+          title={`${TEXT.credit} 1 -> ${TEXT.health} +2`}
           onClick={() => useCreditToken('recover-health')}
-        >
-          회복
-        </button>
-        <button
-          aria-label="크레딧 1개로 수요 증가"
-          className="cr2-icon-button"
+        />
+        <CreditButton
           disabled={!hasCredit}
-          title="크레딧 1개로 2개월간 수요 증가"
-          type="button"
+          label={TEXT.demand}
+          title={`${TEXT.credit} 1 -> ${TEXT.demand} boost`}
           onClick={() => useCreditToken('demand-boost')}
-        >
-          수요
-        </button>
-        <button
-          aria-label="크레딧 1개로 라이벌 견제"
-          className="cr2-icon-button"
+        />
+        <CreditButton
           disabled={!hasCredit}
-          title="크레딧 1개로 이번 달 라이벌 효율 감소"
-          type="button"
+          label={TEXT.freeze}
+          title={`${TEXT.credit} 1 -> rival freeze`}
           onClick={() => useCreditToken('rival-freeze')}
-        >
-          견제
-        </button>
+        />
       </div>
     </header>
+  );
+}
+
+function StatusBlock({ label, value }) {
+  return (
+    <div className="cr2-status-block">
+      <span className="cr2-status-label">{label}</span>
+      <strong className="cr2-status-value">{value}</strong>
+    </div>
+  );
+}
+
+function CreditButton({ disabled, label, title, onClick }) {
+  return (
+    <button
+      aria-label={title}
+      className="cr2-icon-button"
+      disabled={disabled}
+      title={title}
+      type="button"
+      onClick={onClick}
+    >
+      {label}
+    </button>
   );
 }

@@ -9,13 +9,18 @@ import RewardScreen from './screens/RewardScreen';
 import SettlementScreen from './screens/SettlementScreen';
 import TitleScreen from './screens/TitleScreen';
 import { SCREEN_IDS, useGameStore } from './store/useGameStore';
+import { getAdvisorThemeColor } from './logic/advisorEngine';
 
 export default function App() {
   const screen = useGameStore((state) => state.screen);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
+  const themeColor = getAdvisorThemeColor(selectedAdvisorId);
 
   return (
-    <div className={`cr2-app cr2-advisor-theme--${selectedAdvisorId}`}>
+    <div
+      className={`cr2-app cr2-advisor-theme--${selectedAdvisorId}`}
+      style={{ '--cr2-theme-color': themeColor, '--cr2-advisor': themeColor }}
+    >
       <BackgroundScene>{renderScreen(screen)}</BackgroundScene>
     </div>
   );

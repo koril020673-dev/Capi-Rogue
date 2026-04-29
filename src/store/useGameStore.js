@@ -10,7 +10,13 @@ import {
   STRATEGY_TABS,
 } from '../constants/strategies';
 import { ADVISORS } from '../constants/advisors';
-import { applyAdvisorStartBonus, getAdvisorById } from '../logic/advisorEngine';
+import {
+  applyAdvisorStartBonus,
+  getAdvisorById,
+  getAdvisorHealthDelta,
+  getAdvisorRewardCreditBonus,
+  hasCreditOnlyHealthRecovery,
+} from '../logic/advisorEngine';
 import { applyHealthDelta, calculateHealthDeltaFromProfit, getScheduledHealthRecovery, isGameOverHealth } from '../logic/healthEngine';
 import { updateMomentumHistory, getMomentumScore } from '../logic/momentumEngine';
 import { addExternalEventEffect, applyEffectBundleToPlayer, drawInternalEvent, expireMarketEffects, resolveInternalChoice, selectExternalEvent } from '../logic/eventEngine';
@@ -63,6 +69,7 @@ function createRunState(advisorId) {
     screen: SCREEN_IDS.MAIN,
     session: Object.freeze({ mode: 'guest', userId: '' }),
     selectedAdvisorId: advisorId,
+    selectedAdvisor: getAdvisorById(advisorId),
     floor: 1,
     phase: ECONOMIC_PHASES.STABLE,
     player: advisorPlayer,
@@ -88,7 +95,8 @@ const baseState = Object.freeze({
   login: INITIAL_LOGIN,
   session: Object.freeze({ mode: 'guest', userId: '' }),
   selectedAdvisorId: ADVISORS[0].id,
-  unlockedAdvisorOrder: 1,
+  selectedAdvisor: ADVISORS[0],
+  unlockedAdvisorOrder: ADVISORS.length,
   legacyCards: Object.freeze([]),
   floor: 1,
   phase: ECONOMIC_PHASES.STABLE,
@@ -140,7 +148,10 @@ export const useGameStore = create((set, get) => ({
     set({
       session: Object.freeze({ mode: 'account', userId: userId.trim() }),
       screen: SCREEN_IDS.TITLE,
-      unlockedAdvisorOrder: savedGame?.unlockedAdvisorOrder ?? get().unlockedAdvisorOrder,
+      unlockedAdvisorOrder: Math.max(
+        ADVISORS.length,
+        savedGame?.unlockedAdvisorOrder ?? get().unlockedAdvisorOrder,
+      ),
       legacyCards: Object.freeze(savedGame?.legacyCards ?? get().legacyCards),
     });
   },
@@ -158,7 +169,16 @@ export const useGameStore = create((set, get) => ({
   },
 
   selectAdvisor(advisorId) {
-    set({ selectedAdvisorId: advisorId });
+    set({ selectedAdvisorId: advisorId, selectedAdvisor: getAdvisorById(advisorId) });
+  },
+
+  setAdvisor(advisor) {
+    const selectedAdvisor = getAdvisorById(advisor?.id);
+
+    set({
+      selectedAdvisorId: selectedAdvisor.id,
+      selectedAdvisor,
+    });
   },
 
   startRun(advisorId = get().selectedAdvisorId) {
@@ -322,7 +342,7 @@ export const useGameStore = create((set, get) => ({
       return;
     }
 
-    const outcome = resolveInternalChoice(choice, Math.random());
+    const outcome = resolveInternalChoice(choice, Math.random(), state.selectedAdvisorId);
     const affectedPlayer = applyEffectBundleToPlayer(state.player, outcome.effects);
 
     set({
@@ -355,11 +375,9 @@ export const useGameStore = create((set, get) => ({
     }
 
     if (isRewardFloor(state.floor)) {
-      const advisor = getAdvisorById(state.selectedAdvisorId);
       const rewardOptions = generateRewardOptions({
         floor: state.floor,
         momentumScore: getMomentumScore(state.momentumHistory),
-        advisorLuck: advisor.stats.rewardLuck,
       });
 
       set({
@@ -381,7 +399,8 @@ export const useGameStore = create((set, get) => ({
     }
 
     const rewardResult = applyRewardToPlayer(state.player, reward);
-    const creditGrant = getRewardCreditGrant(state.floor);
+    const creditGrant =
+      getRewardCreditGrant(state.floor) + getAdvisorRewardCreditBonus(state.selectedAdvisorId);
     const rewardEffect = rewardResult.marketEffect
       ? Object.freeze({
           ...rewardResult.marketEffect,
@@ -416,7 +435,7 @@ export const useGameStore = create((set, get) => ({
         player: Object.freeze({
           ...state.player,
           creditTokens: spendCreditTokens(state.player.creditTokens, 1),
-          health: Math.min(10, state.player.health + 2),
+          health: Math.min(state.player.maxHealth ?? 10, state.player.health + 2),
         }),
       });
       return;
@@ -499,8 +518,15 @@ function settleCurrentMonth(set, get, internalOutcome) {
     settlement.profit,
     settlement.capitalBefore,
   );
-  const totalHealthDelta = healthDelta + settlement.playerWarHealthDelta;
-  const nextHealth = applyHealthDelta(settlement.playerAfterOperation.health, totalHealthDelta);
+  const totalHealthDelta = getAdvisorHealthDelta(
+    state.selectedAdvisorId,
+    healthDelta + settlement.playerWarHealthDelta,
+  );
+  const nextHealth = applyHealthDelta(
+    settlement.playerAfterOperation.health,
+    totalHealthDelta,
+    settlement.playerAfterOperation.maxHealth ?? 10,
+  );
   const nextMomentumHistory = updateMomentumHistory(state.momentumHistory, settlement.profit);
   const result = Object.freeze({
     profit: settlement.profit,
@@ -538,11 +564,7 @@ function settleCurrentMonth(set, get, internalOutcome) {
 
 function prepareFloor(state) {
   const freshEffects = expireMarketEffects(state.marketEffects, state.floor);
-  const advisor = getAdvisorById(state.selectedAdvisorId);
-  const externalEvent =
-    Math.random() < advisor.stats.eventShieldChance
-      ? null
-      : selectExternalEvent({ floor: state.floor, randomValue: Math.random() });
+  const externalEvent = selectExternalEvent({ floor: state.floor, randomValue: Math.random() });
   const marketEffects = addExternalEventEffect(freshEffects, externalEvent, state.floor);
 
   return Object.freeze({
@@ -563,10 +585,12 @@ function advanceToNextFloor(set, get) {
   const phaseShift = applyEconomicPhaseShift(state.phase, Math.random());
   const respawnedRivals = processRivalRespawn(state.rivals);
   const activatedRivals = activateRivalsForFloor(respawnedRivals, nextFloor);
-  const healthRecovery = getScheduledHealthRecovery(nextFloor);
+  const healthRecovery = hasCreditOnlyHealthRecovery(state.selectedAdvisorId)
+    ? 0
+    : getScheduledHealthRecovery(nextFloor);
   const recoveredPlayer = Object.freeze({
     ...state.player,
-    health: Math.min(10, state.player.health + healthRecovery),
+    health: Math.min(state.player.maxHealth ?? 10, state.player.health + healthRecovery),
   });
   const nextState = Object.freeze({
     ...state,

@@ -8,6 +8,15 @@ import { ECONOMIC_PHASE_LABELS } from '../constants/economy';
 import { selectMarketPreview, useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 
+const TEXT = Object.freeze({
+  capital: '\uC790\uBCF8',
+  debt: '\uBD80\uCC44',
+  interest: '\uC6D4 \uC774\uC790',
+  quality: '\uD488\uC9C8',
+  brand: '\uBE0C\uB79C\uB4DC',
+  awareness: '\uC778\uC9C0\uB3C4',
+});
+
 export default function MainScreen() {
   const gameState = useGameStore();
   const preview = useMemo(() => selectMarketPreview(gameState), [gameState]);
@@ -29,16 +38,16 @@ export default function MainScreen() {
               .filter((effect) => effect.expiresOnFloor >= floor)
               .map((effect) => <strong key={effect.id}>{effect.title}</strong>)}
           </div>
-          <DemandMap totalDemand={preview.totalDemand} participants={preview.participants} />
+          <DemandMap totalDemand={preview.totalDemand} participants={preview.participants} revealDemand={false} />
           <div className="cr2-bottom-info">
             <StrategyWarning />
             <div className="cr2-company-summary">
-              <SummaryItem label="자본" value={formatWon(player.capital)} />
-              <SummaryItem label="부채" value={formatWon(expectedDebt)} />
-              <SummaryItem label="월 이자" value={formatWon(expectedInterest)} />
-              <SummaryItem label="품질" value={preview.player.quality.toFixed(1)} />
-              <SummaryItem label="브랜드" value={player.brand.toFixed(1)} />
-              <SummaryItem label="인지도" value={`${Math.round(preview.player.awareness * 100)}%`} />
+              <SummaryItem label={TEXT.capital} value={formatWon(player.capital)} />
+              <SummaryItem label={TEXT.debt} value={formatWon(expectedDebt)} />
+              <SummaryItem label={TEXT.interest} value={formatWon(expectedInterest)} />
+              <SummaryItem label={TEXT.quality} value={preview.player.quality.toFixed(1)} />
+              <SummaryItem label={TEXT.brand} value={player.brand.toFixed(1)} />
+              <SummaryItem label={TEXT.awareness} value={`${Math.round(preview.player.awareness * 100)}%`} />
             </div>
           </div>
           <TabBar />

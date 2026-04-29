@@ -67,8 +67,10 @@ export function applyRewardToPlayer(player, reward) {
   }
 
   if (effect.type === 'health') {
+    const maxHealth = player.maxHealth ?? 10;
+
     return Object.freeze({
-      player: Object.freeze({ ...player, health: Math.min(10, player.health + effect.amount) }),
+      player: Object.freeze({ ...player, health: Math.min(maxHealth, player.health + effect.amount) }),
     });
   }
 
@@ -122,10 +124,12 @@ export function applyRewardToPlayer(player, reward) {
   }
 
   if (effect.type === 'healthAndDebt') {
+    const maxHealth = player.maxHealth ?? 10;
+
     return Object.freeze({
       player: Object.freeze({
         ...player,
-        health: Math.min(10, player.health + effect.health),
+        health: Math.min(maxHealth, player.health + effect.health),
         debt: Math.max(0, player.debt - effect.debt),
       }),
     });

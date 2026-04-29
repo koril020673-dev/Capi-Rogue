@@ -1,7 +1,7 @@
 export const MAX_HEALTH = 10;
 
-export function clampHealth(health) {
-  return Math.min(Math.max(Math.round(health), 0), MAX_HEALTH);
+export function clampHealth(health, maxHealth = MAX_HEALTH) {
+  return Math.min(Math.max(Math.round(health), 0), maxHealth);
 }
 
 export function calculateHealthDeltaFromProfit(profit, capitalBeforeSettlement) {
@@ -22,8 +22,8 @@ export function getScheduledHealthRecovery(floor) {
   return floor > 0 && floor % 10 === 0 ? 1 : 0;
 }
 
-export function applyHealthDelta(health, delta) {
-  return clampHealth(health + delta);
+export function applyHealthDelta(health, delta, maxHealth = MAX_HEALTH) {
+  return clampHealth(health + delta, maxHealth);
 }
 
 export function isGameOverHealth(health) {

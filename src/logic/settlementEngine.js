@@ -8,13 +8,24 @@ import {
   SALES_QUANTITY_IDS,
   SALES_QUANTITY_OPTIONS,
 } from '../constants/strategies';
-import { getAdvisorById } from './advisorEngine';
+import {
+  getAdvisorAttractionMultiplier,
+  getAdvisorById,
+  getAdvisorOrderCapMultiplier,
+} from './advisorEngine';
 import { applyFactoryUpgrade, calculateSelectedQuality } from './brandQualityEngine';
 import { calculateTotalDemand } from './demandEngine';
 import { getActiveMarketModifiers } from './eventEngine';
 import { calculateDemandSplit } from './marketEngine';
 import { getMomentumDemandModifier } from './momentumEngine';
 import { buildRivalParticipants, resolveRivalWar } from './rivalEngine';
+
+const QUALITY_COST_MULTIPLIERS = Object.freeze({
+  [QUALITY_STRATEGY_IDS.BEST]: 1.25,
+  [QUALITY_STRATEGY_IDS.BEST_0_8]: 1,
+  [QUALITY_STRATEGY_IDS.BEST_0_5]: 0.78,
+  [QUALITY_STRATEGY_IDS.BEST_0_3]: 0.62,
+});
 
 export function getSelectedPrice(strategy, unitCost) {
   const selectedOption = PRICE_OPTIONS.find((option) => option.id === strategy.priceOptionId);
@@ -26,7 +37,7 @@ export function getSelectedPrice(strategy, unitCost) {
   return Math.round(unitCost * selectedOption.multiplier);
 }
 
-export function getSelectedQuality(strategy, player, advisor) {
+export function getSelectedQuality(strategy, player) {
   const selectedOption = QUALITY_OPTIONS.find(
     (option) => option.id === strategy.qualityOptionId,
   );
@@ -34,7 +45,7 @@ export function getSelectedQuality(strategy, player, advisor) {
   return calculateSelectedQuality(
     player.maxQuality,
     selectedOption?.multiplier ?? 0.8,
-    advisor.stats.qualityBonus,
+    0,
   );
 }
 
@@ -43,7 +54,6 @@ export function buildPlayerParticipant(player, strategy, advisor, marketModifier
     1,
     Math.round(
       player.unitCost *
-        advisor.stats.costMultiplier *
         marketModifiers.costMultiplier *
         getQualityCostMultiplier(strategy),
     ),
@@ -56,12 +66,13 @@ export function buildPlayerParticipant(player, strategy, advisor, marketModifier
     slotLabel: '\uB0B4 \uD68C\uC0AC',
     color: '#00FF41',
     price: getSelectedPrice(strategy, effectiveUnitCost),
-    quality: getSelectedQuality(strategy, player, advisor) * marketModifiers.qualityMultiplier,
+    quality: getSelectedQuality(strategy, player) * marketModifiers.qualityMultiplier,
     brand: player.brand,
     awareness: player.awareness * marketModifiers.awarenessMultiplier,
     efficiency: player.efficiency,
     resistance: player.resistance,
     unitCost: effectiveUnitCost,
+    attractionMultiplier: getAdvisorAttractionMultiplier(advisor.id),
   });
 }
 
@@ -85,7 +96,7 @@ export function buildMarketPreview(state, randomValue = 0.5) {
     phase: state.phase,
     momentumModifier: getMomentumDemandModifier(state.momentumHistory),
     marketDemandModifier: marketModifiers.demandMultiplier,
-    advisorDemandBonus: advisor.stats.demandBonus,
+    advisorDemandBonus: 0,
     randomValue,
   });
   const demandSplit = calculateDemandSplit([playerParticipant, ...rivalParticipants], totalDemand);
@@ -123,7 +134,10 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     randomValue,
   );
   const playerDemand = preview.player.demand;
-  const plannedProduction = getPlannedProductionCount(state.strategy, preview.totalDemand);
+  const plannedProduction = Math.floor(
+    getPlannedProductionCount(state.strategy, preview.totalDemand) *
+      getAdvisorOrderCapMultiplier(state.selectedAdvisorId),
+  );
   const unitsSold = Math.min(plannedProduction, playerDemand);
   const unsoldUnits = Math.max(0, plannedProduction - unitsSold);
   const productionCost = plannedProduction * preview.player.unitCost;
@@ -268,11 +282,13 @@ export function getPlannedProductionCount(strategy, totalDemand) {
   return Math.ceil(totalDemand * (selectedOption?.ratio ?? 0.55));
 }
 
-function getQualityCostMultiplier(strategy) {
-  const selectedOption = QUALITY_OPTIONS.find(
-    (option) => option.id === strategy.qualityOptionId,
-  );
+export function getQualityCostMultiplier(strategy) {
+  if (QUALITY_COST_MULTIPLIERS[strategy.qualityOptionId]) {
+    return QUALITY_COST_MULTIPLIERS[strategy.qualityOptionId];
+  }
+
+  const selectedOption = QUALITY_OPTIONS.find((option) => option.id === strategy.qualityOptionId);
   const qualityMultiplier = selectedOption?.multiplier ?? 0.8;
 
-  return 0.72 + qualityMultiplier * 0.28;
+  return Math.max(0.5, 0.45 + qualityMultiplier * 0.7);
 }

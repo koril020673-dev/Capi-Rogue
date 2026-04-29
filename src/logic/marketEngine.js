@@ -6,8 +6,13 @@ export function calculateAttraction(participant) {
   const price = Math.max(1, participant.price);
   const resistance = Math.min(Math.max(participant.resistance, 0), 0.92);
   const scopePower = participant.strategy?.scopePower ?? 1;
+  const attractionMultiplier = participant.attractionMultiplier ?? 1;
 
-  return (((quality + brand) * efficiency * (1 + awareness)) / (price * (1 - resistance))) * scopePower;
+  return (
+    (((quality + brand) * efficiency * (1 + awareness)) / (price * (1 - resistance))) *
+    scopePower *
+    attractionMultiplier
+  );
 }
 
 export function calculateMarketShares(participants) {
