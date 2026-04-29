@@ -19,7 +19,7 @@ import {
 } from '../logic/advisorEngine';
 import { applyHealthDelta, calculateHealthDeltaFromProfit, getScheduledHealthRecovery, isGameOverHealth } from '../logic/healthEngine';
 import { updateMomentumHistory, getMomentumScore } from '../logic/momentumEngine';
-import { addExternalEventEffect, applyEffectBundleToPlayer, drawInternalEvent, expireMarketEffects, resolveInternalChoice, selectExternalEvent } from '../logic/eventEngine';
+import { addExternalEventEffect, applyEffectBundleToPlayer, drawInternalEvent, expireMarketEffects, resolveInternalChoice, rollRivalEvent, selectExternalEvent } from '../logic/eventEngine';
 import { applyEconomicPhaseShift } from '../logic/econEngine';
 import { calculateSettlement, buildOperationalMarketPreview } from '../logic/settlementEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
@@ -77,6 +77,7 @@ function createRunState(advisorId) {
     rivals: createInitialRivals(),
     marketEffects: Object.freeze([]),
     currentExternalEvent: null,
+    currentRivalEvent: null,
     lastExternalEvent: null,
     currentInternalEvent: null,
     currentInternalOutcome: null,
@@ -105,6 +106,7 @@ const baseState = Object.freeze({
   rivals: createInitialRivals(0.5),
   marketEffects: Object.freeze([]),
   currentExternalEvent: null,
+  currentRivalEvent: null,
   lastExternalEvent: null,
   currentInternalEvent: null,
   currentInternalOutcome: null,
@@ -195,7 +197,7 @@ export const useGameStore = create((set, get) => ({
   },
 
   confirmExternalEvent() {
-    set({ screen: SCREEN_IDS.MAIN, currentExternalEvent: null });
+    set({ currentExternalEvent: null, currentRivalEvent: null });
   },
 
   setActiveTab(tabId) {
@@ -320,7 +322,7 @@ export const useGameStore = create((set, get) => ({
   },
 
   proceedAfterStrategy() {
-    const internalEvent = drawInternalEvent({ randomValue: Math.random() });
+    const internalEvent = drawInternalEvent({ randomValue: Math.random(), gameState: get() });
 
     if (internalEvent) {
       set({
@@ -342,19 +344,23 @@ export const useGameStore = create((set, get) => ({
       return;
     }
 
-    const outcome = resolveInternalChoice(choice, Math.random(), state.selectedAdvisorId);
+    const outcome = resolveInternalChoice(choice, Math.random(), state.selectedAdvisorId, state);
     const affectedPlayer = applyEffectBundleToPlayer(state.player, outcome.effects);
 
     set({
       player: affectedPlayer,
       currentInternalOutcome: Object.freeze({
         choiceLabel: choice.label,
-        tier: choice.tier,
+        tier: choice.type ?? choice.tier,
         ...outcome,
       }),
     });
+  },
 
-    settleCurrentMonth(set, get, outcome);
+  confirmInternalEventOutcome() {
+    const state = get();
+
+    settleCurrentMonth(set, get, state.currentInternalOutcome);
   },
 
   showResult() {
@@ -492,6 +498,7 @@ export const useGameStore = create((set, get) => ({
           creditTokens: spendCreditTokens(state.player.creditTokens, 1),
         }),
         currentInternalEvent: nextEvent,
+        currentInternalOutcome: null,
       });
     }
   },
@@ -565,17 +572,20 @@ function settleCurrentMonth(set, get, internalOutcome) {
 function prepareFloor(state) {
   const freshEffects = expireMarketEffects(state.marketEffects, state.floor);
   const externalEvent = selectExternalEvent({ floor: state.floor, randomValue: Math.random() });
-  const marketEffects = addExternalEventEffect(freshEffects, externalEvent, state.floor);
+  const rivalEvent = rollRivalEvent(state.rivals, Math.random());
+  const externalEffects = addExternalEventEffect(freshEffects, externalEvent, state.floor);
+  const marketEffects = addExternalEventEffect(externalEffects, rivalEvent, state.floor);
 
   return Object.freeze({
     marketEffects,
     currentExternalEvent: externalEvent,
+    currentRivalEvent: rivalEvent,
     lastExternalEvent: externalEvent,
     currentInternalEvent: null,
     currentInternalOutcome: null,
     currentSettlement: null,
     currentResult: null,
-    screen: externalEvent ? SCREEN_IDS.EVENT : SCREEN_IDS.MAIN,
+    screen: SCREEN_IDS.MAIN,
   });
 }
 

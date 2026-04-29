@@ -68,7 +68,7 @@ export function buildPlayerParticipant(player, strategy, advisor, marketModifier
     color: '#00FF41',
     price: getSelectedPrice(strategy, effectiveUnitCost),
     quality: getSelectedQuality(strategy, player) * marketModifiers.qualityMultiplier,
-    brand: player.brand,
+    brand: player.brand * (marketModifiers.brandMultiplier ?? 1),
     awareness: player.awareness * marketModifiers.awarenessMultiplier,
     efficiency: player.efficiency,
     resistance: player.resistance,
@@ -134,10 +134,14 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     Object.freeze({ ...state, player: workingPlayer }),
     randomValue,
   );
-  const playerDemand = preview.player.demand;
+  const playerDemand = Math.round(
+    preview.player.demand *
+      Math.max(0, 1 - (preview.marketModifiers.playerDemandPenalty ?? 0)),
+  );
   const plannedProduction = Math.floor(
     getPlannedProductionCount(state.strategy, preview.totalDemand) *
-      getAdvisorOrderCapMultiplier(state.selectedAdvisorId),
+      getAdvisorOrderCapMultiplier(state.selectedAdvisorId) *
+      preview.marketModifiers.orderCapMultiplier,
   );
   const unitsSold = Math.min(plannedProduction, playerDemand);
   const unsoldUnits = Math.max(0, plannedProduction - unitsSold);
@@ -145,12 +149,13 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
   const revenue = unitsSold * preview.player.price;
   const debtService = Math.round((workingPlayer.debt * 0.012) * preview.marketModifiers.debtCostMultiplier);
   const disposalCost = Math.round(unsoldUnits * preview.player.unitCost * 0.18);
-  const profit =
+  const rawProfit =
     revenue -
     productionCost -
     disposalCost -
     debtService -
     operationResult.expense;
+  const profit = Math.round(rawProfit * preview.marketModifiers.netProfitMultiplier);
   const capitalAfter = workingPlayer.capital + profit;
   const rivalWar = resolveRivalWar({
     rivals: state.rivals,

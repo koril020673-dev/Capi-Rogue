@@ -1,0 +1,152 @@
+.cr2-event-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 2px solid var(--cr2-accent);
+  border-radius: 6px;
+  background: rgba(10, 10, 10, 0.94);
+  box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.cr2-event-banner div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cr2-event-banner p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.cr2-event-banner strong {
+  color: var(--cr2-accent);
+}
+
+.cr2-event-banner span:not(.cr2-panel-label) {
+  color: var(--cr2-text);
+}
+
+.cr2-event-card {
+  background: #0a0a0a;
+}
+
+.cr2-event-card--production {
+  border-color: #00aa00;
+}
+
+.cr2-event-card--hr {
+  border-color: #00ff41;
+}
+
+.cr2-event-card--marketing {
+  border-color: #ffd700;
+}
+
+.cr2-event-card--finance {
+  border-color: #dc143c;
+}
+
+.cr2-event-card-head {
+  display: grid;
+  gap: 12px;
+}
+
+.cr2-event-category {
+  justify-self: start;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-family: var(--cr2-font-pixel);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.cr2-event-category--production {
+  color: #00aa00;
+}
+
+.cr2-event-category--hr {
+  color: #00ff41;
+}
+
+.cr2-event-category--marketing {
+  color: #ffd700;
+}
+
+.cr2-event-category--finance {
+  color: #dc143c;
+}
+
+.cr2-event-choice {
+  border-color: var(--cr2-grid);
+  background: #0a0a0a;
+}
+
+.cr2-event-choice:hover {
+  border-color: var(--cr2-accent);
+}
+
+.cr2-event-choice--safe {
+  border-color: #00aa00;
+}
+
+.cr2-event-choice--normal {
+  border-color: #00ff41;
+}
+
+.cr2-event-choice--gamble {
+  border-color: #ffd700;
+}
+
+.cr2-event-choice--absurd {
+  border-color: #dc143c;
+}
+
+.cr2-event-choice span {
+  color: var(--cr2-accent);
+  font-weight: 800;
+}
+
+.cr2-event-choice small {
+  color: var(--cr2-muted);
+}
+
+.cr2-event-result {
+  display: grid;
+  gap: 12px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  margin-top: 18px;
+  padding: 16px;
+}
+
+.cr2-event-result strong {
+  font-size: 18px;
+}
+
+.cr2-event-result p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.cr2-event-result--good {
+  color: #00ff41;
+}
+
+.cr2-event-result--bad {
+  color: #dc143c;
+}
+
+@media (max-width: 640px) {
+  .cr2-event-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

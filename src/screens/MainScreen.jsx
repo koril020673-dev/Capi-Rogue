@@ -23,6 +23,9 @@ export default function MainScreen() {
   const phase = useGameStore((state) => state.phase);
   const player = useGameStore((state) => state.player);
   const marketEffects = useGameStore((state) => state.marketEffects);
+  const currentExternalEvent = useGameStore((state) => state.currentExternalEvent);
+  const currentRivalEvent = useGameStore((state) => state.currentRivalEvent);
+  const confirmExternalEvent = useGameStore((state) => state.confirmExternalEvent);
   const floor = useGameStore((state) => state.floor);
   const expectedDebt = preview.playerAfterOperation?.debt ?? player.debt;
   const expectedInterest = Math.round((expectedDebt * 0.012) * preview.marketModifiers.debtCostMultiplier);
@@ -30,6 +33,10 @@ export default function MainScreen() {
   return (
     <main className="cr2-main-screen">
       <StatusBar />
+      <EventNoticeBanner
+        events={[currentExternalEvent, currentRivalEvent].filter(Boolean)}
+        onConfirm={confirmExternalEvent}
+      />
       <section className="cr2-battle-layout">
         <div className="cr2-left-panel">
           <div className="cr2-phase-strip">
@@ -55,6 +62,29 @@ export default function MainScreen() {
         <RightPanel preview={preview} />
       </section>
     </main>
+  );
+}
+
+function EventNoticeBanner({ events, onConfirm }) {
+  if (!events.length) {
+    return null;
+  }
+
+  return (
+    <section className="cr2-event-banner">
+      <div>
+        <span className="cr2-panel-label">MARKET EVENT</span>
+        {events.map((event) => (
+          <p key={event.id}>
+            <strong>{event.title ?? event.name}</strong>
+            <span>{event.description ?? event.message}</span>
+          </p>
+        ))}
+      </div>
+      <button className="cr2-secondary-button" type="button" onClick={onConfirm}>
+        확인
+      </button>
+    </section>
   );
 }
 

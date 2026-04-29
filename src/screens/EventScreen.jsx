@@ -1,69 +1,79 @@
-import EventCard from '../components/EventCard';
-import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
+import { useGameStore } from '../store/useGameStore';
+
+const TYPE_LABELS = Object.freeze({
+  SAFE: '안전',
+  NORMAL: '일반',
+  GAMBLE: '도박',
+  ABSURD: '광기',
+});
 
 export default function EventScreen() {
-  const screen = useGameStore((state) => state.screen);
-  const externalEvent = useGameStore((state) => state.currentExternalEvent);
-  const internalEvent = useGameStore((state) => state.currentInternalEvent);
-  const confirmExternalEvent = useGameStore((state) => state.confirmExternalEvent);
+  const event = useGameStore((state) => state.currentInternalEvent);
+  const outcome = useGameStore((state) => state.currentInternalOutcome);
+  const chooseInternalEventOption = useGameStore((state) => state.chooseInternalEventOption);
+  const confirmInternalEventOutcome = useGameStore((state) => state.confirmInternalEventOutcome);
+  const useCreditToken = useGameStore((state) => state.useCreditToken);
+  const creditTokens = useGameStore((state) => state.player.creditTokens);
 
-  if (screen === SCREEN_IDS.EVENT && internalEvent) {
-    return (
-      <main className="cr2-event-screen">
-        <EventCard event={internalEvent} />
-      </main>
-    );
+  if (!event) {
+    return null;
   }
 
   return (
     <main className="cr2-event-screen">
-      <section className="cr2-external-popup">
-        <span className="cr2-panel-label">시장 뉴스</span>
-        <h1>{externalEvent?.title}</h1>
-        <p>{externalEvent?.description}</p>
-        {externalEvent ? (
-          <div className="cr2-event-effect-list">
-            <span>{externalEvent.duration}개월 동안 시장 조건에 반영됩니다.</span>
-            {getExternalEffectLabels(externalEvent.effects).map((label) => (
-              <strong key={label}>{label}</strong>
-            ))}
-          </div>
-        ) : null}
-        <button className="cr2-primary-button" type="button" onClick={confirmExternalEvent}>
-          전략 선택으로
-        </button>
-      </section>
+      <article className={`cr2-event-card cr2-event-card--${event.category.toLowerCase()}`}>
+        <header className="cr2-event-card-head">
+          <h1>{event.name}</h1>
+          <span className={`cr2-event-category cr2-event-category--${event.category.toLowerCase()}`}>
+            {event.category}
+          </span>
+          <p>{event.description}</p>
+        </header>
+
+        {outcome ? (
+          <section className={outcome.success ? 'cr2-event-result cr2-event-result--good' : 'cr2-event-result cr2-event-result--bad'}>
+            <strong>{outcome.label}</strong>
+            <p>{outcome.description}</p>
+            <button className="cr2-primary-button" type="button" onClick={confirmInternalEventOutcome}>
+              정산 확인
+            </button>
+          </section>
+        ) : (
+          <>
+            <div className="cr2-event-choice-list">
+              {event.choices.map((choice, index) => (
+                <button
+                  className={`cr2-event-choice cr2-event-choice--${choice.type.toLowerCase()}`}
+                  key={choice.id}
+                  type="button"
+                  onClick={() => chooseInternalEventOption(choice.id)}
+                >
+                  <span>{String.fromCharCode(65 + index)}. {choice.label}</span>
+                  <small>{TYPE_LABELS[choice.type]} 선택지 · {getProbabilityHint(choice)}</small>
+                </button>
+              ))}
+            </div>
+            <button
+              className="cr2-secondary-button"
+              disabled={creditTokens <= 0}
+              type="button"
+              onClick={() => useCreditToken('card-reroll')}
+            >
+              카드 교체
+            </button>
+          </>
+        )}
+      </article>
     </main>
   );
 }
 
-function getExternalEffectLabels(effects = {}) {
-  const labels = [];
-
-  if (effects.demandMultiplier && effects.demandMultiplier !== 1) {
-    labels.push(`수요 ${formatMultiplier(effects.demandMultiplier)}`);
+function getProbabilityHint(choice) {
+  if (!Array.isArray(choice.outcome)) {
+    return '결과 확정';
   }
 
-  if (effects.costMultiplier && effects.costMultiplier !== 1) {
-    labels.push(`원가 ${formatMultiplier(effects.costMultiplier)}`);
-  }
+  const best = Math.round(Math.max(...choice.outcome.map((item) => item.prob)) * 100);
 
-  if (effects.qualityMultiplier && effects.qualityMultiplier !== 1) {
-    labels.push(`품질 ${formatMultiplier(effects.qualityMultiplier)}`);
-  }
-
-  if (effects.debtCostMultiplier && effects.debtCostMultiplier !== 1) {
-    labels.push(`부채비용 ${formatMultiplier(effects.debtCostMultiplier)}`);
-  }
-
-  if (effects.awarenessMultiplier && effects.awarenessMultiplier !== 1) {
-    labels.push(`인지도 효과 ${formatMultiplier(effects.awarenessMultiplier)}`);
-  }
-
-  return labels;
-}
-
-function formatMultiplier(multiplier) {
-  const percent = Math.round((multiplier - 1) * 100);
-  return `${percent > 0 ? '+' : ''}${percent}%`;
+  return `주요 결과 ${best}%`;
 }
