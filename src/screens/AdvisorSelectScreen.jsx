@@ -1,6 +1,17 @@
 import { ADVISORS } from '../constants/advisors';
 import { useGameStore } from '../store/useGameStore';
+import analystImage from '../assets/advisor_image/advisor_analyst.png';
+import gamblerImage from '../assets/advisor_image/advisor_gambler.png';
+import guardianImage from '../assets/advisor_image/advisor_guardian.png';
+import raiderImage from '../assets/advisor_image/advisor_raider.png';
 import '../styles/advisor.css';
+
+const ADVISOR_IMAGES = Object.freeze({
+  analyst: analystImage,
+  gambler: gamblerImage,
+  guardian: guardianImage,
+  raider: raiderImage,
+});
 
 const ADVISOR_DETAILS = Object.freeze({
   raider: Object.freeze({
@@ -47,7 +58,6 @@ const TEXT = Object.freeze({
   nerfs: '\uB108\uD504',
   difficulty: '\uB09C\uC774\uB3C4',
   start: '\uC774 \uC5B4\uB4DC\uBC14\uC774\uC800\uB85C \uC2DC\uC791',
-  iconTodo: 'TODO: replace with pixel art',
 });
 
 export default function AdvisorSelectScreen() {
@@ -87,8 +97,8 @@ export default function AdvisorSelectScreen() {
               >
                 <span className="cr2-starter-name">{advisor.name}</span>
                 <span className="cr2-starter-style">{advisor.style}</span>
-                <span className="cr2-starter-icon" aria-label={TEXT.iconTodo}>
-                  {details.icon}
+                <span className="cr2-starter-portrait">
+                  <img src={ADVISOR_IMAGES[advisor.id]} alt="" />
                 </span>
                 <span className="cr2-starter-summary">{details.summary}</span>
               </button>
@@ -100,6 +110,9 @@ export default function AdvisorSelectScreen() {
           className="cr2-advisor-detail"
           style={{ '--cr2-card-color': selectedAdvisor.themeColor }}
         >
+          <div className="cr2-advisor-detail-portrait">
+            <img src={ADVISOR_IMAGES[selectedAdvisor.id]} alt="" />
+          </div>
           <div className="cr2-advisor-detail-title">
             <span>{selectedAdvisor.name}</span>
             <strong>{selectedAdvisor.style}</strong>
