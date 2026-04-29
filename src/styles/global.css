@@ -9,6 +9,8 @@
   --cr2-muted: rgba(0, 170, 0, 0.62);
   --cr2-panel: rgba(0, 18, 0, 0.88);
   --cr2-advisor: #00ff41;
+  --cr2-font-readable: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+  --cr2-font-pixel: 'Press Start 2P', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 * {
@@ -26,8 +28,11 @@ body {
   overflow-x: hidden;
   background: var(--cr2-bg);
   color: var(--cr2-text);
-  font-family: 'Press Start 2P', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--cr2-font-readable);
+  font-size: 14px;
   letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 button,
@@ -235,6 +240,7 @@ button:disabled {
 .cr2-gameover-panel h1 {
   margin: 8px 0 22px;
   color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
   font-size: clamp(22px, 4vw, 44px);
   line-height: 1.35;
   word-break: keep-all;
@@ -244,7 +250,8 @@ button:disabled {
 .cr2-panel-label,
 .cr2-status-label {
   color: var(--cr2-muted);
-  font-size: 10px;
+  font-family: var(--cr2-font-pixel);
+  font-size: 9px;
   line-height: 1.6;
 }
 
@@ -254,8 +261,8 @@ button:disabled {
 .cr2-ledger-note,
 .cr2-hint-line {
   color: var(--cr2-text);
-  font-size: 12px;
-  line-height: 2;
+  font-size: 14px;
+  line-height: 1.85;
   word-break: keep-all;
 }
 
@@ -263,7 +270,8 @@ button:disabled {
   display: grid;
   gap: 8px;
   margin: 18px 0;
-  font-size: 11px;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .cr2-input {
@@ -275,6 +283,8 @@ button:disabled {
   color: var(--cr2-accent);
   padding: 10px 12px;
   outline: none;
+  font-family: var(--cr2-font-readable);
+  font-size: 14px;
 }
 
 .cr2-input:focus {
@@ -311,6 +321,9 @@ button:disabled {
   color: var(--cr2-text);
   min-height: 42px;
   padding: 10px 12px;
+  font-family: var(--cr2-font-readable);
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1.45;
   text-align: center;
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
@@ -352,7 +365,8 @@ button:disabled {
   border-radius: 4px;
   padding: 8px 10px;
   color: var(--cr2-advisor);
-  font-size: 10px;
+  font-family: var(--cr2-font-pixel);
+  font-size: 9px;
 }
 
 .cr2-screen-head {
@@ -387,13 +401,14 @@ button:disabled {
   min-height: 44px;
   margin: 10px 0;
   color: var(--cr2-advisor);
+  font-family: var(--cr2-font-pixel);
   font-size: 15px;
   line-height: 1.55;
 }
 
 .cr2-advisor-card p {
   min-height: 36px;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -413,7 +428,8 @@ button:disabled {
   gap: 12px;
   border-bottom: 1px solid rgba(0, 170, 0, 0.35);
   padding: 8px 0;
-  font-size: 10px;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .cr2-stat-list dt,
@@ -454,7 +470,8 @@ button:disabled {
 
 .cr2-status-value {
   color: var(--cr2-accent);
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -483,7 +500,7 @@ button:disabled {
   min-width: 0;
   min-height: 38px;
   padding: 6px;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .cr2-battle-layout {
@@ -513,7 +530,9 @@ button:disabled {
   gap: 8px;
   border-bottom: 2px solid var(--cr2-grid);
   padding: 10px;
-  font-size: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .cr2-phase-strip strong {
@@ -545,11 +564,13 @@ button:disabled {
 .cr2-demand-core strong {
   max-width: 120px;
   overflow-wrap: anywhere;
+  font-family: var(--cr2-font-pixel);
   font-size: 16px;
 }
 
 .cr2-demand-label {
-  font-size: 11px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .cr2-demand-routes {
@@ -613,7 +634,7 @@ button:disabled {
 
 .cr2-demand-card span,
 .cr2-demand-card small {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .cr2-rival-health {
@@ -665,7 +686,7 @@ button:disabled {
   border: 1px solid rgba(0, 170, 0, 0.55);
   border-radius: 4px;
   padding: 12px;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -732,6 +753,7 @@ button:disabled {
 .cr2-panel-title h2 {
   margin: 0 0 10px;
   color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
   font-size: 18px;
   line-height: 1.45;
 }
@@ -739,7 +761,7 @@ button:disabled {
 .cr2-panel-title p {
   margin: 0;
   color: var(--cr2-muted);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -749,7 +771,7 @@ button:disabled {
 .cr2-event-effect-list {
   display: grid;
   gap: 8px;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -767,7 +789,7 @@ button:disabled {
   border-radius: 4px;
   padding: 10px;
   background: rgba(0, 0, 0, 0.42);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -865,7 +887,7 @@ button:disabled {
 .cr2-event-choice span,
 .cr2-reward-card span,
 .cr2-reward-card small {
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -903,12 +925,13 @@ button:disabled {
 
 .cr2-ledger-highlight span {
   color: var(--cr2-muted);
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .cr2-ledger-highlight strong {
   color: var(--cr2-accent);
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 800;
   line-height: 1.5;
 }
 
@@ -947,7 +970,8 @@ button:disabled {
   align-items: center;
   border-bottom: 1px solid rgba(0, 170, 0, 0.35);
   padding: 8px 0;
-  font-size: 10px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .cr2-timeline-row strong {
