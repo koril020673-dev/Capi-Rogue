@@ -30,7 +30,7 @@ import { applyEconomicPhaseShift } from '../logic/econEngine';
 import { calculateSettlement, buildOperationalMarketPreview } from '../logic/settlementEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
 import { generateRewardOptions, applyRewardToPlayer, isRewardFloor } from '../logic/rewardEngine';
-import { createSaveSnapshot, loadGameFromLocalStorage, saveGameToLocalStorage } from '../logic/saveEngine';
+import { createSaveSnapshot, loadGameFromLocalStorage, saveGame, saveGameToLocalStorage } from '../logic/saveEngine';
 
 export const SCREEN_IDS = Object.freeze({
   LOGIN: 'login',
@@ -103,6 +103,8 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
     rewardOptions: Object.freeze([]),
     momentumHistory: Object.freeze([]),
     timeline: Object.freeze([]),
+    metRivals: Object.freeze([]),
+    playtime: 0,
     championUnlocked: false,
     runOutcome: null,
   });
@@ -133,6 +135,9 @@ const baseState = Object.freeze({
   rewardOptions: Object.freeze([]),
   momentumHistory: Object.freeze([]),
   timeline: Object.freeze([]),
+  isPaused: false,
+  metRivals: Object.freeze([]),
+  playtime: 0,
   championUnlocked: false,
   runOutcome: null,
 });
@@ -182,6 +187,57 @@ export const useGameStore = create((set, get) => ({
       session: Object.freeze({ mode: 'guest', userId: '' }),
       screen: SCREEN_IDS.TITLE,
       loginForm: INITIAL_LOGIN,
+    });
+  },
+
+  setPaused(isPaused) {
+    set({ isPaused: Boolean(isPaused) });
+  },
+
+  togglePaused() {
+    set((state) => ({ isPaused: !state.isPaused }));
+  },
+
+  addMetRival(rivalId) {
+    if (!rivalId) {
+      return;
+    }
+
+    set((state) => {
+      if (state.metRivals.includes(rivalId)) {
+        return {};
+      }
+
+      return { metRivals: Object.freeze([...state.metRivals, rivalId]) };
+    });
+  },
+
+  incrementPlaytime(seconds = 1) {
+    set((state) => ({
+      playtime: state.isPaused ? state.playtime : state.playtime + Math.max(0, Number(seconds) || 0),
+    }));
+  },
+
+  async saveCurrentGame() {
+    const snapshot = createSaveSnapshot(get());
+
+    saveGameToLocalStorage(snapshot);
+    await saveGame(snapshot);
+
+    return snapshot;
+  },
+
+  async saveAndExit() {
+    await get().saveCurrentGame();
+    set({ isPaused: false, screen: SCREEN_IDS.TITLE });
+  },
+
+  logout() {
+    set({
+      ...baseState,
+      loginForm: INITIAL_LOGIN,
+      session: Object.freeze({ mode: 'guest', userId: '' }),
+      isPaused: false,
     });
   },
 
@@ -462,6 +518,8 @@ export const useGameStore = create((set, get) => ({
       return;
     }
 
+    get().saveCurrentGame();
+
     advanceToNextFloor(set, get);
   },
 
@@ -584,6 +642,15 @@ function prepareFloor(state) {
   const externalEffects = addExternalEventEffect(freshEffects, externalEvent, state.floor);
   const marketEffects = addExternalEventEffect(externalEffects, rivalEvent, state.floor);
 
+  const metRivals = Object.freeze([
+    ...new Set([
+      ...(state.metRivals ?? []),
+      ...state.rivals
+        .filter((rival) => rival.active && !rival.defeated && !rival.bankrupt && !rival.respawning)
+        .map((rival) => rival.profileId ?? rival.id),
+    ]),
+  ]);
+
   return Object.freeze({
     marketEffects,
     currentExternalEvent: externalEvent,
@@ -593,6 +660,7 @@ function prepareFloor(state) {
     currentInternalOutcome: null,
     currentSettlement: null,
     currentResult: null,
+    metRivals,
     screen: SCREEN_IDS.MAIN,
   });
 }

@@ -89,10 +89,20 @@ export default function TitleScreen() {
     if (item.id === 'continue') {
       const profile = savedGame?.playerProfile ?? playerProfile;
 
-      useGameStore.setState({
-        playerProfile: profile,
-        screen: SCREEN_IDS.ADVISOR_SELECT,
-      });
+      if (savedGame?.floor && savedGame?.player) {
+        useGameStore.setState((state) => ({
+          ...savedGame,
+          session: state.session,
+          playerProfile: profile,
+          isPaused: false,
+          screen: savedGame.screen === SCREEN_IDS.REWARD ? SCREEN_IDS.REWARD : SCREEN_IDS.MAIN,
+        }));
+      } else {
+        useGameStore.setState({
+          playerProfile: profile,
+          screen: SCREEN_IDS.ADVISOR_SELECT,
+        });
+      }
       setNotice(TEXT.continueTodo);
       return;
     }

@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import BackgroundScene from './components/BackgroundScene';
+import PauseMenu from './components/PauseMenu';
 import AdvisorSelectScreen from './screens/AdvisorSelectScreen';
 import CharacterCreateScreen from './screens/CharacterCreateScreen';
 import EventScreen from './screens/EventScreen';
@@ -15,16 +17,61 @@ import { getAdvisorThemeColor } from './logic/advisorEngine';
 export default function App() {
   const screen = useGameStore((state) => state.screen);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
+  const isPaused = useGameStore((state) => state.isPaused);
+  const setPaused = useGameStore((state) => state.setPaused);
+  const incrementPlaytime = useGameStore((state) => state.incrementPlaytime);
   const themeColor = getAdvisorThemeColor(selectedAdvisorId);
+  const pauseEnabled = isPauseEnabled(screen);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key !== 'Escape' || !pauseEnabled) {
+        return;
+      }
+
+      event.preventDefault();
+      useGameStore.getState().togglePaused();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pauseEnabled]);
+
+  useEffect(() => {
+    if (!pauseEnabled || isPaused) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => incrementPlaytime(1), 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [incrementPlaytime, isPaused, pauseEnabled]);
 
   return (
     <div
       className={`cr2-app cr2-advisor-theme--${selectedAdvisorId}`}
       style={{ '--cr2-theme-color': themeColor, '--cr2-advisor': themeColor }}
     >
+      {pauseEnabled ? (
+        <button className="cr2-pause-mobile-button" type="button" onClick={() => setPaused(true)}>
+          II
+        </button>
+      ) : null}
       <BackgroundScene screen={screen}>{renderScreen(screen)}</BackgroundScene>
+      {pauseEnabled ? <PauseMenu /> : null}
     </div>
   );
+}
+
+function isPauseEnabled(screen) {
+  return [
+    SCREEN_IDS.MAIN,
+    SCREEN_IDS.EVENT,
+    SCREEN_IDS.SETTLEMENT,
+    SCREEN_IDS.RESULT,
+    SCREEN_IDS.REWARD,
+  ].includes(screen);
 }
 
 function renderScreen(screen) {
