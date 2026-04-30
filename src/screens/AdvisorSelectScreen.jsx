@@ -62,7 +62,6 @@ const TEXT = Object.freeze({
 
 export default function AdvisorSelectScreen() {
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
-  const selectAdvisor = useGameStore((state) => state.selectAdvisor);
   const setAdvisor = useGameStore((state) => state.setAdvisor);
   const startRun = useGameStore((state) => state.startRun);
   const selectedAdvisor =
@@ -93,7 +92,6 @@ export default function AdvisorSelectScreen() {
                 style={{ '--cr2-card-color': advisor.themeColor }}
                 type="button"
                 onClick={() => chooseAdvisor(advisor)}
-                onMouseEnter={() => selectAdvisor(advisor.id)}
               >
                 <span className="cr2-starter-name">{advisor.name}</span>
                 <span className="cr2-starter-style">{advisor.style}</span>
