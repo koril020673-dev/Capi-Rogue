@@ -1,9 +1,9 @@
 import { ADVISORS } from '../constants/advisors';
 import { useGameStore } from '../store/useGameStore';
-import analystImage from '../assets/advisor_image/advisor_analyst.png';
-import gamblerImage from '../assets/advisor_image/advisor_gambler.png';
-import guardianImage from '../assets/advisor_image/advisor_guardian.png';
-import raiderImage from '../assets/advisor_image/advisor_raider.png';
+import analystImage from '../assets/advisor_fullbody_v2_pack/advisor_analyst_v2.png';
+import gamblerImage from '../assets/advisor_fullbody_v2_pack/advisor_gambler_v2.png';
+import guardianImage from '../assets/advisor_fullbody_v2_pack/advisor_guardian_v2.png';
+import raiderImage from '../assets/advisor_fullbody_v2_pack/advisor_raider_v2.png';
 import '../styles/advisor.css';
 
 const ADVISOR_IMAGES = Object.freeze({
