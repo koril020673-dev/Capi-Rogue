@@ -389,10 +389,16 @@ button:disabled {
 .cr2-event-screen,
 .cr2-settlement-screen,
 .cr2-result-screen,
-.cr2-reward-screen,
 .cr2-gameover-screen {
   display: grid;
   place-items: center;
+}
+
+.cr2-reward-screen {
+  display: grid;
+  grid-template-rows: clamp(44px, calc(var(--cr2-stage-h) * 0.075), 56px) minmax(0, 1fr);
+  gap: clamp(5px, calc(var(--cr2-stage-h) * 0.01), 8px);
+  padding: clamp(6px, calc(var(--cr2-stage-w) * 0.012), 13px);
 }
 
 .cr2-login-panel,
@@ -409,6 +415,23 @@ button:disabled {
   background: var(--cr2-panel);
   box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
   padding: 28px;
+}
+
+.cr2-reward-screen .cr2-reward-panel {
+  align-self: stretch;
+  justify-self: center;
+  display: grid;
+  align-content: start;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  width: min(760px, 100%);
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cr2-reward-screen .cr2-reward-grid {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .cr2-login-panel h1,
