@@ -224,15 +224,11 @@ export default function TitleScreen() {
                 onClick={() => loadSlot(slot)}
               >
                 <SlotPortrait snapshot={slot.snapshot} />
-                <span>SLOT {slot.slotNumber}</span>
-                {slot.snapshot ? (
-                  <>
-                    <strong>{getSlotTitle(slot.snapshot)}</strong>
-                    <small>{getSlotMeta(slot.snapshot, slot.updatedAt)}</small>
-                  </>
-                ) : (
-                  <strong>{TEXT.emptySlot}</strong>
-                )}
+                <SlotSummary
+                  slotNumber={slot.slotNumber}
+                  snapshot={slot.snapshot}
+                  updatedAt={slot.updatedAt}
+                />
               </button>
             ))}
           </div>
@@ -277,9 +273,8 @@ function findNextEnabled(items, currentIndex, direction) {
 
 function getSlotTitle(snapshot) {
   const companyName = snapshot.playerProfile?.companyName || snapshot.player?.companyName || '내 회사';
-  const advisorName = snapshot.selectedAdvisor?.name ?? snapshot.selectedAdvisorId ?? '-';
 
-  return `${companyName} / ${advisorName}`;
+  return companyName;
 }
 
 function SlotPortrait({ snapshot }) {
@@ -296,13 +291,80 @@ function SlotPortrait({ snapshot }) {
   );
 }
 
-function getSlotMeta(snapshot, updatedAt) {
+function SlotSummary({ slotNumber, snapshot, updatedAt }) {
+  if (!snapshot) {
+    return (
+      <div className="cr2-title-slot-summary cr2-title-slot-summary--empty">
+        <div className="cr2-title-slot-title">
+          <span>SLOT {slotNumber}</span>
+          <strong>{TEXT.emptySlot}</strong>
+          <small>저장된 진행 정보가 없습니다.</small>
+        </div>
+        <dl className="cr2-title-slot-table">
+          <div>
+            <dt>상태</dt>
+            <dd>비어 있음</dd>
+          </div>
+          <div>
+            <dt>불러오기</dt>
+            <dd>불가</dd>
+          </div>
+        </dl>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cr2-title-slot-summary">
+      <div className="cr2-title-slot-title">
+        <span>SLOT {slotNumber}</span>
+        <strong>{getSlotTitle(snapshot)}</strong>
+        <small>CEO {getPlayerName(snapshot)}</small>
+      </div>
+      <dl className="cr2-title-slot-table">
+        {getSlotRows(snapshot, updatedAt).map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function getPlayerName(snapshot) {
+  return snapshot.playerProfile?.playerName || snapshot.player?.playerName || '-';
+}
+
+function getSlotRows(snapshot, updatedAt) {
+  const advisorName = snapshot.selectedAdvisor?.name ?? snapshot.selectedAdvisorId ?? '-';
   const floor = snapshot.floor ? `${snapshot.floor}${TEXT.floor}` : '-';
   const capital = Number.isFinite(snapshot.player?.capital)
     ? `${Math.round(snapshot.player.capital / 10000).toLocaleString()}만`
     : '-';
   const savedAt = updatedAt || snapshot.savedAt;
-  const savedAtText = savedAt ? new Date(savedAt).toLocaleString('ko-KR') : TEXT.noSavedAt;
+  const savedAtText = savedAt ? formatSavedAt(savedAt) : TEXT.noSavedAt;
 
-  return `${floor} / ${capital} / ${savedAtText}`;
+  return [
+    ['층수', floor],
+    ['자본', capital],
+    ['자문가', advisorName],
+    ['저장일', savedAtText],
+  ];
+}
+
+function formatSavedAt(value) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return TEXT.noSavedAt;
+  }
+
+  return date.toLocaleDateString('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }

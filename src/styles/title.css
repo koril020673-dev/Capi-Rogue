@@ -236,9 +236,8 @@
 
 .cr2-title-save-slot {
   display: grid;
-  grid-template-columns: 46px 92px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-content: center;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
   column-gap: 12px;
   min-width: 0;
   min-height: 0;
@@ -251,9 +250,21 @@
   text-align: left;
 }
 
-.cr2-title-save-slot > span:not(.cr2-title-save-slot-portrait) {
-  grid-row: 1 / span 2;
-  align-self: center;
+.cr2-title-slot-summary {
+  display: grid;
+  grid-template-columns: minmax(126px, 0.7fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cr2-title-slot-title {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cr2-title-slot-title span {
   color: var(--cr2-warning);
   font-size: var(--cr2-ui-font-sm);
 }
@@ -280,25 +291,59 @@
   font-size: var(--cr2-ui-font-xs);
 }
 
-.cr2-title-save-slot strong,
-.cr2-title-save-slot small {
+.cr2-title-slot-title strong,
+.cr2-title-slot-title small,
+.cr2-title-slot-table dd {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cr2-title-save-slot strong {
+.cr2-title-slot-title strong {
   color: var(--cr2-accent);
   font-size: var(--cr2-ui-font-sm);
   font-weight: 400;
   line-height: 1.5;
 }
 
-.cr2-title-save-slot small {
+.cr2-title-slot-title small {
   color: var(--cr2-text);
   font-size: var(--cr2-ui-font-xs);
   line-height: 1.4;
+}
+
+.cr2-title-slot-table {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.cr2-title-slot-table div {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  border-left: 1px solid rgba(0, 170, 0, 0.5);
+  padding-left: 6px;
+}
+
+.cr2-title-slot-table dt,
+.cr2-title-slot-table dd {
+  margin: 0;
+  font-size: var(--cr2-ui-font-xs);
+  line-height: 1.45;
+}
+
+.cr2-title-slot-table dt {
+  color: var(--cr2-text);
+}
+
+.cr2-title-slot-table dd {
+  color: var(--cr2-accent);
 }
 
 .cr2-title-save-slot--empty,
@@ -308,7 +353,9 @@
   opacity: 1;
 }
 
-.cr2-title-save-slot--empty strong,
-.cr2-title-save-slot:disabled strong {
+.cr2-title-save-slot--empty .cr2-title-slot-title strong,
+.cr2-title-save-slot:disabled .cr2-title-slot-title strong,
+.cr2-title-save-slot--empty .cr2-title-slot-table dd,
+.cr2-title-save-slot:disabled .cr2-title-slot-table dd {
   color: #006b00;
 }
