@@ -268,6 +268,70 @@ button:disabled {
   line-height: 1.7;
 }
 
+.cr2-login-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cr2-login-actions button {
+  min-width: 0;
+  padding-inline: 8px;
+}
+
+.cr2-login-message {
+  min-height: 22px;
+  margin: 8px 0 0;
+  color: var(--cr2-accent);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.cr2-signup-modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  display: grid;
+  gap: 12px;
+  width: min(380px, calc(100% - 36px));
+  border: 2px solid var(--cr2-grid);
+  border-radius: 8px;
+  background: rgba(10, 10, 10, 0.98);
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.38), 0 0 0 4px rgba(0, 255, 65, 0.08);
+  padding: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.cr2-signup-modal h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.cr2-signup-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #7a0b22;
+  border-radius: 4px;
+  background: var(--cr2-warning);
+  color: #ffffff;
+  font-family: var(--cr2-font-pixel);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.cr2-signup-modal .cr2-primary-button {
+  justify-self: stretch;
+}
+
 .cr2-main-screen {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);

@@ -14,10 +14,11 @@ export async function signUp(email, password) {
 
   try {
     const { data, error } = await supabase.auth.signUp({ email, password });
+    const identities = data?.user?.identities;
 
     return {
-      user: data?.user ?? null,
-      error: error ?? null,
+      user: identities && identities.length === 0 ? null : data?.user ?? null,
+      error: error ?? (identities && identities.length === 0 ? new Error('User already exists') : null),
     };
   } catch (error) {
     return {
@@ -78,4 +79,3 @@ export async function getUser() {
     return null;
   }
 }
-
