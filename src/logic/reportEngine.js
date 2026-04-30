@@ -107,6 +107,11 @@ const GAMBLER_MESSAGES = Object.freeze({
     '겁쟁이는 절대 못 얻습니다.',
     '확률은 당신 편입니다.',
   ]),
+  idle: Object.freeze([
+    '이번 달은 조용했습니다. 다음 달을 노리세요.',
+    '기회가 없었습니다. 다음 판을 준비하세요.',
+    '잠잠한 달이었습니다. 큰 판은 곧 옵니다.',
+  ]),
   nextEventHint: Object.freeze({
     PRODUCTION: '다음 이벤트는 생산 관련일 가능성이 높습니다.',
     HR: '다음 이벤트는 인사 관련일 가능성이 높습니다.',
@@ -205,11 +210,23 @@ function buildAnalystReport(gameState) {
 
 function buildGamblerReport(gameState) {
   const outcome = gameState.currentSettlement?.internalOutcome;
+  const hasEventChoice = hasGamblerEventChoice(gameState, outcome);
+  const categoryHint = getNextEventCategoryHint(gameState);
+
+  if (!hasEventChoice) {
+    return freezeReport({
+      sections: [
+        createSection('event', '다음 이벤트 힌트', categoryHint, 'warning'),
+      ],
+      suggestion: getGamblerIdleSuggestion(gameState),
+      warning: '',
+    });
+  }
+
   const tier = outcome?.tier ?? 'GAMBLE';
   const probability = getGamblerProbability(tier, gameState.selectedAdvisorId);
   const probabilityPercent = Math.round(probability * 100);
   const success = outcome?.success ?? (gameState.currentResult?.profit ?? 0) >= 0;
-  const categoryHint = getNextEventCategoryHint(gameState);
   const resultText = getGamblerResultText(success, probabilityPercent);
 
   return freezeReport({
@@ -226,6 +243,18 @@ function buildGamblerReport(gameState) {
     suggestion: getGamblerSuggestion(success, probabilityPercent),
     warning: '',
   });
+}
+
+function hasGamblerEventChoice(gameState, outcome) {
+  if (!outcome) {
+    return false;
+  }
+
+  if (Object.hasOwn(gameState, 'lastEventChoice') && gameState.lastEventChoice === null) {
+    return false;
+  }
+
+  return Boolean(outcome.choiceLabel || outcome.description || outcome.tier);
 }
 
 function getRaiderShareMessage(shareDelta) {
@@ -314,6 +343,12 @@ function getGamblerSuggestion(success, probabilityPercent) {
   }
 
   return GAMBLER_MESSAGES.urge[0];
+}
+
+function getGamblerIdleSuggestion(gameState) {
+  const floor = Math.max(0, gameState.floor ?? 0);
+
+  return GAMBLER_MESSAGES.idle[floor % GAMBLER_MESSAGES.idle.length];
 }
 
 function getMarketContext(gameState) {
