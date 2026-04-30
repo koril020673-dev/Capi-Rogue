@@ -60,7 +60,7 @@ export default function DemandMap({ totalDemand, participants, revealDemand = fa
     <section className="cr2-demand-map" aria-label={TEXT.aria}>
       <div className="cr2-demand-core">
         <span className="cr2-demand-label">{TEXT.demand}</span>
-        <strong>{revealDemand ? totalDemand.toLocaleString() : '???'}</strong>
+        <strong>{totalDemand.toLocaleString()}</strong>
       </div>
       <div className="cr2-demand-routes">
         {rivals.map((rival) => (

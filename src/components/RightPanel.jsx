@@ -45,7 +45,6 @@ const TEXT = Object.freeze({
   hiddenDemand: '\uC810\uC720\uC728\uACFC \uC218\uC694\uB294 \uC815\uC0B0 \uD6C4 \uACF5\uAC1C\uB429\uB2C8\uB2E4.',
   forecast: '\uC774\uBC88 \uB2EC \uC608\uC0C1',
   concealedForecast: '\uC810\uC720\uC728\uACFC \uC190\uC775\uC740 \uC815\uC0B0\uC5D0\uC11C \uACF5\uAC1C\uB429\uB2C8\uB2E4.',
-  totalDemand: '\uCD1D \uC218\uC694',
   production: '\uC0DD\uC0B0',
   sold: '\uD310\uB9E4',
   revenue: '\uB9E4\uCD9C',
@@ -329,7 +328,6 @@ function ForecastBox({ estimate, expanded = false, concealed = false }) {
       <div className="cr2-forecast-box">
         <span className="cr2-panel-label">{TEXT.forecast}</span>
         <div className="cr2-summary-list">
-          <span>{TEXT.totalDemand} {estimate.totalDemand.toLocaleString()}</span>
           <span>{TEXT.production} {estimate.plannedProduction.toLocaleString()}</span>
           <span>{TEXT.productionCost} {formatWon(estimate.productionCost)}</span>
           <span>{TEXT.operationExpense} {formatWon(estimate.operationExpense)}</span>
@@ -345,7 +343,6 @@ function ForecastBox({ estimate, expanded = false, concealed = false }) {
     <div className="cr2-forecast-box">
       <span className="cr2-panel-label">{TEXT.forecast}</span>
       <div className="cr2-summary-list">
-        <span>{TEXT.totalDemand} {estimate.totalDemand.toLocaleString()}</span>
         <span>{TEXT.production} {estimate.plannedProduction.toLocaleString()}</span>
         <span>{TEXT.sold} {estimate.unitsSold.toLocaleString()}</span>
         {expanded ? (
