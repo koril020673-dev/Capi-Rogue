@@ -209,6 +209,7 @@ button:disabled {
   width: min(1080px, 100vw, calc(100vh * 1.5));
   height: min(720px, 100vh, calc(100vw / 1.5));
   min-height: 0;
+  min-width: 0;
   padding: clamp(8px, 1.4vw, 16px);
   overflow: hidden;
 }
@@ -457,10 +458,12 @@ button:disabled {
 
 .cr2-status-bar {
   display: grid;
-  grid-template-columns: minmax(72px, 0.34fr) minmax(72px, 0.34fr) minmax(220px, 1fr) minmax(104px, 0.48fr) minmax(96px, 0.42fr) minmax(128px, 0.58fr);
+  grid-template-columns: minmax(58px, 0.36fr) minmax(58px, 0.36fr) minmax(148px, 1fr) minmax(78px, 0.52fr) minmax(72px, 0.48fr) minmax(96px, 0.62fr);
   gap: 6px;
   align-items: stretch;
   margin-bottom: 8px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cr2-status-block {
@@ -471,7 +474,9 @@ button:disabled {
   border-radius: 4px;
   background: rgba(0, 14, 0, 0.9);
   min-height: 48px;
+  min-width: 0;
   padding: 6px 8px;
+  overflow: hidden;
 }
 
 .cr2-status-block--wide {
@@ -480,7 +485,7 @@ button:disabled {
 
 .cr2-status-value {
   color: var(--cr2-accent);
-  font-size: 12px;
+  font-size: clamp(10px, 1.2vw, 12px);
   font-weight: 700;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -515,6 +520,7 @@ button:disabled {
   gap: 12px;
   align-items: stretch;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -523,6 +529,9 @@ button:disabled {
   border: 2px solid var(--cr2-grid);
   border-radius: 8px;
   background: var(--cr2-panel);
+  min-width: 0;
+  min-height: 0;
+  isolation: isolate;
 }
 
 .cr2-left-panel {
@@ -565,6 +574,7 @@ button:disabled {
 .cr2-left-panel > * {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .cr2-phase-strip {
@@ -590,12 +600,14 @@ button:disabled {
   gap: 14px;
   padding: 16px;
   min-height: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cr2-demand-core {
   display: grid;
   place-items: center;
-  width: min(164px, 100%);
+  width: min(144px, 100%);
   aspect-ratio: 1;
   border: 4px double var(--cr2-accent);
   border-radius: 50%;
@@ -605,20 +617,24 @@ button:disabled {
 }
 
 .cr2-demand-core strong {
-  max-width: 120px;
+  max-width: 104px;
   overflow-wrap: anywhere;
   font-family: var(--cr2-font-pixel);
-  font-size: 16px;
+  font-size: clamp(11px, 1.5vw, 15px);
 }
 
 .cr2-demand-label {
-  font-size: 13px;
+  font-size: clamp(11px, 1.3vw, 13px);
   line-height: 1.5;
 }
 
 .cr2-demand-routes {
   display: grid;
   gap: 10px;
+  min-height: 0;
+  min-width: 0;
+  max-height: 100%;
+  overflow: auto;
 }
 
 .cr2-demand-node {
@@ -626,6 +642,7 @@ button:disabled {
   grid-template-columns: minmax(48px, 30%) minmax(0, 1fr);
   gap: 12px;
   align-items: center;
+  min-width: 0;
 }
 
 .cr2-demand-node--player .cr2-demand-card {
@@ -647,9 +664,10 @@ button:disabled {
 
 .cr2-demand-player-row {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 56px;
-  gap: 10px;
+  grid-template-columns: clamp(42px, 5.4vw, 56px) minmax(0, 1fr) clamp(42px, 5.4vw, 56px);
+  gap: 8px;
   align-items: center;
+  min-width: 0;
 }
 
 .cr2-demand-player-row div {
@@ -662,7 +680,7 @@ button:disabled {
 .cr2-demand-advisor-portrait {
   display: grid;
   place-items: center;
-  width: 56px;
+  width: clamp(42px, 5.4vw, 56px);
   aspect-ratio: 1;
   border: 2px solid var(--cr2-advisor);
   border-radius: 4px;
@@ -692,9 +710,10 @@ button:disabled {
 
 .cr2-demand-rival-row {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: clamp(38px, 4.8vw, 48px) minmax(0, 1fr);
+  gap: 8px;
   align-items: center;
+  min-width: 0;
 }
 
 .cr2-demand-rival-row div {
@@ -706,7 +725,7 @@ button:disabled {
 .cr2-demand-rival-portrait {
   display: grid;
   place-items: center;
-  width: 48px;
+  width: clamp(38px, 4.8vw, 48px);
   aspect-ratio: 1;
   border: 2px solid var(--cr2-grid);
   border-radius: 4px;
@@ -756,6 +775,7 @@ button:disabled {
   padding: 9px;
   background: #000000;
   min-width: 0;
+  overflow: hidden;
 }
 
 .cr2-demand-card strong,
@@ -766,7 +786,7 @@ button:disabled {
 
 .cr2-demand-card span,
 .cr2-demand-card small {
-  font-size: 12px;
+  font-size: clamp(10px, 1.15vw, 12px);
 }
 
 .cr2-rival-health {
@@ -809,6 +829,9 @@ button:disabled {
   gap: 8px;
   border-top: 2px solid var(--cr2-grid);
   padding: 8px;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cr2-strategy-warning,
@@ -855,6 +878,8 @@ button:disabled {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   border-top: 2px solid var(--cr2-grid);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cr2-tab-button {
@@ -879,8 +904,10 @@ button:disabled {
   align-content: start;
   gap: 10px;
   min-height: 0;
+  min-width: 0;
   overflow: auto;
   padding: 12px;
+  overscroll-behavior: contain;
 }
 
 .cr2-panel-title h2 {
@@ -954,6 +981,8 @@ button:disabled {
   border-radius: 4px;
   padding: 10px;
   background: rgba(0, 0, 0, 0.45);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cr2-rival-info-card > strong {
@@ -984,6 +1013,7 @@ button:disabled {
 .cr2-choice-grid {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .cr2-right-panel--quality {
@@ -1015,6 +1045,7 @@ button:disabled {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  min-width: 0;
 }
 
 .cr2-segmented--three {
@@ -1421,6 +1452,39 @@ button:disabled {
   .cr2-ledger-panel--combined,
   .cr2-result-report-panel {
     padding: 18px;
+  }
+}
+
+@media (max-width: 760px), (max-height: 560px) {
+  .cr2-main-screen {
+    padding: 6px;
+  }
+
+  .cr2-status-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: 104px;
+    overflow: auto;
+  }
+
+  .cr2-battle-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 30%);
+    gap: 8px;
+  }
+
+  .cr2-demand-map {
+    grid-template-columns: minmax(82px, 20%) minmax(0, 1fr);
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .cr2-bottom-info {
+    grid-template-columns: 1fr;
+    max-height: 118px;
+    overflow: auto;
+  }
+
+  .cr2-right-panel {
+    padding: 8px;
   }
 }
 
