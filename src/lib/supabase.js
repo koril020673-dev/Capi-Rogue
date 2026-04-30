@@ -2,8 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const normalizedSupabaseUrl = typeof supabaseUrl === 'string' ? supabaseUrl.trim().replace(/\/+$/, '') : '';
-const normalizedAnonKey = typeof supabaseAnonKey === 'string' ? supabaseAnonKey.trim() : '';
+const normalizedSupabaseUrl = normalizeEnvValue(supabaseUrl).replace(/\/+$/, '');
+const normalizedAnonKey = normalizeEnvValue(supabaseAnonKey);
+
+function normalizeEnvValue(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim().replace(/^['"]|['"]$/g, '');
+}
 
 function getConfigError() {
   if (!normalizedSupabaseUrl || !normalizedAnonKey) {
