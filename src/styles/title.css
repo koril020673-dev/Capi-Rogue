@@ -236,7 +236,7 @@
 
 .cr2-title-save-slot {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: 46px 92px minmax(0, 1fr);
   grid-template-rows: auto auto;
   align-content: center;
   column-gap: 12px;
@@ -251,11 +251,33 @@
   text-align: left;
 }
 
-.cr2-title-save-slot span {
+.cr2-title-save-slot > span:not(.cr2-title-save-slot-portrait) {
   grid-row: 1 / span 2;
   align-self: center;
   color: var(--cr2-warning);
   font-size: var(--cr2-ui-font-sm);
+}
+
+.cr2-title-save-slot-portrait {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  aspect-ratio: 1;
+  border: 1px solid var(--cr2-grid);
+  background: #000000;
+  overflow: hidden;
+}
+
+.cr2-title-save-slot-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cr2-title-save-slot-portrait--empty::before {
+  color: var(--cr2-muted);
+  content: 'NO';
+  font-size: var(--cr2-ui-font-xs);
 }
 
 .cr2-title-save-slot strong,

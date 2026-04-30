@@ -223,6 +223,7 @@ export default function TitleScreen() {
                 type="button"
                 onClick={() => loadSlot(slot)}
               >
+                <SlotPortrait snapshot={slot.snapshot} />
                 <span>SLOT {slot.slotNumber}</span>
                 {slot.snapshot ? (
                   <>
@@ -279,6 +280,20 @@ function getSlotTitle(snapshot) {
   const advisorName = snapshot.selectedAdvisor?.name ?? snapshot.selectedAdvisorId ?? '-';
 
   return `${companyName} / ${advisorName}`;
+}
+
+function SlotPortrait({ snapshot }) {
+  const image = snapshot?.playerProfile?.profileImage ?? snapshot?.playerProfile?.fullImage;
+
+  if (!image) {
+    return <span className="cr2-title-save-slot-portrait cr2-title-save-slot-portrait--empty" />;
+  }
+
+  return (
+    <span className="cr2-title-save-slot-portrait">
+      <img src={image} alt="" decoding="async" loading="lazy" />
+    </span>
+  );
 }
 
 function getSlotMeta(snapshot, updatedAt) {

@@ -239,9 +239,10 @@ export const useGameStore = create((set, get) => ({
     }));
   },
 
-  async saveCurrentGame() {
+  async saveCurrentGame(slotNumberOverride) {
     const state = get();
-    const slotNumber = state.currentSlot ?? 1;
+    const parsedSlotNumber = Math.round(Number(slotNumberOverride ?? state.currentSlot) || 1);
+    const slotNumber = Math.max(1, Math.min(5, parsedSlotNumber));
     const snapshot = createSaveSnapshot({
       ...state,
       currentSlot: slotNumber,
@@ -249,12 +250,13 @@ export const useGameStore = create((set, get) => ({
 
     saveGameSlotToLocalStorage(slotNumber, snapshot);
     await saveGame(snapshot, slotNumber);
+    set({ currentSlot: slotNumber });
 
     return snapshot;
   },
 
-  async saveAndExit() {
-    await get().saveCurrentGame();
+  async saveAndExit(slotNumber) {
+    await get().saveCurrentGame(slotNumber);
     set({ isPaused: false, screen: SCREEN_IDS.TITLE });
   },
 

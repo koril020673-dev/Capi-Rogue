@@ -143,6 +143,123 @@
   padding: clamp(8px, 1.6vw, 18px);
 }
 
+.cr2-save-slot-picker {
+  position: absolute;
+  inset: clamp(38px, calc(var(--cr2-stage-w) * 0.052), 58px);
+  z-index: 3;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  border: 2px solid var(--cr2-danger);
+  background: #1A1A2E;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.48), 0 0 0 4px rgba(0, 0, 0, 0.55);
+  padding: clamp(10px, calc(var(--cr2-stage-w) * 0.016), 18px);
+}
+
+.cr2-save-slot-picker header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid var(--cr2-danger);
+  padding-bottom: 8px;
+}
+
+.cr2-save-slot-picker h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-size: var(--cr2-ui-font-lg);
+  line-height: 1.4;
+}
+
+.cr2-save-slot-picker header button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--cr2-danger);
+  background: #2A0D18;
+  color: var(--cr2-danger);
+}
+
+.cr2-save-slot-list {
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  min-height: 0;
+}
+
+.cr2-save-slot-card {
+  display: grid;
+  grid-template-columns: clamp(34px, calc(var(--cr2-stage-w) * 0.048), 48px) 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  border: 2px solid var(--cr2-grid);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--cr2-text);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.cr2-save-slot-card--current {
+  border-color: var(--cr2-accent);
+  box-shadow: inset 0 0 0 2px rgba(0, 255, 65, 0.16);
+}
+
+.cr2-save-slot-card > span:not(.cr2-save-slot-portrait) {
+  color: var(--cr2-danger);
+  font-size: var(--cr2-ui-font-sm);
+}
+
+.cr2-save-slot-card div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cr2-save-slot-card strong,
+.cr2-save-slot-card small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr2-save-slot-card strong {
+  color: var(--cr2-accent);
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 400;
+}
+
+.cr2-save-slot-card small {
+  color: var(--cr2-text);
+  font-size: var(--cr2-ui-font-xs);
+}
+
+.cr2-save-slot-portrait {
+  display: grid;
+  place-items: center;
+  width: clamp(34px, calc(var(--cr2-stage-w) * 0.048), 48px);
+  aspect-ratio: 1;
+  border: 1px solid var(--cr2-grid);
+  background: #000000;
+  overflow: hidden;
+}
+
+.cr2-save-slot-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cr2-save-slot-portrait--empty::before {
+  color: var(--cr2-muted);
+  content: 'NO';
+  font-size: var(--cr2-ui-font-xs);
+}
+
 .cr2-pause-section {
   display: grid;
   gap: 14px;
