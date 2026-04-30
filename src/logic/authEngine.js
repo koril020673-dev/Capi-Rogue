@@ -3,8 +3,23 @@ import { supabase } from '../lib/supabase';
 function missingClientResult() {
   return {
     user: null,
-    error: new Error('Supabase 환경변수가 설정되지 않았습니다.'),
+    error: new Error('Supabase environment variables are not configured.'),
   };
+}
+
+function alreadyExistsError() {
+  const error = new Error('User already exists');
+  error.code = 'USER_ALREADY_EXISTS';
+
+  return error;
+}
+
+function isAlreadyExistsError(error) {
+  const message = String(error?.message ?? '').toLowerCase();
+
+  return error?.code === 'user_already_exists'
+    || message.includes('already')
+    || message.includes('registered');
 }
 
 export async function signUp(email, password) {
@@ -16,9 +31,23 @@ export async function signUp(email, password) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     const identities = data?.user?.identities;
 
+    if (identities && identities.length === 0) {
+      return {
+        user: null,
+        error: alreadyExistsError(),
+      };
+    }
+
+    if (isAlreadyExistsError(error)) {
+      return {
+        user: null,
+        error: alreadyExistsError(),
+      };
+    }
+
     return {
-      user: identities && identities.length === 0 ? null : data?.user ?? null,
-      error: error ?? (identities && identities.length === 0 ? new Error('User already exists') : null),
+      user: data?.user ?? null,
+      error: error ?? null,
     };
   } catch (error) {
     return {

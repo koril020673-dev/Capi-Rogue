@@ -3,10 +3,61 @@ import { signIn, signUp } from '../logic/authEngine';
 import { useGameStore } from '../store/useGameStore';
 import logoImage from '../assets/optimized/logo/logo_image.png';
 
+const TEXT = Object.freeze({
+  title: '\uC811\uC18D',
+  copy: '\uACC4\uC815\uC73C\uB85C \uC2DC\uC791\uD558\uAC70\uB098 \uAC8C\uC2A4\uD2B8 \uBAA8\uB4DC\uB85C \uBC14\uB85C \uD50C\uB808\uC774\uD558\uC138\uC694.',
+  id: '\uC544\uC774\uB514',
+  password: '\uBE44\uBC00\uBC88\uD638',
+  login: '\uB85C\uADF8\uC778',
+  guest: '\uAC8C\uC2A4\uD2B8',
+  signup: '\uD68C\uC6D0\uAC00\uC785',
+  register: '\uB4F1\uB85D',
+  close: '\uB2EB\uAE30',
+  missingInput: '\uC544\uC774\uB514\uC640 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+  missingAccount: '\uC5C6\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
+  existingAccount: '\uC774\uBBF8\uC788\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
+  signupSuccess: '\uC131\uACF5\uC801\uC73C\uB85C \uC544\uC774\uB514 \uC0DD\uC131\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4',
+  weakPassword: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+  signupFailed: '\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.',
+});
+
 function toAuthEmail(userId) {
   const trimmedId = userId.trim();
 
-  return trimmedId.includes('@') ? trimmedId : `${trimmedId}@capirogue.local`;
+  if (trimmedId.includes('@')) {
+    return trimmedId;
+  }
+
+  return `user-${hashId(trimmedId)}@capirogue.app`;
+}
+
+function hashId(value) {
+  let hash = 2166136261;
+
+  for (const char of value) {
+    hash ^= char.codePointAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16);
+}
+
+function getSignupErrorMessage(error) {
+  if (error?.code === 'USER_ALREADY_EXISTS') {
+    return TEXT.existingAccount;
+  }
+
+  const message = String(error?.message ?? '').toLowerCase();
+
+  if (message.includes('already') || message.includes('registered')) {
+    return TEXT.existingAccount;
+  }
+
+  if (message.includes('password') || message.includes('weak')) {
+    return TEXT.weakPassword;
+  }
+
+  return TEXT.signupFailed;
 }
 
 export default function LoginScreen() {
@@ -25,7 +76,7 @@ export default function LoginScreen() {
     setMessage('');
 
     if (!login.userId.trim() || !login.password.trim()) {
-      setMessage('아이디와 비밀번호를 입력해주세요.');
+      setMessage(TEXT.missingInput);
       return;
     }
 
@@ -34,7 +85,7 @@ export default function LoginScreen() {
     setIsBusy(false);
 
     if (error || !user) {
-      setMessage('없는 아이디입니다');
+      setMessage(TEXT.missingAccount);
       return;
     }
 
@@ -45,7 +96,7 @@ export default function LoginScreen() {
     setSignupError('');
 
     if (!signupId.trim() || !signupPassword.trim()) {
-      setSignupError('아이디와 비밀번호를 입력해주세요.');
+      setSignupError(TEXT.missingInput);
       return;
     }
 
@@ -54,7 +105,7 @@ export default function LoginScreen() {
     setIsBusy(false);
 
     if (error || !user) {
-      setSignupError('이미있는 아이디입니다');
+      setSignupError(getSignupErrorMessage(error));
       return;
     }
 
@@ -63,7 +114,7 @@ export default function LoginScreen() {
     setSignupId('');
     setSignupPassword('');
     setSignupOpen(false);
-    setMessage('성공적으로 아이디 생성에 성공했습니다');
+    setMessage(TEXT.signupSuccess);
   }
 
   function openSignup() {
@@ -78,10 +129,10 @@ export default function LoginScreen() {
       <img className="cr2-login-logo" src={logoImage} alt="CapiRogue" />
       <section className="cr2-login-panel">
         <p className="cr2-kicker">LOGIN</p>
-        <h1>접속</h1>
-        <p className="cr2-title-copy">계정으로 시작하거나 게스트 모드로 바로 플레이하세요.</p>
+        <h1>{TEXT.title}</h1>
+        <p className="cr2-title-copy">{TEXT.copy}</p>
         <label className="cr2-field">
-          <span>아이디</span>
+          <span>{TEXT.id}</span>
           <input
             className="cr2-input"
             type="text"
@@ -93,7 +144,7 @@ export default function LoginScreen() {
           />
         </label>
         <label className="cr2-field">
-          <span>비밀번호</span>
+          <span>{TEXT.password}</span>
           <input
             className="cr2-input"
             type="password"
@@ -107,31 +158,31 @@ export default function LoginScreen() {
         {message ? <p className="cr2-login-message">{message}</p> : null}
         <div className="cr2-button-row cr2-login-actions">
           <button className="cr2-primary-button" type="button" onClick={handleLogin} disabled={isBusy}>
-            로그인
+            {TEXT.login}
           </button>
           <button className="cr2-secondary-button" type="button" onClick={enterGuestMode} disabled={isBusy}>
-            게스트
+            {TEXT.guest}
           </button>
           <button className="cr2-secondary-button" type="button" onClick={openSignup} disabled={isBusy}>
-            회원가입
+            {TEXT.signup}
           </button>
         </div>
       </section>
 
       {signupOpen ? (
-        <section className="cr2-signup-modal" role="dialog" aria-modal="true" aria-label="회원가입">
+        <section className="cr2-signup-modal" role="dialog" aria-modal="true" aria-label={TEXT.signup}>
           <button
             className="cr2-signup-close"
             type="button"
-            aria-label="닫기"
+            aria-label={TEXT.close}
             onClick={() => setSignupOpen(false)}
           >
             X
           </button>
           <p className="cr2-kicker">SIGN UP</p>
-          <h2>회원가입</h2>
+          <h2>{TEXT.signup}</h2>
           <label className="cr2-field">
-            <span>아이디</span>
+            <span>{TEXT.id}</span>
             <input
               className="cr2-input"
               type="text"
@@ -143,7 +194,7 @@ export default function LoginScreen() {
             />
           </label>
           <label className="cr2-field">
-            <span>비밀번호</span>
+            <span>{TEXT.password}</span>
             <input
               className="cr2-input"
               type="password"
@@ -156,7 +207,7 @@ export default function LoginScreen() {
           </label>
           {signupError ? <p className="cr2-error-text">{signupError}</p> : null}
           <button className="cr2-primary-button" type="button" onClick={handleSignup} disabled={isBusy}>
-            등록
+            {TEXT.register}
           </button>
         </section>
       ) : null}
