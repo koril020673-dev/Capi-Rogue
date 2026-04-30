@@ -37,7 +37,14 @@ const TEXT = Object.freeze({
   chooseNow: '지금 선택',
   floorsLater: '층 후',
   monthlyDecisionReport: '이번 달 결정 분석',
+  graphs: '시장 그래프',
+  shareGraph: '점유율',
+  moneyGraph: '매출 / 순이익',
+  revenueShort: '매출',
+  profitShort: '순익',
 });
+
+const SHARE_COLORS = Object.freeze(['#00FF41', '#DC143C', '#FFD700', '#42A5FF', '#B06CFF']);
 
 export default function SettlementScreen() {
   const gameState = useGameStore((state) => state);
@@ -82,6 +89,8 @@ export default function SettlementScreen() {
             <LedgerItem label={TEXT.capitalChange} value={formatWon(capitalChange)} danger={capitalChange < 0} />
           </div>
 
+          <SettlementCharts settlement={settlement} timeline={gameState.timeline} floor={gameState.floor} />
+
           <div className="cr2-ledger-note-stack">
             <p className="cr2-ledger-note">{settlement.operationNote}</p>
             {settlement.internalOutcome ? (
@@ -122,6 +131,127 @@ export default function SettlementScreen() {
       </section>
     </main>
   );
+}
+
+function SettlementCharts({ settlement, timeline, floor }) {
+  const shareItems = buildShareItems(settlement.demandSplit);
+  const moneyItems = buildMoneyItems(timeline, settlement, floor);
+
+  return (
+    <section className="cr2-settlement-charts" aria-label={TEXT.graphs}>
+      <article className="cr2-share-chart-panel">
+        <header>
+          <span>{TEXT.shareGraph}</span>
+          <strong>{Math.round((shareItems[0]?.share ?? 0) * 100)}%</strong>
+        </header>
+        <div className="cr2-share-chart-wrap">
+          <div className="cr2-share-pie" style={{ '--cr2-share-pie': buildPieGradient(shareItems) }} />
+          <div className="cr2-share-legend">
+            {shareItems.map((item) => (
+              <span key={item.id}>
+                <i style={{ backgroundColor: item.color }} />
+                {item.label} {Math.round(item.share * 100)}%
+              </span>
+            ))}
+          </div>
+        </div>
+      </article>
+
+      <article className="cr2-money-chart-panel">
+        <header>
+          <span>{TEXT.moneyGraph}</span>
+          <strong>{moneyItems.at(-1)?.label ?? '-'}</strong>
+        </header>
+        <div className="cr2-money-chart">
+          {moneyItems.map((item) => (
+            <div className="cr2-money-bar-group" key={item.label}>
+              <div className="cr2-money-bars">
+                <span
+                  className="cr2-money-bar cr2-money-bar--revenue"
+                  style={{ height: `${item.revenueHeight}%` }}
+                  title={`${TEXT.revenueShort} ${formatWon(item.revenue)}`}
+                />
+                <span
+                  className={item.profit < 0 ? 'cr2-money-bar cr2-money-bar--profit cr2-money-bar--loss' : 'cr2-money-bar cr2-money-bar--profit'}
+                  style={{ height: `${item.profitHeight}%` }}
+                  title={`${TEXT.profitShort} ${formatWon(item.profit)}`}
+                />
+              </div>
+              <small>{item.label}</small>
+            </div>
+          ))}
+        </div>
+        <div className="cr2-chart-key">
+          <span><i className="cr2-key-revenue" />{TEXT.revenueShort}</span>
+          <span><i className="cr2-key-profit" />{TEXT.profitShort}</span>
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function buildShareItems(participants) {
+  return participants
+    .filter((participant) => participant.marketShare > 0)
+    .map((participant, index) => Object.freeze({
+      id: participant.id,
+      label: participant.id === 'player' ? '내 회사' : participant.company ?? participant.name,
+      share: participant.marketShare,
+      color: SHARE_COLORS[index % SHARE_COLORS.length],
+    }));
+}
+
+function buildPieGradient(items) {
+  let cursor = 0;
+  const segments = items.map((item) => {
+    const start = cursor;
+    cursor += item.share * 100;
+    return `${item.color} ${start}% ${cursor}%`;
+  });
+
+  return `conic-gradient(${segments.join(', ')})`;
+}
+
+function buildMoneyItems(timeline, settlement, floor) {
+  const source = [
+    ...(timeline ?? []),
+    Object.freeze({
+      floor,
+      revenue: settlement.revenue,
+      profit: settlement.profit,
+    }),
+  ];
+  const deduped = source.reduce((items, item) => {
+    const previousIndex = items.findIndex((entry) => entry.floor === item.floor);
+
+    if (previousIndex >= 0) {
+      items[previousIndex] = item;
+      return items;
+    }
+
+    items.push(item);
+    return items;
+  }, []).slice(-6);
+  const maxValue = Math.max(
+    1,
+    ...deduped.flatMap((item) => [
+      Math.abs(Number(item.revenue) || 0),
+      Math.abs(Number(item.profit) || 0),
+    ]),
+  );
+
+  return deduped.map((item) => {
+    const revenue = Number(item.revenue) || 0;
+    const profit = Number(item.profit) || 0;
+
+    return Object.freeze({
+      label: `${item.floor ?? '-'}F`,
+      revenue,
+      profit,
+      revenueHeight: Math.max(8, Math.round((Math.abs(revenue) / maxValue) * 100)),
+      profitHeight: Math.max(8, Math.round((Math.abs(profit) / maxValue) * 100)),
+    });
+  });
 }
 
 function LedgerItem({ label, value, danger = false, wide = false, compact = false }) {
