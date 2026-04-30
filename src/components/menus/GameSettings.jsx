@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react';
-
-const SETTINGS_KEY = 'capirogue-settings-v1';
-const DEFAULT_SETTINGS = Object.freeze({
-  bgmVolume: 70,
-  sfxEnabled: true,
-});
+import { getAudioSettings, saveAudioSettings } from '../../logic/audioEngine';
 
 export default function GameSettings() {
-  const [settings, setSettings] = useState(() => loadSettings());
+  const [settings, setSettings] = useState(() => getAudioSettings());
 
   useEffect(() => {
-    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    saveAudioSettings(settings);
   }, [settings]);
 
   return (
@@ -43,15 +38,4 @@ export default function GameSettings() {
       </label>
     </div>
   );
-}
-
-function loadSettings() {
-  try {
-    return {
-      ...DEFAULT_SETTINGS,
-      ...JSON.parse(window.localStorage.getItem(SETTINGS_KEY) ?? '{}'),
-    };
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
 }

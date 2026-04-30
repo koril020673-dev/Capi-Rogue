@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import AudioController from './components/AudioController';
 import BackgroundScene from './components/BackgroundScene';
 import PauseMenu from './components/PauseMenu';
 import AdvisorSelectScreen from './screens/AdvisorSelectScreen';
@@ -60,6 +61,7 @@ export default function App() {
       ) : null}
       <BackgroundScene screen={screen}>{renderScreen(screen)}</BackgroundScene>
       {pauseEnabled ? <PauseMenu /> : null}
+      <AudioController />
     </div>
   );
 }
