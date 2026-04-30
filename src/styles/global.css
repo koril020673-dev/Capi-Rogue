@@ -381,6 +381,7 @@ button:disabled {
   min-height: 0;
   min-width: 0;
   padding: clamp(6px, calc(var(--cr2-stage-w) * 0.012), 13px);
+  row-gap: 6px;
   overflow: hidden;
 }
 
