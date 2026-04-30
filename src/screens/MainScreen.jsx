@@ -7,11 +7,11 @@ import TabBar from '../components/TabBar';
 import { ECONOMIC_PHASE_LABELS, ECONOMIC_PHASES } from '../constants/economy';
 import { selectMarketPreview, useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
-import boomImage from '../assets/optimized/bg_phase_pack/bg_phase_boom.jpg';
-import contractionImage from '../assets/optimized/bg_phase_pack/bg_phase_contraction.jpg';
-import growthImage from '../assets/optimized/bg_phase_pack/bg_phase_growth.jpg';
-import recessionImage from '../assets/optimized/bg_phase_pack/bg_phase_recession.jpg';
-import stableImage from '../assets/optimized/bg_phase_pack/bg_phase_stable.jpg';
+import boomImage from '../assets/optimized/bg_phase_16bit_named_pack/bg_phase_boom.jpg';
+import contractionImage from '../assets/optimized/bg_phase_16bit_named_pack/bg_phase_contraction.jpg';
+import growthImage from '../assets/optimized/bg_phase_16bit_named_pack/bg_phase_growth.jpg';
+import recessionImage from '../assets/optimized/bg_phase_16bit_named_pack/bg_phase_recession.jpg';
+import stableImage from '../assets/optimized/bg_phase_16bit_named_pack/bg_phase_stable.jpg';
 
 const PHASE_IMAGES = Object.freeze({
   [ECONOMIC_PHASES.BOOM]: boomImage,
