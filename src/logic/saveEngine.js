@@ -1,29 +1,97 @@
-import { getUser } from './authEngine';
 import { supabase } from '../lib/supabase';
 
 const SAVE_KEY = 'capirogue-save-v1';
+const SAVE_SLOTS_KEY = 'capirogue-save-slots-v1';
 const RECORDS_KEY = 'capirogue-records-v1';
 
+export const SAVE_SLOT_COUNT = 5;
+
 export function saveGameToLocalStorage(snapshot) {
+  saveGameSlotToLocalStorage(snapshot?.currentSlot ?? 1, snapshot);
   window.localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot));
 }
 
 export function loadGameFromLocalStorage() {
-  const rawSave = window.localStorage.getItem(SAVE_KEY);
+  const firstSlot = loadSaveSlotFromLocalStorage(1);
 
-  if (!rawSave) {
-    return null;
+  if (firstSlot) {
+    return firstSlot;
   }
 
-  try {
-    return JSON.parse(rawSave);
-  } catch {
-    return null;
-  }
+  return loadLegacySave();
 }
 
 export function clearLocalSave() {
   window.localStorage.removeItem(SAVE_KEY);
+  window.localStorage.removeItem(SAVE_SLOTS_KEY);
+}
+
+export function saveGameSlotToLocalStorage(slotNumber, snapshot) {
+  const safeSlotNumber = normalizeSlotNumber(slotNumber);
+  const slots = loadSaveSlotsFromLocalStorage();
+  const nextSnapshot = Object.freeze({
+    ...snapshot,
+    currentSlot: safeSlotNumber,
+    slotId: safeSlotNumber,
+    savedAt: new Date().toISOString(),
+  });
+  const nextSlots = slots.map((slot) => (
+    slot.id === safeSlotNumber
+      ? Object.freeze({ ...slot, snapshot: nextSnapshot })
+      : slot
+  ));
+
+  window.localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(nextSlots));
+  window.localStorage.setItem(SAVE_KEY, JSON.stringify(nextSnapshot));
+
+  return nextSnapshot;
+}
+
+export function loadSaveSlotFromLocalStorage(slotNumber) {
+  const safeSlotNumber = normalizeSlotNumber(slotNumber);
+
+  return loadSaveSlotsFromLocalStorage().find((slot) => slot.id === safeSlotNumber)?.snapshot ?? null;
+}
+
+export function loadSaveSlotsFromLocalStorage() {
+  const emptySlots = createEmptyLocalSlots();
+
+  try {
+    const rawSlots = window.localStorage.getItem(SAVE_SLOTS_KEY);
+
+    if (rawSlots) {
+      const parsedSlots = JSON.parse(rawSlots);
+
+      if (Array.isArray(parsedSlots)) {
+        return emptySlots.map((emptySlot) => {
+          const savedSlot = parsedSlots.find((slot) => {
+            const id = Number(slot?.id ?? slot?.slotNumber);
+
+            return id === emptySlot.id;
+          });
+
+          return Object.freeze({
+            ...emptySlot,
+            snapshot: savedSlot?.snapshot ?? savedSlot?.data ?? null,
+          });
+        });
+      }
+    }
+  } catch {
+    return emptySlots;
+  }
+
+  const legacySave = loadLegacySave();
+
+  if (!legacySave) {
+    return emptySlots;
+  }
+
+  return emptySlots.map((slot) => (
+    slot.id === 1
+      ? Object.freeze({ ...slot, snapshot: legacySave })
+      : slot
+  ));
 }
 
 export function loadRecordsFromLocalStorage() {
@@ -48,132 +116,227 @@ export function saveRecordToLocalStorage(record) {
   window.localStorage.setItem(RECORDS_KEY, JSON.stringify([record, ...records].slice(0, 20)));
 }
 
-export async function saveGame(gameState) {
+export async function saveGame(gameState, slotNumber = 1) {
+  if (!isValidSlotNumber(slotNumber)) {
+    console.error('saveGame failed: slotNumber must be between 1 and 5.');
+    return false;
+  }
+
   if (!supabase) {
-    return null;
+    return false;
   }
 
   try {
-    const user = await getUser();
+    const userId = await getCurrentUserId();
 
-    if (!user) {
+    if (!userId) {
       return null;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('game_saves')
       .upsert(
         {
-          user_id: user.id,
+          user_id: userId,
+          slot_number: Number(slotNumber),
           game_state_json: gameState,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'user_id' },
-      )
-      .select()
-      .single();
+        { onConflict: 'user_id,slot_number' },
+      );
 
     if (error) {
-      return { data: null, error };
+      console.error('saveGame failed:', error);
+      return false;
     }
 
-    return { data, error: null };
+    return true;
   } catch (error) {
-    return { data: null, error };
+    console.error('saveGame failed:', error);
+    return false;
   }
 }
 
-export async function loadGame() {
+export async function loadGame(slotNumber = 1) {
+  if (!isValidSlotNumber(slotNumber)) {
+    console.error('loadGame failed: slotNumber must be between 1 and 5.');
+    return null;
+  }
+
   if (!supabase) {
     return null;
   }
 
   try {
-    const user = await getUser();
+    const userId = await getCurrentUserId();
 
-    if (!user) {
+    if (!userId) {
       return null;
     }
 
     const { data, error } = await supabase
       .from('game_saves')
       .select('game_state_json')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(1)
+      .eq('user_id', userId)
+      .eq('slot_number', Number(slotNumber))
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      console.error('loadGame failed:', error);
       return null;
     }
 
-    return data.game_state_json ?? null;
-  } catch {
+    return data?.game_state_json ?? null;
+  } catch (error) {
+    console.error('loadGame failed:', error);
     return null;
+  }
+}
+
+export async function getAllSlots() {
+  if (!supabase) {
+    return null;
+  }
+
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('game_saves')
+      .select('slot_number, game_state_json, updated_at')
+      .eq('user_id', userId)
+      .order('slot_number', { ascending: true });
+
+    if (error) {
+      console.error('getAllSlots failed:', error);
+      return null;
+    }
+
+    return createEmptyRemoteSlots().map((emptySlot) => {
+      const savedSlot = data?.find((slot) => Number(slot.slot_number) === emptySlot.slotNumber);
+
+      return Object.freeze({
+        slotNumber: emptySlot.slotNumber,
+        data: savedSlot?.game_state_json ?? null,
+        updatedAt: savedSlot?.updated_at ?? null,
+      });
+    });
+  } catch (error) {
+    console.error('getAllSlots failed:', error);
+    return null;
+  }
+}
+
+export async function deleteSlot(slotNumber) {
+  // TODO: Wire this into a slot reset button when the UI is designed.
+  if (!isValidSlotNumber(slotNumber)) {
+    console.error('deleteSlot failed: slotNumber must be between 1 and 5.');
+    return false;
+  }
+
+  if (!supabase) {
+    return false;
+  }
+
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+      return null;
+    }
+
+    const { error } = await supabase
+      .from('game_saves')
+      .delete()
+      .eq('user_id', userId)
+      .eq('slot_number', Number(slotNumber));
+
+    if (error) {
+      console.error('deleteSlot failed:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('deleteSlot failed:', error);
+    return false;
   }
 }
 
 export async function saveRecord(recordData) {
   if (!supabase) {
-    return null;
+    return false;
   }
 
   try {
-    const user = await getUser();
+    const userId = await getCurrentUserId();
 
-    if (!user) {
+    if (!userId) {
       return null;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('records')
       .insert({
         ...recordData,
-        user_id: user.id,
-      })
-      .select()
-      .single();
+        user_id: userId,
+      });
 
     if (error) {
-      return { data: null, error };
+      console.error('saveRecord failed:', error);
+      return false;
     }
 
-    return { data, error: null };
+    return true;
   } catch (error) {
-    return { data: null, error };
+    console.error('saveRecord failed:', error);
+    return false;
   }
 }
 
-export async function loadRecords() {
+export async function loadAllRecords() {
   if (!supabase) {
-    return null;
+    return [];
   }
 
   try {
-    const user = await getUser();
+    const userId = await getCurrentUserId();
 
-    if (!user) {
-      return null;
+    if (!userId) {
+      return [];
     }
 
     const { data, error } = await supabase
       .from('records')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      return { data: null, error };
+      console.error('loadAllRecords failed:', error);
+      return [];
     }
 
-    return { data: data ?? [], error: null };
+    return data ?? [];
   } catch (error) {
-    return { data: null, error };
+    console.error('loadAllRecords failed:', error);
+    return [];
   }
+}
+
+export async function loadRecords() {
+  const data = await loadAllRecords();
+
+  return { data, error: null };
 }
 
 export function createSaveSnapshot(state) {
   return Object.freeze({
+    currentSlot: state.currentSlot,
     session: state.session,
     playerProfile: state.playerProfile,
     selectedAdvisorId: state.selectedAdvisorId,
@@ -202,4 +365,51 @@ export function createSaveSnapshot(state) {
     legacyCards: state.legacyCards,
     // TODO: Legacy card stack cap is TBD by design.
   });
+}
+
+function createEmptyLocalSlots() {
+  return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => Object.freeze({
+    id: index + 1,
+    snapshot: null,
+  }));
+}
+
+function createEmptyRemoteSlots() {
+  return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => Object.freeze({
+    slotNumber: index + 1,
+    data: null,
+    updatedAt: null,
+  }));
+}
+
+function normalizeSlotNumber(slotNumber) {
+  const parsedSlotNumber = Math.round(Number(slotNumber) || 1);
+
+  return Math.max(1, Math.min(SAVE_SLOT_COUNT, parsedSlotNumber));
+}
+
+function isValidSlotNumber(slotNumber) {
+  const parsedSlotNumber = Number(slotNumber);
+
+  return Number.isInteger(parsedSlotNumber) && parsedSlotNumber >= 1 && parsedSlotNumber <= SAVE_SLOT_COUNT;
+}
+
+async function getCurrentUserId() {
+  const { useGameStore } = await import('../store/useGameStore');
+
+  return useGameStore.getState().playerId ?? null;
+}
+
+function loadLegacySave() {
+  const rawSave = window.localStorage.getItem(SAVE_KEY);
+
+  if (!rawSave) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawSave);
+  } catch {
+    return null;
+  }
 }

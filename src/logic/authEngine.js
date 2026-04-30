@@ -135,6 +135,7 @@ export async function signUp(username, password) {
 
     const user = toPublicUser(data);
     saveSession(user);
+    await hydratePlayerSession(user);
 
     return {
       user,
@@ -194,6 +195,7 @@ export async function signIn(username, password) {
 
     const user = toPublicUser(data);
     saveSession(user);
+    await hydratePlayerSession(user);
 
     return {
       user,
@@ -209,10 +211,37 @@ export async function signIn(username, password) {
 
 export async function signOut() {
   clearSession();
+  await clearPlayerSession();
 
   return { error: null };
 }
 
 export async function getUser() {
   return loadSession();
+}
+
+async function hydratePlayerSession(user) {
+  try {
+    const { useGameStore } = await import('../store/useGameStore');
+
+    useGameStore.getState().setPlayerId(user?.id ?? null);
+
+    if (user?.id) {
+      const { getAllSlots } = await import('./saveEngine');
+
+      await getAllSlots();
+    }
+  } catch (error) {
+    console.error('Failed to hydrate player session:', error);
+  }
+}
+
+async function clearPlayerSession() {
+  try {
+    const { useGameStore } = await import('../store/useGameStore');
+
+    useGameStore.getState().setPlayerId(null);
+  } catch (error) {
+    console.error('Failed to clear player session:', error);
+  }
 }

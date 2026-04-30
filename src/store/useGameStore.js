@@ -30,7 +30,13 @@ import { applyEconomicPhaseShift } from '../logic/econEngine';
 import { calculateSettlement, buildOperationalMarketPreview } from '../logic/settlementEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
 import { generateRewardOptions, applyRewardToPlayer, isRewardFloor } from '../logic/rewardEngine';
-import { createSaveSnapshot, loadGameFromLocalStorage, saveGame, saveGameToLocalStorage } from '../logic/saveEngine';
+import {
+  createSaveSnapshot,
+  loadGameFromLocalStorage,
+  saveGame,
+  saveGameSlotToLocalStorage,
+  saveGameToLocalStorage,
+} from '../logic/saveEngine';
 
 export const SCREEN_IDS = Object.freeze({
   LOGIN: 'login',
@@ -114,6 +120,8 @@ const baseState = Object.freeze({
   screen: SCREEN_IDS.LOGIN,
   loginForm: INITIAL_LOGIN,
   session: Object.freeze({ mode: 'guest', userId: '' }),
+  playerId: null,
+  currentSlot: 1,
   playerProfile: INITIAL_PLAYER_PROFILE,
   selectedAdvisorId: ADVISORS[0].id,
   selectedAdvisor: ADVISORS[0],
@@ -173,6 +181,7 @@ export const useGameStore = create((set, get) => ({
     set({
       session: Object.freeze({ mode: 'account', userId: userId.trim() }),
       screen: SCREEN_IDS.TITLE,
+      currentSlot: savedGame?.currentSlot ?? 1,
       playerProfile: Object.freeze(savedGame?.playerProfile ?? INITIAL_PLAYER_PROFILE),
       unlockedAdvisorOrder: Math.max(
         ADVISORS.length,
@@ -187,7 +196,19 @@ export const useGameStore = create((set, get) => ({
       session: Object.freeze({ mode: 'guest', userId: '' }),
       screen: SCREEN_IDS.TITLE,
       loginForm: INITIAL_LOGIN,
+      playerId: null,
+      currentSlot: 1,
     });
+  },
+
+  setPlayerId(id) {
+    set({ playerId: id ?? null });
+  },
+
+  setCurrentSlot(slotNumber) {
+    const parsedSlotNumber = Math.round(Number(slotNumber) || 1);
+
+    set({ currentSlot: Math.max(1, Math.min(5, parsedSlotNumber)) });
   },
 
   setPaused(isPaused) {
@@ -219,10 +240,15 @@ export const useGameStore = create((set, get) => ({
   },
 
   async saveCurrentGame() {
-    const snapshot = createSaveSnapshot(get());
+    const state = get();
+    const slotNumber = state.currentSlot ?? 1;
+    const snapshot = createSaveSnapshot({
+      ...state,
+      currentSlot: slotNumber,
+    });
 
-    saveGameToLocalStorage(snapshot);
-    await saveGame(snapshot);
+    saveGameSlotToLocalStorage(slotNumber, snapshot);
+    await saveGame(snapshot, slotNumber);
 
     return snapshot;
   },
@@ -237,6 +263,8 @@ export const useGameStore = create((set, get) => ({
       ...baseState,
       loginForm: INITIAL_LOGIN,
       session: Object.freeze({ mode: 'guest', userId: '' }),
+      playerId: null,
+      currentSlot: 1,
       isPaused: false,
     });
   },

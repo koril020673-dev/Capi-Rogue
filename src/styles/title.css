@@ -179,6 +179,117 @@
   padding: clamp(12px, 2vw, 20px);
 }
 
+.cr2-title-slot-modal {
+  position: absolute;
+  inset: clamp(34px, 6vw, 76px);
+  z-index: 8;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  border: 3px solid var(--cr2-warning);
+  border-radius: 6px;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.58), 0 0 0 3px rgba(0, 0, 0, 0.8);
+  padding: clamp(14px, 2vw, 22px);
+}
+
+.cr2-title-slot-modal header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  border-bottom: 2px solid rgba(220, 20, 60, 0.8);
+  padding-bottom: 10px;
+}
+
+.cr2-title-slot-modal h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: clamp(13px, 1.8vw, 18px);
+  line-height: 1.5;
+}
+
+.cr2-title-slot-modal header button {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 2px solid var(--cr2-warning);
+  border-radius: 4px;
+  background: #0a0a0a;
+  color: var(--cr2-warning);
+  font-family: var(--cr2-font-pixel);
+  font-size: 12px;
+}
+
+.cr2-title-save-slot-list {
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.cr2-title-save-slot {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  border: 2px solid var(--cr2-accent);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--cr2-accent);
+  padding: 8px 10px;
+  font-family: var(--cr2-font-pixel);
+  text-align: left;
+}
+
+.cr2-title-save-slot span {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--cr2-warning);
+  font-size: clamp(9px, 1.2vw, 12px);
+}
+
+.cr2-title-save-slot strong,
+.cr2-title-save-slot small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr2-title-save-slot strong {
+  color: var(--cr2-accent);
+  font-size: clamp(9px, 1.2vw, 13px);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.cr2-title-save-slot small {
+  color: var(--cr2-text);
+  font-size: clamp(7px, 0.95vw, 10px);
+  line-height: 1.4;
+}
+
+.cr2-title-save-slot--empty,
+.cr2-title-save-slot:disabled {
+  border-color: #006b00;
+  color: #006b00;
+  opacity: 1;
+}
+
+.cr2-title-save-slot--empty strong,
+.cr2-title-save-slot:disabled strong {
+  color: #006b00;
+}
+
 @media (max-width: 720px), (max-height: 560px) {
   .cr2-title-screen--new {
     grid-template-rows: auto 1fr;
@@ -215,5 +326,17 @@
 
   .cr2-title-settings-modal {
     inset: 12px;
+  }
+
+  .cr2-title-slot-modal {
+    inset: 12px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .cr2-title-save-slot {
+    grid-template-columns: 72px minmax(0, 1fr);
+    column-gap: 8px;
+    padding: 6px 8px;
   }
 }

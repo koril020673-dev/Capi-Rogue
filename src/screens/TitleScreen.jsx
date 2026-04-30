@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameSettings from '../components/menus/GameSettings';
 import { ECONOMIC_PHASES } from '../constants/economy';
-import { loadGameFromLocalStorage } from '../logic/saveEngine';
+import {
+  getAllSlots,
+  loadGame,
+  loadSaveSlotsFromLocalStorage,
+} from '../logic/saveEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import logoImage from '../assets/optimized/logo/logo_image.png';
 import boomImage from '../assets/optimized/bg_phase_pack/bg_phase_boom.jpg';
@@ -27,19 +31,26 @@ const TEXT = Object.freeze({
   newGame: '새 게임',
   records: '플레이 기록',
   settings: '설정',
+  loadSlots: '불러오기 슬롯',
+  emptySlot: '빈 슬롯',
   noSave: '저장된 게임이 없습니다.',
   continueLoaded: '저장 데이터를 불러왔습니다.',
+  loadFailed: '슬롯을 불러오지 못했습니다.',
+  floor: '층',
+  noSavedAt: '저장 시간 없음',
 });
 
 export default function TitleScreen() {
   const session = useGameStore((state) => state.session);
   const phase = useGameStore((state) => state.phase);
   const playerProfile = useGameStore((state) => state.playerProfile);
+  const playerId = useGameStore((state) => state.playerId);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [notice, setNotice] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const savedGame = useMemo(() => loadGameFromLocalStorage(), []);
-  const hasSavedGame = Boolean(savedGame?.playerProfile?.profileId || playerProfile.profileId);
+  const [slotOpen, setSlotOpen] = useState(false);
+  const [saveSlots, setSaveSlots] = useState(() => normalizeLocalSlots(loadSaveSlotsFromLocalStorage()));
+  const hasSavedGame = saveSlots.some((slot) => slot.snapshot);
   const menuItems = useMemo(
     () => [
       { id: 'continue', label: TEXT.continue, disabled: !hasSavedGame },
@@ -53,6 +64,10 @@ export default function TitleScreen() {
   const background = PHASE_BACKGROUNDS[phase] ?? PHASE_BACKGROUNDS[ECONOMIC_PHASES.STABLE];
 
   useEffect(() => {
+    refreshSlots();
+  }, [playerId]);
+
+  useEffect(() => {
     if (menuItems[selectedIndex]?.disabled) {
       setSelectedIndex(findNextEnabled(menuItems, selectedIndex, 1));
     }
@@ -60,7 +75,7 @@ export default function TitleScreen() {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (settingsOpen) {
+      if (settingsOpen || slotOpen) {
         return;
       }
 
@@ -83,32 +98,29 @@ export default function TitleScreen() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [menuItems, selectedIndex, settingsOpen]);
+  }, [menuItems, selectedIndex, settingsOpen, slotOpen]);
 
-  function activateMenu(item) {
+  async function refreshSlots() {
+    const remoteSlots = await getAllSlots();
+
+    if (remoteSlots) {
+      setSaveSlots(normalizeRemoteSlots(remoteSlots));
+      return;
+    }
+
+    setSaveSlots(normalizeLocalSlots(loadSaveSlotsFromLocalStorage()));
+  }
+
+  async function activateMenu(item) {
     if (!item || item.disabled) {
       setNotice(TEXT.noSave);
       return;
     }
 
     if (item.id === 'continue') {
-      const profile = savedGame?.playerProfile ?? playerProfile;
-
-      if (savedGame?.floor && savedGame?.player) {
-        useGameStore.setState((state) => ({
-          ...savedGame,
-          session: state.session,
-          playerProfile: profile,
-          isPaused: false,
-          screen: savedGame.screen === SCREEN_IDS.REWARD ? SCREEN_IDS.REWARD : SCREEN_IDS.MAIN,
-        }));
-      } else {
-        useGameStore.setState({
-          playerProfile: profile,
-          screen: SCREEN_IDS.ADVISOR_SELECT,
-        });
-      }
-      setNotice(TEXT.continueLoaded);
+      await refreshSlots();
+      setNotice('');
+      setSlotOpen(true);
       return;
     }
 
@@ -126,6 +138,40 @@ export default function TitleScreen() {
       setNotice('');
       setSettingsOpen(true);
     }
+  }
+
+  async function loadSlot(slot) {
+    const savedGame = playerId
+      ? await loadGame(slot.slotNumber)
+      : slot.snapshot;
+
+    if (!savedGame) {
+      setNotice(TEXT.loadFailed);
+      return;
+    }
+
+    const profile = savedGame.playerProfile ?? playerProfile;
+
+    if (savedGame.floor && savedGame.player) {
+      useGameStore.setState((state) => ({
+        ...savedGame,
+        session: state.session,
+        playerId: state.playerId,
+        currentSlot: slot.slotNumber,
+        playerProfile: profile,
+        isPaused: false,
+        screen: savedGame.screen === SCREEN_IDS.REWARD ? SCREEN_IDS.REWARD : SCREEN_IDS.MAIN,
+      }));
+    } else {
+      useGameStore.setState({
+        currentSlot: slot.slotNumber,
+        playerProfile: profile,
+        screen: SCREEN_IDS.ADVISOR_SELECT,
+      });
+    }
+
+    setSlotOpen(false);
+    setNotice(TEXT.continueLoaded);
   }
 
   return (
@@ -162,6 +208,35 @@ export default function TitleScreen() {
       </nav>
 
       {notice ? <div className="cr2-title-notice">{notice}</div> : null}
+      {slotOpen ? (
+        <section className="cr2-title-slot-modal" role="dialog" aria-modal="true" aria-label={TEXT.loadSlots}>
+          <header>
+            <h2>{TEXT.loadSlots}</h2>
+            <button type="button" onClick={() => setSlotOpen(false)}>X</button>
+          </header>
+          <div className="cr2-title-save-slot-list">
+            {saveSlots.map((slot) => (
+              <button
+                className={slot.snapshot ? 'cr2-title-save-slot' : 'cr2-title-save-slot cr2-title-save-slot--empty'}
+                disabled={!slot.snapshot}
+                key={slot.slotNumber}
+                type="button"
+                onClick={() => loadSlot(slot)}
+              >
+                <span>SLOT {slot.slotNumber}</span>
+                {slot.snapshot ? (
+                  <>
+                    <strong>{getSlotTitle(slot.snapshot)}</strong>
+                    <small>{getSlotMeta(slot.snapshot, slot.updatedAt)}</small>
+                  </>
+                ) : (
+                  <strong>{TEXT.emptySlot}</strong>
+                )}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
       {settingsOpen ? (
         <section className="cr2-title-settings-modal" role="dialog" aria-modal="true" aria-label={TEXT.settings}>
           <GameSettings onBack={() => setSettingsOpen(false)} />
@@ -169,6 +244,22 @@ export default function TitleScreen() {
       ) : null}
     </main>
   );
+}
+
+function normalizeRemoteSlots(slots) {
+  return slots.map((slot) => Object.freeze({
+    slotNumber: slot.slotNumber,
+    snapshot: slot.data,
+    updatedAt: slot.updatedAt,
+  }));
+}
+
+function normalizeLocalSlots(slots) {
+  return slots.map((slot) => Object.freeze({
+    slotNumber: slot.id,
+    snapshot: slot.snapshot,
+    updatedAt: slot.snapshot?.savedAt ?? null,
+  }));
 }
 
 function findNextEnabled(items, currentIndex, direction) {
@@ -181,4 +272,22 @@ function findNextEnabled(items, currentIndex, direction) {
   }
 
   return currentIndex;
+}
+
+function getSlotTitle(snapshot) {
+  const companyName = snapshot.playerProfile?.companyName || snapshot.player?.companyName || '내 회사';
+  const advisorName = snapshot.selectedAdvisor?.name ?? snapshot.selectedAdvisorId ?? '-';
+
+  return `${companyName} / ${advisorName}`;
+}
+
+function getSlotMeta(snapshot, updatedAt) {
+  const floor = snapshot.floor ? `${snapshot.floor}${TEXT.floor}` : '-';
+  const capital = Number.isFinite(snapshot.player?.capital)
+    ? `${Math.round(snapshot.player.capital / 10000).toLocaleString()}만`
+    : '-';
+  const savedAt = updatedAt || snapshot.savedAt;
+  const savedAtText = savedAt ? new Date(savedAt).toLocaleString('ko-KR') : TEXT.noSavedAt;
+
+  return `${floor} / ${capital} / ${savedAtText}`;
 }
