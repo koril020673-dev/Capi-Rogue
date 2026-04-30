@@ -22,19 +22,22 @@ export function createLoan(typeId, principal, creditScore, activeEffects = [], i
 
 export function processInterest(gameState) {
   const loans = gameState.loans ?? [];
-  const totalInterest = loans.reduce((sum, loan) => (
-    sum + Math.round((loan.principal * (loan.interestRate ?? 0.065)) / 12)
-  ), 0);
-  const capital = gameState.player?.capital ?? 0;
+  const totalInterest = loans.reduce(
+    (sum, loan) => sum + Math.round((loan.principal * (loan.interestRate ?? 0.065)) / 12),
+    0,
+  );
+  const capital = gameState.player?.capital ?? gameState.capital ?? 0;
+  const nextCapital = capital - totalInterest;
   const overdue = totalInterest > capital;
 
   return Object.freeze({
     interestDue: totalInterest,
     overdue,
     creditScoreDelta: overdue ? -4 : 0,
+    capitalAfter: nextCapital,
     player: Object.freeze({
       ...gameState.player,
-      capital: capital - totalInterest,
+      capital: nextCapital,
     }),
   });
 }
@@ -70,12 +73,17 @@ export function repayLoan(gameState, loanId) {
     return gameState;
   }
 
+  const capital = gameState.player?.capital ?? gameState.capital ?? 0;
+
   return Object.freeze({
     ...gameState,
-    player: Object.freeze({
-      ...gameState.player,
-      capital: (gameState.player?.capital ?? 0) - loan.principal,
-    }),
+    capital: gameState.player ? gameState.capital : capital - loan.principal,
+    player: gameState.player
+      ? Object.freeze({
+          ...gameState.player,
+          capital: capital - loan.principal,
+        })
+      : gameState.player,
     loans: Object.freeze((gameState.loans ?? []).filter((item) => item.id !== loanId)),
   });
 }
@@ -85,20 +93,22 @@ export function extendLoan(gameState, loanId) {
 
   return Object.freeze({
     ...gameState,
-    loans: Object.freeze((gameState.loans ?? []).map((loan) => {
-      if (loan.id !== loanId) {
-        return loan;
-      }
+    loans: Object.freeze(
+      (gameState.loans ?? []).map((loan) => {
+        if (loan.id !== loanId) {
+          return loan;
+        }
 
-      const type = getLoanType(loan.type);
-      const canExtend = canExtendLoan(creditGrade, type.extensionGrade);
+        const type = getLoanType(loan.type);
+        const canExtend = canExtendLoan(creditGrade, type.extensionGrade);
 
-      return Object.freeze({
-        ...loan,
-        remainingTurns: canExtend ? type.duration : loan.remainingTurns,
-        extensionDenied: !canExtend,
-      });
-    })),
+        return Object.freeze({
+          ...loan,
+          remainingTurns: canExtend ? type.duration : loan.remainingTurns,
+          extensionDenied: !canExtend,
+        });
+      }),
+    ),
   });
 }
 
