@@ -15,6 +15,7 @@ import TitleScreen from './screens/TitleScreen';
 import { SCREEN_IDS, useGameStore } from './store/useGameStore';
 import { getAdvisorThemeColor } from './logic/advisorEngine';
 import { getGameSettings } from './logic/audioEngine';
+import { installViewportGuard } from './logic/viewportGuard';
 
 export default function App() {
   const screen = useGameStore((state) => state.screen);
@@ -25,6 +26,10 @@ export default function App() {
   const [settings, setSettings] = useState(() => getGameSettings());
   const themeColor = getAdvisorThemeColor(selectedAdvisorId);
   const pauseEnabled = isPauseEnabled(screen);
+
+  useEffect(() => {
+    return installViewportGuard();
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(event) {

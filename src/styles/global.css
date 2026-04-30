@@ -23,6 +23,8 @@ body,
 #root {
   min-height: 100%;
   margin: 0;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 body {
@@ -33,6 +35,7 @@ body {
   font-size: 14px;
   letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
   text-rendering: geometricPrecision;
 }
 
