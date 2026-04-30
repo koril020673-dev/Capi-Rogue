@@ -373,8 +373,9 @@ button:disabled {
 }
 
 .cr2-main-screen {
+  position: relative;
   display: grid;
-  grid-template-rows: clamp(44px, calc(var(--cr2-stage-h) * 0.075), 56px) clamp(48px, calc(var(--cr2-stage-h) * 0.082), 60px) minmax(0, 1fr);
+  grid-template-rows: clamp(44px, calc(var(--cr2-stage-h) * 0.075), 56px) minmax(0, 1fr);
   width: var(--cr2-stage-w);
   height: var(--cr2-stage-h);
   min-height: 0;

@@ -83,7 +83,7 @@ export default function MainScreen() {
 
 function EventNoticeBanner({ events, onConfirm }) {
   if (!events.length) {
-    return <section className="cr2-event-banner cr2-event-banner--empty" aria-hidden="true" />;
+    return null;
   }
 
   return (
