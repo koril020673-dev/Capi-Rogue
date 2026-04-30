@@ -80,61 +80,65 @@ export default function AdvisorSelectScreen() {
           <h1>{TEXT.title}</h1>
         </header>
 
-        <section className="cr2-starter-grid">
-          {ADVISORS.map((advisor) => {
-            const details = ADVISOR_DETAILS[advisor.id];
-            const selected = advisor.id === selectedAdvisor.id;
+        <div className="cr2-advisor-select-layout">
+          <section className="cr2-starter-grid">
+            {ADVISORS.map((advisor) => {
+              const details = ADVISOR_DETAILS[advisor.id];
+              const selected = advisor.id === selectedAdvisor.id;
 
-            return (
-              <button
-                className={selected ? 'cr2-starter-card cr2-starter-card--selected' : 'cr2-starter-card'}
-                key={advisor.id}
-                style={{ '--cr2-card-color': advisor.themeColor }}
-                type="button"
-                onClick={() => chooseAdvisor(advisor)}
-              >
-                <span className="cr2-starter-name">{advisor.name}</span>
-                <span className="cr2-starter-style">{advisor.style}</span>
-                <span className="cr2-starter-portrait">
-                  <img src={ADVISOR_IMAGES[advisor.id]} alt="" />
-                </span>
-                <span className="cr2-starter-summary">{details.summary}</span>
-              </button>
-            );
-          })}
-        </section>
+              return (
+                <button
+                  className={selected ? 'cr2-starter-card cr2-starter-card--selected' : 'cr2-starter-card'}
+                  key={advisor.id}
+                  style={{ '--cr2-card-color': advisor.themeColor }}
+                  type="button"
+                  onClick={() => chooseAdvisor(advisor)}
+                >
+                  <span className="cr2-starter-name">{advisor.name}</span>
+                  <span className="cr2-starter-style">{advisor.style}</span>
+                  <span className="cr2-starter-portrait">
+                    <img src={ADVISOR_IMAGES[advisor.id]} alt="" />
+                  </span>
+                  <span className="cr2-starter-summary">{details.summary}</span>
+                </button>
+              );
+            })}
+          </section>
 
-        <section
-          className="cr2-advisor-detail"
-          style={{ '--cr2-card-color': selectedAdvisor.themeColor }}
-        >
-          <div className="cr2-advisor-detail-portrait">
-            <img src={ADVISOR_IMAGES[selectedAdvisor.id]} alt="" />
-          </div>
-          <div className="cr2-advisor-detail-title">
-            <span>{selectedAdvisor.name}</span>
-            <strong>{selectedAdvisor.style}</strong>
-          </div>
-          <p>{selectedAdvisor.description}</p>
-          <div className="cr2-advisor-passive">
-            <span>{TEXT.passive}</span>
-            <strong>{selectedDetails.summary}</strong>
-          </div>
-          <DetailList title={TEXT.buffs} items={selectedDetails.buffs} type="buff" />
-          <DetailList title={TEXT.nerfs} items={selectedDetails.nerfs} type="nerf" />
-          <div className="cr2-advisor-difficulty">
-            <span>{TEXT.difficulty}</span>
-            <strong>{selectedDetails.difficulty}</strong>
-          </div>
-        </section>
+          <aside className="cr2-advisor-side">
+            <section
+              className="cr2-advisor-detail"
+              style={{ '--cr2-card-color': selectedAdvisor.themeColor }}
+            >
+              <div className="cr2-advisor-detail-portrait">
+                <img src={ADVISOR_IMAGES[selectedAdvisor.id]} alt="" />
+              </div>
+              <div className="cr2-advisor-detail-title">
+                <span>{selectedAdvisor.name}</span>
+                <strong>{selectedAdvisor.style}</strong>
+              </div>
+              <p>{selectedAdvisor.description}</p>
+              <div className="cr2-advisor-passive">
+                <span>{TEXT.passive}</span>
+                <strong>{selectedDetails.summary}</strong>
+              </div>
+              <DetailList title={TEXT.buffs} items={selectedDetails.buffs} type="buff" />
+              <DetailList title={TEXT.nerfs} items={selectedDetails.nerfs} type="nerf" />
+              <div className="cr2-advisor-difficulty">
+                <span>{TEXT.difficulty}</span>
+                <strong>{selectedDetails.difficulty}</strong>
+              </div>
+            </section>
 
-        <button
-          className="cr2-primary-button cr2-advisor-start"
-          type="button"
-          onClick={() => startRun(selectedAdvisor.id)}
-        >
-          {TEXT.start}
-        </button>
+            <button
+              className="cr2-primary-button cr2-advisor-start"
+              type="button"
+              onClick={() => startRun(selectedAdvisor.id)}
+            >
+              {TEXT.start}
+            </button>
+          </aside>
+        </div>
       </section>
     </main>
   );

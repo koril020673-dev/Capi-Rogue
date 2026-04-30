@@ -33,7 +33,8 @@
 .cr2-advisor-select-panel {
   display: grid;
   gap: 18px;
-  width: min(760px, 100%);
+  width: min(1180px, 100%);
+  min-height: 660px;
   border: 2px solid var(--cr2-grid);
   border-radius: 8px;
   background: rgba(0, 10, 0, 0.94);
@@ -53,17 +54,25 @@
   word-break: keep-all;
 }
 
+.cr2-advisor-select-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 32%);
+  gap: 16px;
+  align-items: stretch;
+}
+
 .cr2-starter-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  align-content: stretch;
 }
 
 .cr2-starter-card {
   display: grid;
   justify-items: center;
   gap: 8px;
-  min-height: 218px;
+  min-height: 238px;
   border: 2px solid #00AA00;
   border-radius: 6px;
   background: #111111;
@@ -99,7 +108,7 @@
 .cr2-starter-portrait {
   display: grid;
   place-items: center;
-  width: min(112px, 70%);
+  width: min(138px, 78%);
   aspect-ratio: 1;
   border: 2px solid var(--cr2-card-color);
   background: #000000;
@@ -114,20 +123,30 @@
   image-rendering: auto;
 }
 
+.cr2-advisor-side {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 16px;
+  min-width: 0;
+}
+
 .cr2-advisor-detail {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 1fr;
+  align-content: start;
   gap: 12px;
-  border-top: 2px solid var(--cr2-card-color);
+  height: 100%;
+  border: 2px solid var(--cr2-card-color);
+  border-radius: 8px;
   background: #0A0A0A;
-  padding: 18px 4px 4px;
+  padding: 18px;
 }
 
 .cr2-advisor-detail-portrait {
-  grid-row: span 5;
+  justify-self: center;
   display: grid;
   place-items: center;
-  width: 96px;
+  width: min(190px, 76%);
   aspect-ratio: 1;
   border: 2px solid var(--cr2-card-color);
   background: #000000;
@@ -146,8 +165,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
+  text-align: center;
 }
 
 .cr2-advisor-detail-title span {
@@ -204,25 +224,31 @@
 }
 
 .cr2-advisor-start {
-  justify-self: center;
-  min-width: min(320px, 100%);
+  width: 100%;
+  min-height: 52px;
+}
+
+@media (max-width: 920px) {
+  .cr2-advisor-select-panel {
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .cr2-advisor-select-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cr2-starter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
-  .cr2-advisor-select-panel {
-    padding: 16px;
-  }
-
   .cr2-starter-grid {
     grid-template-columns: 1fr;
   }
 
-  .cr2-advisor-detail {
-    grid-template-columns: 1fr;
-  }
-
-  .cr2-advisor-detail-portrait {
-    grid-row: auto;
-    justify-self: center;
+  .cr2-starter-card {
+    min-height: 210px;
   }
 }
