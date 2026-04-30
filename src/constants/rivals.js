@@ -26,13 +26,13 @@ export const RIVAL_PROFILES = Object.freeze({
   [RIVAL_TIERS.ENTRY]: Object.freeze([
     Object.freeze({
       id: 'junhyuk',
-      name: '창업 3개월차 준혁',
+      name: '창업 3개월차 문준혁',
       gender: '남',
       imageFile: 'rival_entry_junhyuk.png',
     }),
     Object.freeze({
       id: 'sua',
-      name: '알바 모아서 창업한 수아',
+      name: '알바비 모아서 창업한 박수아',
       gender: '여',
       imageFile: 'rival_entry_sua.png',
     }),
@@ -40,13 +40,13 @@ export const RIVAL_PROFILES = Object.freeze({
   [RIVAL_TIERS.MID]: Object.freeze([
     Object.freeze({
       id: 'sungjin',
-      name: '대기업 퇴사한 성진',
+      name: '대기업 퇴사하고 창업한 최성진',
       gender: '남',
       imageFile: 'rival_mid_sungjin.png',
     }),
     Object.freeze({
       id: 'jieun',
-      name: '조용히 치고 올라오는 지은',
+      name: '침착한 상승세 이지은',
       gender: '여',
       imageFile: 'rival_mid_jieun.png',
     }),
@@ -54,19 +54,19 @@ export const RIVAL_PROFILES = Object.freeze({
   [RIVAL_TIERS.SENIOR]: Object.freeze([
     Object.freeze({
       id: 'junseo',
-      name: '냉혈한 재벌 2세 준서',
+      name: '재벌 2세 광준서',
       gender: '남',
       imageFile: 'rival_senior_junseo.png',
     }),
     Object.freeze({
       id: 'seoyeon',
-      name: '엘리트 MBA 서연',
+      name: '엘리트 MBA 최서연',
       gender: '여',
       imageFile: 'rival_senior_seoyeon.png',
     }),
     Object.freeze({
       id: 'taejun',
-      name: '베테랑 사냥꾼 태준',
+      name: '베테랑 사기꾼 고태준',
       gender: '남',
       imageFile: 'rival_senior_taejun.png',
     }),
@@ -74,19 +74,19 @@ export const RIVAL_PROFILES = Object.freeze({
   [RIVAL_TIERS.CHAMPION]: Object.freeze([
     Object.freeze({
       id: 'cheolmin',
-      name: '시장의 지배자 철민',
+      name: '시장의 지배자 김철민',
       gender: '남',
       imageFile: 'rival_champion_cheolmin.png',
     }),
     Object.freeze({
       id: 'dogeon',
-      name: '전설의 기업인 도건',
+      name: '전설의 기업인 곽도건',
       gender: '남',
       imageFile: 'rival_champion_dogeon.png',
     }),
     Object.freeze({
       id: 'hyegyeong',
-      name: '업계의 어머니 혜경',
+      name: '업계의 어머니 계혜경',
       gender: '여',
       imageFile: 'rival_champion_hyegyeong.png',
     }),
