@@ -21,8 +21,19 @@
   grid-template-columns: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
   align-content: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.7);
+  background: transparent;
   pointer-events: none;
+}
+
+.cr2-pause-overlay::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
+  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  content: '';
+  background: rgba(0, 0, 0, 0.7);
+  transform: translate(-50%, -50%);
 }
 
 .cr2-pause-shell {
@@ -35,6 +46,7 @@
   max-height: calc(100vh - 16px);
   animation: cr2-pause-slide-in 150ms ease-out;
   pointer-events: auto;
+  z-index: 1;
 }
 
 .cr2-pause-panel,
