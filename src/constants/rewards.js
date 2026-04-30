@@ -55,7 +55,6 @@ export const REWARD_CARDS = Object.freeze([
     description: '\uBE0C\uB79C\uB4DC +2',
     effect: Object.freeze({ type: 'brand', amount: 2 }),
   }),
-  // TODO: 크레딧 보상 항목은 크레딧 시스템 삭제로 제거됨.
   Object.freeze({
     id: 'precision-line',
     grade: REWARD_GRADES.EPIC,
