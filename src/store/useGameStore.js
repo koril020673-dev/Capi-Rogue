@@ -35,6 +35,7 @@ import { createSaveSnapshot, loadGameFromLocalStorage, saveGameToLocalStorage } 
 export const SCREEN_IDS = Object.freeze({
   LOGIN: 'login',
   TITLE: 'title',
+  RECORD: 'record',
   CHARACTER_CREATE: 'character-create',
   ADVISOR_SELECT: 'advisor-select',
   MAIN: 'main',

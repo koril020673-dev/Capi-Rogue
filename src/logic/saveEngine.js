@@ -1,4 +1,5 @@
 const SAVE_KEY = 'capirogue2-save-v1';
+const RECORDS_KEY = 'capirogue2-records-v1';
 
 // TODO: Backend provider is TBD. Replace localStorage with Supabase/Firebase sync here.
 export function saveGameToLocalStorage(snapshot) {
@@ -21,6 +22,28 @@ export function loadGameFromLocalStorage() {
 
 export function clearLocalSave() {
   window.localStorage.removeItem(SAVE_KEY);
+}
+
+export function loadRecordsFromLocalStorage() {
+  const rawRecords = window.localStorage.getItem(RECORDS_KEY);
+
+  if (!rawRecords) {
+    return [];
+  }
+
+  try {
+    const records = JSON.parse(rawRecords);
+
+    return Array.isArray(records) ? records : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveRecordToLocalStorage(record) {
+  const records = loadRecordsFromLocalStorage();
+
+  window.localStorage.setItem(RECORDS_KEY, JSON.stringify([record, ...records].slice(0, 20)));
 }
 
 export function createSaveSnapshot(state) {

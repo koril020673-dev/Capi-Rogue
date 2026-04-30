@@ -104,7 +104,7 @@ export default function TitleScreen() {
     }
 
     if (item.id === 'records') {
-      setNotice(TEXT.recordsTodo);
+      useGameStore.setState({ screen: SCREEN_IDS.RECORD });
       return;
     }
 

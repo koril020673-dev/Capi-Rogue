@@ -1,0 +1,107 @@
+.cr2-record-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  background: #000000;
+  padding: 24px;
+}
+
+.cr2-record-panel {
+  display: grid;
+  gap: 18px;
+  width: min(920px, 100%);
+  border: 2px solid var(--cr2-grid);
+  border-radius: 8px;
+  background: rgba(0, 10, 0, 0.92);
+  box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
+  padding: clamp(18px, 3vw, 30px);
+}
+
+.cr2-record-head {
+  display: grid;
+  gap: 10px;
+  text-align: center;
+}
+
+.cr2-record-head h1 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: clamp(20px, 3vw, 34px);
+  line-height: 1.45;
+}
+
+.cr2-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 2px solid var(--cr2-grid);
+  border-left: 2px solid var(--cr2-grid);
+}
+
+.cr2-record-item {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 54px;
+  border-right: 2px solid var(--cr2-grid);
+  border-bottom: 2px solid var(--cr2-grid);
+  background: rgba(0, 0, 0, 0.58);
+  padding: 10px 12px;
+}
+
+.cr2-record-item span {
+  color: var(--cr2-text);
+  font-family: var(--cr2-font-readable);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.cr2-record-item strong {
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: clamp(10px, 1.15vw, 13px);
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.cr2-record-empty {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border: 2px solid var(--cr2-grid);
+  background: rgba(0, 0, 0, 0.62);
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: clamp(12px, 2vw, 18px);
+  line-height: 1.7;
+  text-align: center;
+}
+
+.cr2-record-back {
+  justify-self: center;
+  min-width: 180px;
+}
+
+@media (max-width: 720px) {
+  .cr2-record-screen {
+    padding: 14px;
+  }
+
+  .cr2-record-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cr2-record-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .cr2-record-item strong {
+    text-align: left;
+  }
+}

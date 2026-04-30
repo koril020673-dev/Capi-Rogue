@@ -5,6 +5,7 @@ import EventScreen from './screens/EventScreen';
 import GameOverScreen from './screens/GameOverScreen';
 import LoginScreen from './screens/LoginScreen';
 import MainScreen from './screens/MainScreen';
+import RecordScreen from './screens/RecordScreen';
 import RewardScreen from './screens/RewardScreen';
 import SettlementScreen from './screens/SettlementScreen';
 import TitleScreen from './screens/TitleScreen';
@@ -33,6 +34,10 @@ function renderScreen(screen) {
 
   if (screen === SCREEN_IDS.TITLE) {
     return <TitleScreen />;
+  }
+
+  if (screen === SCREEN_IDS.RECORD) {
+    return <RecordScreen />;
   }
 
   if (screen === SCREEN_IDS.CHARACTER_CREATE) {
