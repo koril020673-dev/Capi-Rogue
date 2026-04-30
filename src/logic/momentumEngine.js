@@ -61,3 +61,68 @@ export function getMomentumDemandModifier(history) {
 
   return 1;
 }
+
+export function updateMomentum(history, isProfit, advisorId = null) {
+  const nextHistory = updateMomentumHistory(history, isProfit ? 1 : -1);
+  const rawMomentum = getMomentumScore(nextHistory);
+  const adjustedMomentum =
+    advisorId === 'raider'
+      ? Math.max(-5, Math.min(5, Math.round(rawMomentum * 1.5)))
+      : advisorId === 'guardian'
+        ? Math.max(-5, Math.min(5, Math.round(rawMomentum * 0.8)))
+        : Math.max(-5, Math.min(5, rawMomentum));
+
+  return Object.freeze({
+    history: nextHistory,
+    momentum: adjustedMomentum,
+  });
+}
+
+export function getMomentumMultiplier(momentum) {
+  if (momentum >= 5) {
+    return 1.15;
+  }
+
+  if (momentum >= 3) {
+    return 1.08;
+  }
+
+  if (momentum >= 1) {
+    return 1.03;
+  }
+
+  if (momentum <= -5) {
+    return 0.85;
+  }
+
+  if (momentum <= -3) {
+    return 0.9;
+  }
+
+  if (momentum <= -1) {
+    return 0.95;
+  }
+
+  return 1;
+}
+
+export function checkStreakBonus(history, advisorId) {
+  const rules = {
+    raider: 3,
+    guardian: 5,
+    analyst: 4,
+  };
+  const requiredTurns = rules[advisorId];
+
+  if (!requiredTurns) {
+    return null;
+  }
+
+  const recentTurns = history.slice(-requiredTurns);
+
+  if (recentTurns.length < requiredTurns) {
+    return null;
+  }
+
+  return recentTurns.every(Boolean) ? 1 : null;
+}

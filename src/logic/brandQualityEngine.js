@@ -39,3 +39,41 @@ export function applyBrandAndQualityBounds(player) {
     unitCost: Math.max(1, player.unitCost),
   });
 }
+
+export function applyQualityBrandPenalty(brand, upgradeCount) {
+  const extraUpgrades = Math.max(0, upgradeCount - 1);
+
+  return Math.max(0, brand - extraUpgrades * 0.5);
+}
+
+export function applyAwarenessDecay(awareness) {
+  return Math.max(0, awareness - 2);
+}
+
+export function getMaxAwareness(brand) {
+  return Math.min(100, Math.max(0, brand) * 10);
+}
+
+export function calcAwarenessGain(investAmount, currentAwareness) {
+  const divisor = Math.max(1, currentAwareness) * 150000;
+
+  return Math.max(0.5, investAmount / divisor);
+}
+
+export function updateBrand(brand, netProfit, qualityChange = 0) {
+  let nextBrand = brand;
+
+  if (netProfit > 0) {
+    nextBrand += 0.1;
+  }
+
+  if (netProfit < 0) {
+    nextBrand -= 0.2;
+  }
+
+  if (qualityChange < 0) {
+    nextBrand += qualityChange * 0.3;
+  }
+
+  return Math.max(0, Math.min(10, nextBrand));
+}

@@ -9,16 +9,19 @@ import {
   SALES_QUANTITY_IDS,
   SALES_QUANTITY_OPTIONS,
 } from '../constants/strategies';
+import { applyAwarenessDecay, applyMarketingInvestment } from './awarenessEngine';
 import {
   getAdvisorAttractionMultiplier,
   getAdvisorById,
   getAdvisorOrderCapMultiplier,
 } from './advisorEngine';
-import { applyFactoryUpgrade, calculateSelectedQuality } from './brandQualityEngine';
+import { calculateSelectedQuality } from './brandQualityEngine';
 import { calculateTotalDemand } from './demandEngine';
 import { getActiveMarketModifiers } from './eventEngine';
 import { calculateDemandSplit } from './marketEngine';
 import { getMomentumDemandModifier } from './momentumEngine';
+import { checkLoanMaturity, createLoan, processInterest, tickLoans } from './loanEngine';
+import { rollCostReduction, rollQualityUpgrade } from './factoryEngine';
 import { buildRivalParticipants, resolveRivalWar } from './rivalEngine';
 
 const QUALITY_COST_MULTIPLIERS = Object.freeze({
@@ -100,7 +103,12 @@ export function buildMarketPreview(state, randomValue = 0.5) {
     advisorDemandBonus: 0,
     randomValue,
   });
-  const demandSplit = calculateDemandSplit([playerParticipant, ...rivalParticipants], totalDemand);
+  const demandSplit = calculateDemandSplit(
+    [playerParticipant, ...rivalParticipants],
+    totalDemand,
+    state.phase,
+    marketModifiers.demandMultiplier,
+  );
 
   return Object.freeze({
     totalDemand,
@@ -112,7 +120,7 @@ export function buildMarketPreview(state, randomValue = 0.5) {
 }
 
 export function buildOperationalMarketPreview(state, randomValue = 0.5) {
-  const operationResult = applyOperationBeforeSettlement(state.player, state.strategy);
+  const operationResult = applyOperationBeforeSettlement(state, state.strategy, randomValue);
   const preview = buildMarketPreview(
     Object.freeze({ ...state, player: operationResult.player }),
     randomValue,
@@ -128,7 +136,12 @@ export function buildOperationalMarketPreview(state, randomValue = 0.5) {
 }
 
 export function calculateSettlement(state, internalOutcome = null, randomValue = Math.random()) {
-  const operationResult = applyOperationBeforeSettlement(state.player, state.strategy);
+  const operationResult = applyOperationBeforeSettlement(state, state.strategy, randomValue);
+  const interestResult = processInterest(Object.freeze({
+    ...state,
+    player: operationResult.player,
+    loans: operationResult.loans ?? state.loans ?? [],
+  }));
   const workingPlayer = operationResult.player;
   const preview = buildMarketPreview(
     Object.freeze({ ...state, player: workingPlayer }),
@@ -147,7 +160,8 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
   const unsoldUnits = Math.max(0, plannedProduction - unitsSold);
   const productionCost = plannedProduction * preview.player.unitCost;
   const revenue = unitsSold * preview.player.price;
-  const debtService = Math.round((workingPlayer.debt * 0.012) * preview.marketModifiers.debtCostMultiplier);
+  const debtService = Math.round((workingPlayer.debt * 0.012) * preview.marketModifiers.debtCostMultiplier) +
+    interestResult.interestDue;
   const disposalCost = Math.round(unsoldUnits * preview.player.unitCost * 0.18);
   const rawProfit =
     revenue -
@@ -164,6 +178,7 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     playerProfit: profit,
     demandSplit: preview.participants,
   });
+  const nextLoans = tickLoans(operationResult.loans ?? state.loans ?? []);
 
   return Object.freeze({
     totalDemand: preview.totalDemand,
@@ -186,31 +201,53 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     capitalBefore: state.player.capital,
     capitalAfter,
     playerAfterOperation: workingPlayer,
+    nextLoans,
+    loanMaturity: checkLoanMaturity(Object.freeze({ ...state, loans: nextLoans })),
+    interestOverdue: interestResult.overdue,
+    creditScoreDelta: interestResult.creditScoreDelta,
+    factoryFailStreak: operationResult.factoryFailStreak,
+    costReductionFailStreak: operationResult.costReductionFailStreak,
     marketModifiers: preview.marketModifiers,
   });
 }
 
-function applyOperationBeforeSettlement(player, strategy) {
+function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
+  const player = applyAwarenessDecay(state.player);
+
   if (strategy.operationOptionId === OPERATION_STRATEGY_IDS.FACTORY_UPGRADE) {
     const focus = strategy.factoryUpgradeFocus ?? FACTORY_UPGRADE_FOCUS.NONE;
 
     if (focus === FACTORY_UPGRADE_FOCUS.NONE) {
       return Object.freeze({
         player,
+        loans: state.loans ?? [],
         expense: 0,
         note: '\uACF5\uC7A5 \uC791\uC5C5 \uC5C6\uC74C',
+        factoryFailStreak: state.factoryFailStreak ?? 0,
+        costReductionFailStreak: state.costReductionFailStreak ?? 0,
       });
     }
 
-    const upgrade = applyFactoryUpgrade(player, focus);
+    const upgrade = focus === FACTORY_UPGRADE_FOCUS.QUALITY
+      ? rollQualityUpgrade(player, strategy.factoryUpgradeTierIndex ?? 0, state.factoryFailStreak ?? 0, randomValue)
+      : rollCostReduction(player, strategy.costReductionTierIndex ?? 0, state.costReductionFailStreak ?? 0, randomValue);
 
     return Object.freeze({
       player: upgrade.player,
       expense: upgrade.cost,
+      loans: state.loans ?? [],
       note:
         focus === FACTORY_UPGRADE_FOCUS.QUALITY
-          ? '\uD488\uC9C8 \uC911\uC2EC \uC124\uBE44 \uC5C5\uADF8\uB808\uC774\uB4DC'
-          : '\uC6D0\uAC00 \uC911\uC2EC \uC124\uBE44 \uC5C5\uADF8\uB808\uC774\uB4DC',
+          ? `품질 강화 ${upgrade.success ? '성공' : '실패'}`
+          : `원가 절감 ${upgrade.success ? '성공' : '실패'}`,
+      factoryFailStreak:
+        focus === FACTORY_UPGRADE_FOCUS.QUALITY
+          ? upgrade.nextFailStreak
+          : state.factoryFailStreak ?? 0,
+      costReductionFailStreak:
+        focus === FACTORY_UPGRADE_FOCUS.COST
+          ? upgrade.nextFailStreak
+          : state.costReductionFailStreak ?? 0,
     });
   }
 
@@ -226,8 +263,20 @@ function applyOperationBeforeSettlement(player, strategy) {
           capital: player.capital + amount,
           debt: player.debt + amount,
         }),
+        loans: Object.freeze([
+          ...(state.loans ?? []),
+          createLoan(
+            strategy.loanTypeId ?? 'normal',
+            amount,
+            state.creditScore ?? 70,
+            state.marketEffects ?? [],
+            `loan-${state.floor}-${(state.loans ?? []).length + 1}`,
+          ),
+        ]),
         expense: 0,
         note: '\uC740\uD589 \uB300\uCD9C \uC2E4\uD589',
+        factoryFailStreak: state.factoryFailStreak ?? 0,
+        costReductionFailStreak: state.costReductionFailStreak ?? 0,
       });
     }
 
@@ -244,15 +293,21 @@ function applyOperationBeforeSettlement(player, strategy) {
           capital: player.capital - payment,
           debt: player.debt - payment,
         }),
+        loans: state.loans ?? [],
         expense: 0,
         note: '\uC740\uD589 \uB300\uCD9C \uC0C1\uD658',
+        factoryFailStreak: state.factoryFailStreak ?? 0,
+        costReductionFailStreak: state.costReductionFailStreak ?? 0,
       });
     }
 
     return Object.freeze({
       player,
+      loans: state.loans ?? [],
       expense: 0,
       note: '\uC740\uD589 \uAC70\uB798 \uC5C6\uC74C',
+      factoryFailStreak: state.factoryFailStreak ?? 0,
+      costReductionFailStreak: state.costReductionFailStreak ?? 0,
     });
   }
 
@@ -260,19 +315,22 @@ function applyOperationBeforeSettlement(player, strategy) {
     const spend = Math.min(player.capital, Math.max(0, Number(strategy.marketingSpend) || 0));
 
     return Object.freeze({
-      player: Object.freeze({
-        ...player,
-        awareness: Math.min(1.5, player.awareness + spend / 50000000),
-      }),
+      player: applyMarketingInvestment(player, spend),
+      loans: state.loans ?? [],
       expense: spend,
       note: '\uB9C8\uCF00\uD305 \uC9D1\uD589',
+      factoryFailStreak: state.factoryFailStreak ?? 0,
+      costReductionFailStreak: state.costReductionFailStreak ?? 0,
     });
   }
 
   return Object.freeze({
     player,
+    loans: state.loans ?? [],
     expense: 0,
     note: '\uC6B4\uC601 \uBCC0\uACBD \uC5C6\uC74C',
+    factoryFailStreak: state.factoryFailStreak ?? 0,
+    costReductionFailStreak: state.costReductionFailStreak ?? 0,
   });
 }
 

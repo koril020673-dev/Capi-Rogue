@@ -26,12 +26,12 @@ export function createInitialRivals(randomValue = Math.random()) {
   ]);
 }
 
-export function activateRivalsForFloor(rivals, floor, championUnlocked = false) {
+export function activateRivalsForFloor(rivals, floor, championUnlocked = false, playerShare = 0) {
   return Object.freeze(
     rivals.map((rival) => {
       const unlocked =
-        rival.floorUnlock === null
-          ? championUnlocked
+        rival.tier === RIVAL_TIERS.CHAMPION
+          ? championUnlocked || checkChampionUnlock(floor, playerShare)
           : (rival.floorUnlock ?? rival.joinFloor) <= floor;
 
       return Object.freeze({
@@ -40,6 +40,10 @@ export function activateRivalsForFloor(rivals, floor, championUnlocked = false) 
       });
     }),
   );
+}
+
+export function checkChampionUnlock(floor, playerShare) {
+  return floor >= 80 && playerShare >= 0.4;
 }
 
 export function getActiveRivals(rivals, floor) {
@@ -398,7 +402,7 @@ function createRival(tier, nameIndex, focus, randomValue = Math.random()) {
     share: 0,
     floorUnlock,
     joinFloor: floorUnlock,
-    active: floorUnlock !== null && floorUnlock <= 1,
+    active: tier !== RIVAL_TIERS.CHAMPION && floorUnlock !== null && floorUnlock <= 1,
   });
 }
 

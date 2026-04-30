@@ -145,7 +145,8 @@ export const RIVAL_PROFILES = Object.freeze({
       company: 'CHEOLMIN Corp',
       gender: '남',
       tier: RIVAL_TIERS.CHAMPION,
-      floorUnlock: null,
+      floorUnlock: 80,
+      shareThreshold: 0.4,
       sprite: '/assets/rivals/rival_champion_cheolmin.png',
       imageFile: 'rival_champion_cheolmin.png',
       stats: TIER_STATS[RIVAL_TIERS.CHAMPION],
@@ -157,7 +158,8 @@ export const RIVAL_PROFILES = Object.freeze({
       company: '도건그룹',
       gender: '남',
       tier: RIVAL_TIERS.CHAMPION,
-      floorUnlock: null,
+      floorUnlock: 80,
+      shareThreshold: 0.4,
       sprite: '/assets/rivals/rival_champion_dogeon.png',
       imageFile: 'rival_champion_dogeon.png',
       stats: Object.freeze({ ...TIER_STATS[RIVAL_TIERS.CHAMPION], quality: 86, brand: 76 }),
@@ -169,7 +171,8 @@ export const RIVAL_PROFILES = Object.freeze({
       company: 'HK International',
       gender: '여',
       tier: RIVAL_TIERS.CHAMPION,
-      floorUnlock: null,
+      floorUnlock: 80,
+      shareThreshold: 0.4,
       sprite: '/assets/rivals/rival_champion_hyegyeong.png',
       imageFile: 'rival_champion_hyegyeong.png',
       stats: Object.freeze({ ...TIER_STATS[RIVAL_TIERS.CHAMPION], quality: 88, brand: 84 }),
@@ -206,7 +209,7 @@ export const RIVAL_JOIN_FLOORS = Object.freeze({
   [RIVAL_TIERS.ENTRY]: 3,
   [RIVAL_TIERS.MID]: 10,
   [RIVAL_TIERS.SENIOR]: 30,
-  [RIVAL_TIERS.CHAMPION]: null,
+  [RIVAL_TIERS.CHAMPION]: 80,
 });
 
 export function getActiveRivals(floor, isRndUnlocked = false) {

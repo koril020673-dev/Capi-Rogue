@@ -23,71 +23,97 @@ export const ECONOMIC_PHASE_LABELS = Object.freeze({
 });
 
 export const ECONOMIC_PHASE_DEMAND_MULTIPLIERS = Object.freeze({
-  [ECONOMIC_PHASES.BOOM]: 1.35,
-  [ECONOMIC_PHASES.GROWTH]: 1.15,
+  [ECONOMIC_PHASES.BOOM]: 1.4,
+  [ECONOMIC_PHASES.GROWTH]: 1.2,
   [ECONOMIC_PHASES.STABLE]: 1,
-  [ECONOMIC_PHASES.CONTRACTION]: 0.82,
-  [ECONOMIC_PHASES.RECESSION]: 0.62,
+  [ECONOMIC_PHASES.CONTRACTION]: 0.8,
+  [ECONOMIC_PHASES.RECESSION]: 0.6,
 });
 
 export const ECONOMIC_PHASE_TRANSITIONS = Object.freeze({
   [ECONOMIC_PHASES.BOOM]: Object.freeze({
-    [ECONOMIC_PHASES.BOOM]: 0.62,
-    [ECONOMIC_PHASES.GROWTH]: 0.38,
+    [ECONOMIC_PHASES.BOOM]: 0.4,
+    [ECONOMIC_PHASES.GROWTH]: 0.6,
+    [ECONOMIC_PHASES.STABLE]: 0,
+    [ECONOMIC_PHASES.CONTRACTION]: 0,
+    [ECONOMIC_PHASES.RECESSION]: 0,
   }),
   [ECONOMIC_PHASES.GROWTH]: Object.freeze({
-    [ECONOMIC_PHASES.BOOM]: 0.18,
-    [ECONOMIC_PHASES.GROWTH]: 0.52,
-    [ECONOMIC_PHASES.STABLE]: 0.3,
+    [ECONOMIC_PHASES.BOOM]: 0.2,
+    [ECONOMIC_PHASES.GROWTH]: 0.4,
+    [ECONOMIC_PHASES.STABLE]: 0.4,
+    [ECONOMIC_PHASES.CONTRACTION]: 0,
+    [ECONOMIC_PHASES.RECESSION]: 0,
   }),
   [ECONOMIC_PHASES.STABLE]: Object.freeze({
-    [ECONOMIC_PHASES.GROWTH]: 0.24,
-    [ECONOMIC_PHASES.STABLE]: 0.52,
-    [ECONOMIC_PHASES.CONTRACTION]: 0.24,
+    [ECONOMIC_PHASES.BOOM]: 0,
+    [ECONOMIC_PHASES.GROWTH]: 0.3,
+    [ECONOMIC_PHASES.STABLE]: 0.4,
+    [ECONOMIC_PHASES.CONTRACTION]: 0.3,
+    [ECONOMIC_PHASES.RECESSION]: 0,
   }),
   [ECONOMIC_PHASES.CONTRACTION]: Object.freeze({
-    [ECONOMIC_PHASES.STABLE]: 0.28,
-    [ECONOMIC_PHASES.CONTRACTION]: 0.52,
+    [ECONOMIC_PHASES.BOOM]: 0,
+    [ECONOMIC_PHASES.GROWTH]: 0,
+    [ECONOMIC_PHASES.STABLE]: 0.4,
+    [ECONOMIC_PHASES.CONTRACTION]: 0.4,
     [ECONOMIC_PHASES.RECESSION]: 0.2,
   }),
   [ECONOMIC_PHASES.RECESSION]: Object.freeze({
-    [ECONOMIC_PHASES.CONTRACTION]: 0.34,
-    [ECONOMIC_PHASES.RECESSION]: 0.66,
+    [ECONOMIC_PHASES.BOOM]: 0,
+    [ECONOMIC_PHASES.GROWTH]: 0,
+    [ECONOMIC_PHASES.STABLE]: 0,
+    [ECONOMIC_PHASES.CONTRACTION]: 0.6,
+    [ECONOMIC_PHASES.RECESSION]: 0.4,
   }),
 });
 
 export const ECONOMIC_PHASE_CONSUMER_RATIOS = Object.freeze({
   [ECONOMIC_PHASES.BOOM]: Object.freeze({
-    valueSeekers: 0.18,
-    mainstream: 0.34,
-    premium: 0.33,
-    experimental: 0.15,
+    quality: 0.3,
+    brand: 0.3,
+    price: 0.2,
+    general: 0.2,
   }),
   [ECONOMIC_PHASES.GROWTH]: Object.freeze({
-    valueSeekers: 0.24,
-    mainstream: 0.38,
-    premium: 0.26,
-    experimental: 0.12,
+    quality: 0.25,
+    brand: 0.25,
+    price: 0.25,
+    general: 0.25,
   }),
   [ECONOMIC_PHASES.STABLE]: Object.freeze({
-    valueSeekers: 0.34,
-    mainstream: 0.4,
-    premium: 0.18,
-    experimental: 0.08,
+    quality: 0.2,
+    brand: 0.2,
+    price: 0.3,
+    general: 0.3,
   }),
   [ECONOMIC_PHASES.CONTRACTION]: Object.freeze({
-    valueSeekers: 0.46,
-    mainstream: 0.35,
-    premium: 0.13,
-    experimental: 0.06,
+    quality: 0.15,
+    brand: 0.15,
+    price: 0.4,
+    general: 0.3,
   }),
   [ECONOMIC_PHASES.RECESSION]: Object.freeze({
-    valueSeekers: 0.58,
-    mainstream: 0.29,
-    premium: 0.08,
-    experimental: 0.05,
+    quality: 0.1,
+    brand: 0.1,
+    price: 0.5,
+    general: 0.3,
   }),
 });
+
+export const ECO_PHASES = Object.freeze(
+  Object.fromEntries(
+    ECONOMIC_PHASE_ORDER.map((phase) => [
+      phase,
+      Object.freeze({
+        demandMultiplier: ECONOMIC_PHASE_DEMAND_MULTIPLIERS[phase],
+        consumerRatio: ECONOMIC_PHASE_CONSUMER_RATIOS[phase],
+      }),
+    ]),
+  ),
+);
+
+export const MARKOV_MATRIX = ECONOMIC_PHASE_TRANSITIONS;
 
 export const BASE_MONTHLY_DEMAND = 1000;
 

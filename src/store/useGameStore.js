@@ -26,7 +26,7 @@ import {
 } from '../logic/healthEngine';
 import { updateMomentumHistory, getMomentumScore } from '../logic/momentumEngine';
 import { addExternalEventEffect, applyEffectBundleToPlayer, drawInternalEvent, expireMarketEffects, resolveInternalChoice, rollRivalEvent, selectExternalEvent } from '../logic/eventEngine';
-import { applyEconomicPhaseShift } from '../logic/econEngine';
+import { applyEconomicPhaseShift, getForcedPhase } from '../logic/econEngine';
 import { calculateSettlement, buildOperationalMarketPreview } from '../logic/settlementEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
 import { generateRewardOptions, applyRewardToPlayer, isRewardFloor } from '../logic/rewardEngine';
@@ -57,8 +57,11 @@ const INITIAL_PLAYER = Object.freeze({
   capital: 35000000,
   debt: 3000000,
   health: 10,
-  unitCost: 20000,
-  maxQuality: 10,
+  unitCost: 3000,
+  baseUnitCost: 3000,
+  costReduction: 0,
+  orderCap: 1000,
+  maxQuality: 8,
   brand: 6,
   awareness: 0.08,
   efficiency: 1,
@@ -112,6 +115,11 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
     metRivals: Object.freeze([]),
     playtime: 0,
     championUnlocked: false,
+    creditScore: 70,
+    factoryFailStreak: 0,
+    costReductionFailStreak: 0,
+    loans: Object.freeze([]),
+    loanMaturityNotice: null,
     runOutcome: null,
   });
 }
@@ -147,6 +155,11 @@ const baseState = Object.freeze({
   metRivals: Object.freeze([]),
   playtime: 0,
   championUnlocked: false,
+  creditScore: 70,
+  factoryFailStreak: 0,
+  costReductionFailStreak: 0,
+  loans: Object.freeze([]),
+  loanMaturityNotice: null,
   runOutcome: null,
 });
 
@@ -659,6 +672,11 @@ function settleCurrentMonth(set, get, internalOutcome) {
       health: nextHealth,
     }),
     rivals: settlement.nextRivals,
+    loans: settlement.nextLoans,
+    loanMaturityNotice: settlement.loanMaturity,
+    creditScore: Math.max(0, Math.min(100, (state.creditScore ?? 70) + (settlement.creditScoreDelta ?? 0))),
+    factoryFailStreak: settlement.factoryFailStreak ?? state.factoryFailStreak,
+    costReductionFailStreak: settlement.costReductionFailStreak ?? state.costReductionFailStreak,
     currentSettlement: settlement,
     currentResult: result,
     currentInternalEvent: null,
@@ -674,6 +692,7 @@ function prepareFloor(state) {
   const rivalEvent = rollRivalEvent(state.rivals, Math.random());
   const externalEffects = addExternalEventEffect(freshEffects, externalEvent, state.floor);
   const marketEffects = addExternalEventEffect(externalEffects, rivalEvent, state.floor);
+  const forcedPhase = getForcedPhase(marketEffects);
 
   const metRivals = Object.freeze([
     ...new Set([
@@ -686,6 +705,7 @@ function prepareFloor(state) {
 
   return Object.freeze({
     marketEffects,
+    phase: forcedPhase ?? state.phase,
     currentExternalEvent: externalEvent,
     currentRivalEvent: rivalEvent,
     lastExternalEvent: externalEvent,
@@ -701,9 +721,19 @@ function prepareFloor(state) {
 function advanceToNextFloor(set, get) {
   const state = get();
   const nextFloor = state.floor + 1;
-  const phaseShift = applyEconomicPhaseShift(state.phase, Math.random());
+  const phaseShift = applyEconomicPhaseShift(
+    state.phase,
+    Math.random(),
+    expireMarketEffects(state.marketEffects, nextFloor),
+  );
   const respawnedRivals = processRivalRespawn(state.rivals);
-  const activatedRivals = activateRivalsForFloor(respawnedRivals, nextFloor, state.championUnlocked);
+  const latestShare = state.timeline.at(-1)?.marketShare ?? 0;
+  const activatedRivals = activateRivalsForFloor(
+    respawnedRivals,
+    nextFloor,
+    state.championUnlocked,
+    latestShare,
+  );
   const healthRecovery = getScheduledHealthRecovery(nextFloor, state.selectedAdvisorId);
   const recoveredPlayer = Object.freeze({
     ...state.player,

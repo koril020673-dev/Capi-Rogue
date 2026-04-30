@@ -144,3 +144,98 @@ export function applyRewardToPlayer(player, reward) {
 
   return Object.freeze({ player });
 }
+
+export function getRewardGrade(momentum, momentumHistory = [], randomValue = Math.random()) {
+  const isFiveTurnProfit = momentumHistory.slice(-5).length >= 5 && momentumHistory.slice(-5).every(Boolean);
+  const weights = isFiveTurnProfit
+    ? { normal: 0.15, rare: 0.35, epic: 0.35, legend: 0.15 }
+    : momentum > 0
+      ? { normal: 0.3, rare: 0.4, epic: 0.22, legend: 0.08 }
+      : momentum < 0
+        ? { normal: 0.7, rare: 0.25, epic: 0.04, legend: 0.01 }
+        : { normal: 0.5, rare: 0.35, epic: 0.12, legend: 0.03 };
+
+  return rollRewardGrade(weights, randomValue);
+}
+
+export function getRewardOptions(grade) {
+  const optionsByGrade = {
+    [REWARD_GRADES.NORMAL]: [
+      { type: 'health', label: '체력 +1', effect: { type: 'health', amount: 1 } },
+      { type: 'nextTurnCost', label: '다음턴 원가 -10%', effect: { type: 'unitCostMultiplier', multiplier: 0.9 } },
+      { type: 'awareness', label: '인지도 +15', effect: { type: 'awareness', amount: 0.15 } },
+    ],
+    [REWARD_GRADES.RARE]: [
+      { type: 'health', label: '체력 +2', effect: { type: 'health', amount: 2 } },
+      { type: 'brand', label: '브랜드 +2', effect: { type: 'brand', amount: 2 } },
+      { type: 'creditScore', label: '신용점수 +10', effect: { type: 'creditScore', amount: 10 } },
+    ],
+    [REWARD_GRADES.EPIC]: [
+      { type: 'health', label: '체력 +3', effect: { type: 'health', amount: 3 } },
+      { type: 'quality', label: '품질 +10', effect: { type: 'quality', amount: 10 } },
+      { type: 'capital', label: '자본 +200만', effect: { type: 'capital', amount: 2000000 } },
+    ],
+    [REWARD_GRADES.LEGEND]: [
+      { type: 'healthFull', label: '체력 전체 회복', effect: { type: 'healthFull' } },
+      { type: 'quality', label: '품질 +20', effect: { type: 'quality', amount: 20 } },
+      { type: 'capital', label: '자본 +500만', effect: { type: 'capital', amount: 5000000 } },
+    ],
+  };
+
+  return Object.freeze((optionsByGrade[grade] ?? optionsByGrade[REWARD_GRADES.NORMAL]).map(Object.freeze));
+}
+
+export function applyReward(rewardType, gameState) {
+  const reward =
+    typeof rewardType === 'string'
+      ? getRewardOptions(gameState.rewardGrade ?? REWARD_GRADES.NORMAL).find((option) => option.type === rewardType)
+      : rewardType;
+  const effect = reward?.effect ?? reward;
+
+  if (!effect) {
+    return gameState;
+  }
+
+  if (effect.type === 'healthFull') {
+    return Object.freeze({ ...gameState, health: gameState.maxHealth ?? 10 });
+  }
+
+  if (effect.type === 'health') {
+    return Object.freeze({
+      ...gameState,
+      health: Math.min(gameState.maxHealth ?? 10, (gameState.health ?? 0) + effect.amount),
+    });
+  }
+
+  if (effect.type === 'capital') {
+    return Object.freeze({ ...gameState, capital: (gameState.capital ?? 0) + effect.amount });
+  }
+
+  if (effect.type === 'quality') {
+    return Object.freeze({ ...gameState, quality: Math.min(100, (gameState.quality ?? 0) + effect.amount) });
+  }
+
+  if (effect.type === 'brand') {
+    return Object.freeze({ ...gameState, brand: (gameState.brand ?? 0) + effect.amount });
+  }
+
+  if (effect.type === 'creditScore') {
+    return Object.freeze({
+      ...gameState,
+      creditScore: Math.min(100, (gameState.creditScore ?? 70) + effect.amount),
+    });
+  }
+
+  if (effect.type === 'awareness') {
+    return Object.freeze({ ...gameState, awareness: Math.min(1.5, (gameState.awareness ?? 0) + effect.amount) });
+  }
+
+  if (effect.type === 'unitCostMultiplier') {
+    return Object.freeze({
+      ...gameState,
+      unitCost: Math.max(1, Math.round((gameState.unitCost ?? gameState.cost ?? 1) * effect.multiplier)),
+    });
+  }
+
+  return gameState;
+}

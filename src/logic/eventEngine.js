@@ -151,6 +151,7 @@ export function getActiveMarketModifiers(marketEffects, floor) {
         brandMultiplier: modifiers.brandMultiplier * (effects.brandMultiplier ?? 1),
         netProfitMultiplier: modifiers.netProfitMultiplier * (effects.netProfitMultiplier ?? 1),
         playerDemandPenalty: modifiers.playerDemandPenalty + (effects.playerDemandPenalty ?? 0),
+        forcePhase: effects.forcePhase ?? modifiers.forcePhase,
       });
     },
     Object.freeze({
@@ -166,6 +167,7 @@ export function getActiveMarketModifiers(marketEffects, floor) {
       brandMultiplier: 1,
       netProfitMultiplier: 1,
       playerDemandPenalty: 0,
+      forcePhase: null,
     }),
   );
 }

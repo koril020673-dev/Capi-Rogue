@@ -111,3 +111,16 @@ export function applyHealthDelta(health, delta, maxHealth = MAX_HEALTH) {
 export function isGameOverHealth(health) {
   return health <= 0;
 }
+
+export function checkBankruptcy(capital, bankruptcyTurns = 0) {
+  const nextBankruptcyTurns = capital < 0 ? bankruptcyTurns + 1 : 0;
+
+  return Object.freeze({
+    bankruptcyTurns: nextBankruptcyTurns,
+    isBankrupt: nextBankruptcyTurns >= 4,
+  });
+}
+
+export function checkGameOver(health, bankruptcyTurns = 0) {
+  return health <= 0 || bankruptcyTurns >= 4;
+}

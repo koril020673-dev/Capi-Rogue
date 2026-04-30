@@ -1,4 +1,5 @@
 import {
+  ECONOMIC_PHASE_CONSUMER_RATIOS,
   ECONOMIC_PHASE_DEMAND_MULTIPLIERS,
   ECONOMIC_PHASE_ORDER,
   ECONOMIC_PHASE_TRANSITIONS,
@@ -59,8 +60,9 @@ export function pickNextEconomicPhase(currentPhase, randomValue = Math.random())
   return Object.keys(transitions).at(-1) ?? ECONOMIC_PHASES.STABLE;
 }
 
-export function applyEconomicPhaseShift(currentPhase, randomValue = Math.random()) {
-  const nextPhase = pickNextEconomicPhase(currentPhase, randomValue);
+export function applyEconomicPhaseShift(currentPhase, randomValue = Math.random(), activeEffects = []) {
+  const forcedPhase = getForcedPhase(activeEffects);
+  const nextPhase = forcedPhase ?? pickNextEconomicPhase(currentPhase, randomValue);
 
   return Object.freeze({
     previousPhase: isValidEconomicPhase(currentPhase)
@@ -69,7 +71,43 @@ export function applyEconomicPhaseShift(currentPhase, randomValue = Math.random(
     nextPhase,
     changed: currentPhase !== nextPhase,
     demandMultiplier: getDemandMultiplierForPhase(nextPhase),
+    forced: Boolean(forcedPhase),
   });
+}
+
+export function getForcedPhase(activeEffects = []) {
+  const effect = activeEffects.find((item) => {
+    const phase = item.effects?.forcePhase ?? item.forcePhase;
+
+    return phase && isValidEconomicPhase(phase);
+  });
+
+  return effect?.effects?.forcePhase ?? effect?.forcePhase ?? null;
+}
+
+export function transitionPhase(currentPhase, activeEffects = [], randomValue = Math.random()) {
+  return applyEconomicPhaseShift(currentPhase, randomValue, activeEffects).nextPhase;
+}
+
+export function tickEffects(activeEffects = []) {
+  return Object.freeze(
+    activeEffects
+      .map((effect) =>
+        Object.freeze({
+          ...effect,
+          duration: Math.max(0, (effect.duration ?? 1) - 1),
+        }),
+      )
+      .filter((effect) => effect.duration > 0),
+  );
+}
+
+export function getDemandMultiplier(phase) {
+  return getDemandMultiplierForPhase(phase);
+}
+
+export function getConsumerRatio(phase) {
+  return ECONOMIC_PHASE_CONSUMER_RATIOS[phase] ?? ECONOMIC_PHASE_CONSUMER_RATIOS[ECONOMIC_PHASES.STABLE];
 }
 
 function clamp(value, min, max) {
