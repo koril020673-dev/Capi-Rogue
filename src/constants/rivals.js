@@ -55,7 +55,7 @@ export const RIVAL_PROFILES = Object.freeze({
       company: '준혁상회',
       gender: '남',
       tier: RIVAL_TIERS.ENTRY,
-      floorUnlock: 1,
+      floorUnlock: 3,
       sprite: '/assets/rivals/rival_entry_junhyuk.png',
       imageFile: 'rival_entry_junhyuk.png',
       stats: TIER_STATS[RIVAL_TIERS.ENTRY],
@@ -67,7 +67,7 @@ export const RIVAL_PROFILES = Object.freeze({
       company: 'SUA Works',
       gender: '여',
       tier: RIVAL_TIERS.ENTRY,
-      floorUnlock: 1,
+      floorUnlock: 3,
       sprite: '/assets/rivals/rival_entry_sua.png',
       imageFile: 'rival_entry_sua.png',
       stats: TIER_STATS[RIVAL_TIERS.ENTRY],
@@ -203,7 +203,7 @@ export const RIVAL_FOCUSES = Object.freeze({
 });
 
 export const RIVAL_JOIN_FLOORS = Object.freeze({
-  [RIVAL_TIERS.ENTRY]: 1,
+  [RIVAL_TIERS.ENTRY]: 3,
   [RIVAL_TIERS.MID]: 10,
   [RIVAL_TIERS.SENIOR]: 30,
   [RIVAL_TIERS.CHAMPION]: null,
