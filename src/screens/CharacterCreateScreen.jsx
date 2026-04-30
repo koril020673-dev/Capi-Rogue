@@ -7,7 +7,7 @@ import maleAFull from '../assets/optimized/player/player_male_a_full.png';
 import maleAProfile from '../assets/optimized/player/player_male_a_profile.png';
 import maleBFull from '../assets/optimized/player/player_male_b_full.png';
 import maleBProfile from '../assets/optimized/player/player_male_b_profile.png';
-import { useGameStore } from '../store/useGameStore';
+import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import '../styles/characterCreate.css';
 
 export const PLAYER_PROFILES = Object.freeze([
@@ -74,6 +74,13 @@ export default function CharacterCreateScreen() {
   return (
     <main className="cr2-character-create-screen">
       <section className="cr2-character-panel">
+        <button
+          className="cr2-flow-back-button"
+          type="button"
+          onClick={() => useGameStore.setState({ screen: SCREEN_IDS.TITLE })}
+        >
+          이전으로
+        </button>
         <h1>{TEXT.title}</h1>
 
         <section className="cr2-character-section">

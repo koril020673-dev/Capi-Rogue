@@ -12,6 +12,7 @@
 }
 
 .cr2-character-panel {
+  position: relative;
   display: grid;
   gap: 16px;
   width: min(760px, 100%);
@@ -22,6 +23,10 @@
   box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
   padding: clamp(16px, 2vw, 22px);
   overflow: hidden;
+}
+
+.cr2-character-panel > h1 {
+  padding-inline: 96px;
 }
 
 .cr2-character-panel h1,

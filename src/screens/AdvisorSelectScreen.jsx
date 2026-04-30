@@ -1,5 +1,5 @@
 import { ADVISORS } from '../constants/advisors';
-import { useGameStore } from '../store/useGameStore';
+import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import analystImage from '../assets/optimized/advisor_fullbody/advisor_analyst_v2.png';
 import gamblerImage from '../assets/optimized/advisor_fullbody/advisor_gambler_v2.png';
 import guardianImage from '../assets/optimized/advisor_fullbody/advisor_guardian_v2.png';
@@ -84,6 +84,13 @@ export default function AdvisorSelectScreen() {
   return (
     <main className="cr2-advisor-screen cr2-advisor-select">
       <section className="cr2-advisor-select-panel">
+        <button
+          className="cr2-flow-back-button"
+          type="button"
+          onClick={() => useGameStore.setState({ screen: SCREEN_IDS.CHARACTER_CREATE })}
+        >
+          이전으로
+        </button>
         <header className="cr2-advisor-select-head">
           <p className="cr2-kicker">ADVISOR SELECT</p>
           <h1>{TEXT.title}</h1>
