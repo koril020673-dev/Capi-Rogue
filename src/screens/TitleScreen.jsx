@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import GameSettings from '../components/menus/GameSettings';
 import { ECONOMIC_PHASES } from '../constants/economy';
 import { loadGameFromLocalStorage } from '../logic/saveEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
@@ -27,8 +28,7 @@ const TEXT = Object.freeze({
   records: '플레이 기록',
   settings: '설정',
   noSave: '저장된 게임이 없습니다.',
-  continueTodo: 'TODO: Supabase 저장 데이터 로드. 현재는 로컬 프로필을 불러옵니다.',
-  settingsTodo: 'TODO: 설정 모달 준비 중입니다.',
+  continueLoaded: '저장 데이터를 불러왔습니다.',
 });
 
 export default function TitleScreen() {
@@ -37,6 +37,7 @@ export default function TitleScreen() {
   const playerProfile = useGameStore((state) => state.playerProfile);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [notice, setNotice] = useState('');
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const savedGame = useMemo(() => loadGameFromLocalStorage(), []);
   const hasSavedGame = Boolean(savedGame?.playerProfile?.profileId || playerProfile.profileId);
   const menuItems = useMemo(
@@ -59,6 +60,10 @@ export default function TitleScreen() {
 
   useEffect(() => {
     function handleKeyDown(event) {
+      if (settingsOpen) {
+        return;
+      }
+
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         setSelectedIndex((index) => findNextEnabled(menuItems, index, 1));
@@ -78,7 +83,7 @@ export default function TitleScreen() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [menuItems, selectedIndex]);
+  }, [menuItems, selectedIndex, settingsOpen]);
 
   function activateMenu(item) {
     if (!item || item.disabled) {
@@ -103,7 +108,7 @@ export default function TitleScreen() {
           screen: SCREEN_IDS.ADVISOR_SELECT,
         });
       }
-      setNotice(TEXT.continueTodo);
+      setNotice(TEXT.continueLoaded);
       return;
     }
 
@@ -118,7 +123,8 @@ export default function TitleScreen() {
     }
 
     if (item.id === 'settings') {
-      setNotice(TEXT.settingsTodo);
+      setNotice('');
+      setSettingsOpen(true);
     }
   }
 
@@ -156,6 +162,11 @@ export default function TitleScreen() {
       </nav>
 
       {notice ? <div className="cr2-title-notice">{notice}</div> : null}
+      {settingsOpen ? (
+        <section className="cr2-title-settings-modal" role="dialog" aria-modal="true" aria-label={TEXT.settings}>
+          <GameSettings onBack={() => setSettingsOpen(false)} />
+        </section>
+      ) : null}
     </main>
   );
 }

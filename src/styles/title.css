@@ -165,6 +165,20 @@
   line-height: 1.55;
 }
 
+.cr2-title-settings-modal {
+  position: absolute;
+  inset: clamp(22px, 4vw, 52px);
+  z-index: 8;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  border: 3px solid var(--cr2-warning);
+  border-radius: 6px;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.58), 0 0 0 3px rgba(0, 0, 0, 0.8);
+  padding: clamp(12px, 2vw, 20px);
+}
+
 @media (max-width: 720px), (max-height: 560px) {
   .cr2-title-screen--new {
     grid-template-rows: auto 1fr;
@@ -197,5 +211,9 @@
     right: 14px;
     bottom: 214px;
     max-width: none;
+  }
+
+  .cr2-title-settings-modal {
+    inset: 12px;
   }
 }
