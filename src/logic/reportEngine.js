@@ -137,8 +137,8 @@ function buildRaiderReport(gameState) {
     ? Math.round(((playerPrice - rivalAveragePrice) / rivalAveragePrice) * 100)
     : 0;
   const cheaperThanRivals = playerPrice < rivalAveragePrice;
-  const shareMessage = pick(shareDelta >= 0 ? RAIDER_MESSAGES.shareUp : RAIDER_MESSAGES.shareDown);
-  const priceMessage = pick(cheaperThanRivals ? RAIDER_MESSAGES.priceLow : RAIDER_MESSAGES.priceHigh);
+  const shareMessage = getRaiderShareMessage(shareDelta);
+  const priceMessage = getRaiderPriceMessage(cheaperThanRivals, priceGap);
 
   return freezeReport({
     sections: [
@@ -146,7 +146,7 @@ function buildRaiderReport(gameState) {
       createSection('choice', '모멘텀 추세', momentumDelta >= 0 ? `+${momentumDelta}` : `${momentumDelta}`, momentumDelta >= 0 ? 'positive' : 'negative'),
       createSection('choice', '가격 경쟁력', `라이벌 평균 대비 ${priceGap >= 0 ? '+' : ''}${priceGap}%. ${priceMessage}`, cheaperThanRivals ? 'positive' : 'negative'),
     ],
-    suggestion: pick(RAIDER_MESSAGES.suggestion),
+    suggestion: getRaiderSuggestion({ shareDelta, momentumDelta, cheaperThanRivals }),
     warning: '',
   });
 }
@@ -167,7 +167,7 @@ function buildGuardianReport(gameState) {
       createSection('event', '부채 위험도', `${getDebtMessage(debtRisk)} (${Math.round(debtRatio * 100)}%)`, debtRisk === '위험' ? 'negative' : debtRisk === '주의' ? 'warning' : 'positive'),
       ...risks.map((risk) => createSection('event', '다음 달 리스크', risk, 'warning')),
     ],
-    suggestion: pick(GUARDIAN_MESSAGES.suggestion),
+    suggestion: getGuardianSuggestion(risks),
     warning: `지금 가장 위험한 것은 ${risks[0] ?? '현금 흐름'}입니다.`,
   });
 }
@@ -195,11 +195,10 @@ function buildAnalystReport(gameState) {
       createSection('event', '국면 전환 예고', getPhaseWarning(gameState), 'warning'),
       createSection('event', '라이벌 예상 전략', getRivalStrategyHint(gameState), 'warning'),
     ],
-    suggestion: topCause?.label?.includes('판매가')
-      ? fillTemplate(ANALYST_MESSAGES.suggestion[0], { n: targetPriceMultiplier })
-      : topCause?.label?.includes('마케팅') || topCause?.label?.includes('인지도')
-        ? fillTemplate(ANALYST_MESSAGES.suggestion[1], { n: marketingSuggestion.toLocaleString() })
-        : pick(ANALYST_MESSAGES.suggestion),
+    suggestion: getAnalystSuggestion(topCause, {
+      priceMultiplier: targetPriceMultiplier,
+      marketingAmount: marketingSuggestion,
+    }),
     warning: topCause ? `가장 큰 원인은 ${topCause.label}입니다.` : '',
   });
 }
@@ -211,10 +210,7 @@ function buildGamblerReport(gameState) {
   const probabilityPercent = Math.round(probability * 100);
   const success = outcome?.success ?? (gameState.currentResult?.profit ?? 0) >= 0;
   const categoryHint = getNextEventCategoryHint(gameState);
-  const resultText = fillTemplate(
-    pick(success ? GAMBLER_MESSAGES.success : GAMBLER_MESSAGES.failure),
-    { prob: probabilityPercent },
-  );
+  const resultText = getGamblerResultText(success, probabilityPercent);
 
   return freezeReport({
     sections: [
@@ -227,9 +223,97 @@ function buildGamblerReport(gameState) {
       createSection('choice', '확률 결과', resultText, success ? 'positive' : 'negative', probabilityPercent),
       createSection('event', '다음 이벤트 힌트', categoryHint, 'warning'),
     ],
-    suggestion: pick(GAMBLER_MESSAGES.urge),
+    suggestion: getGamblerSuggestion(success, probabilityPercent),
     warning: '',
   });
+}
+
+function getRaiderShareMessage(shareDelta) {
+  if (shareDelta >= 0.04) {
+    return RAIDER_MESSAGES.shareUp[0];
+  }
+
+  if (shareDelta >= 0) {
+    return RAIDER_MESSAGES.shareUp[1];
+  }
+
+  if (shareDelta <= -0.04) {
+    return RAIDER_MESSAGES.shareDown[1];
+  }
+
+  return RAIDER_MESSAGES.shareDown[0];
+}
+
+function getRaiderPriceMessage(cheaperThanRivals, priceGap) {
+  if (cheaperThanRivals) {
+    return priceGap <= -10 ? RAIDER_MESSAGES.priceLow[1] : RAIDER_MESSAGES.priceLow[0];
+  }
+
+  return priceGap >= 10 ? RAIDER_MESSAGES.priceHigh[0] : RAIDER_MESSAGES.priceHigh[1];
+}
+
+function getRaiderSuggestion({ shareDelta, momentumDelta, cheaperThanRivals }) {
+  if (!cheaperThanRivals) {
+    return RAIDER_MESSAGES.suggestion[0];
+  }
+
+  if (momentumDelta > 0 || shareDelta > 0) {
+    return RAIDER_MESSAGES.suggestion[1];
+  }
+
+  return RAIDER_MESSAGES.suggestion[2];
+}
+
+function getGuardianSuggestion(risks) {
+  if (risks.some((risk) => risk.includes('재고'))) {
+    return GUARDIAN_MESSAGES.suggestion[0];
+  }
+
+  if (risks.some((risk) => risk.includes('이자') || risk.includes('부채'))) {
+    return GUARDIAN_MESSAGES.suggestion[2];
+  }
+
+  return GUARDIAN_MESSAGES.suggestion[1];
+}
+
+function getAnalystSuggestion(topCause, { priceMultiplier, marketingAmount }) {
+  if (topCause?.label?.includes('판매가')) {
+    return fillTemplate(ANALYST_MESSAGES.suggestion[0], { n: priceMultiplier });
+  }
+
+  if (topCause?.label?.includes('마케팅') || topCause?.label?.includes('인지도')) {
+    return fillTemplate(ANALYST_MESSAGES.suggestion[1], { n: marketingAmount.toLocaleString() });
+  }
+
+  return ANALYST_MESSAGES.suggestion[2];
+}
+
+function getGamblerResultText(success, probabilityPercent) {
+  const message = success
+    ? probabilityPercent <= 35
+      ? GAMBLER_MESSAGES.success[0]
+      : GAMBLER_MESSAGES.success[1]
+    : probabilityPercent <= 35
+      ? GAMBLER_MESSAGES.failure[0]
+      : GAMBLER_MESSAGES.failure[1];
+
+  return fillTemplate(message, { prob: probabilityPercent });
+}
+
+function getGamblerSuggestion(success, probabilityPercent) {
+  if (success && probabilityPercent <= 35) {
+    return GAMBLER_MESSAGES.urge[3];
+  }
+
+  if (success) {
+    return GAMBLER_MESSAGES.urge[1];
+  }
+
+  if (probabilityPercent >= 45) {
+    return GAMBLER_MESSAGES.urge[5];
+  }
+
+  return GAMBLER_MESSAGES.urge[0];
 }
 
 function getMarketContext(gameState) {
@@ -266,7 +350,7 @@ function getHealthReason(healthDelta, settlement) {
   }
 
   if ((settlement.playerWarHealthDelta ?? 0) < 0) {
-    return pick(GUARDIAN_MESSAGES.healthDown);
+    return GUARDIAN_MESSAGES.healthDown[0];
   }
 
   if ((settlement.profit ?? 0) < 0) {
@@ -287,14 +371,14 @@ function getDebt(gameState, settlement) {
 
 function getDebtMessage(debtRisk) {
   if (debtRisk === '위험') {
-    return pick(GUARDIAN_MESSAGES.debtDanger);
+    return GUARDIAN_MESSAGES.debtDanger[0];
   }
 
   if (debtRisk === '주의') {
-    return pick(GUARDIAN_MESSAGES.debtCaution);
+    return GUARDIAN_MESSAGES.debtCaution[0];
   }
 
-  return pick(GUARDIAN_MESSAGES.debtSafe);
+  return GUARDIAN_MESSAGES.debtSafe[0];
 }
 
 function getGuardianRisks(gameState, debtRisk) {
@@ -377,7 +461,7 @@ function getAnalystReasonText(cause) {
       return fillTemplate(ANALYST_MESSAGES.shareUpReasons[2], { n });
     }
 
-    return fillTemplate(pick(ANALYST_MESSAGES.shareUpReasons), { n });
+    return fillTemplate(ANALYST_MESSAGES.shareUpReasons[1], { n });
   }
 
   if (cause.reasonType === 'priceHigh') {
@@ -392,7 +476,7 @@ function getAnalystReasonText(cause) {
     return fillTemplate(ANALYST_MESSAGES.shareDownReasons[2], { n });
   }
 
-  return fillTemplate(pick(ANALYST_MESSAGES.shareDownReasons), { n });
+  return fillTemplate(ANALYST_MESSAGES.shareDownReasons[3], { n });
 }
 
 function getPhaseWarning(gameState) {
@@ -470,10 +554,6 @@ function freezeReport(report) {
     suggestion: report.suggestion ?? '',
     warning: report.warning ?? '',
   });
-}
-
-function pick(messages) {
-  return messages[Math.floor(Math.random() * messages.length)] ?? messages[0] ?? '';
 }
 
 function fillTemplate(template, values) {
