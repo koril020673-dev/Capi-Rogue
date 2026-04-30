@@ -1,7 +1,7 @@
 .cr2-pause-mobile-button {
   position: fixed;
-  top: max(8px, calc((100dvh - min(720px, calc(100dvh - 16px), calc((100dvw - 16px) / 1.5))) / 2 + 8px));
-  right: max(8px, calc((100dvw - min(1080px, calc(100dvw - 16px), calc((100dvh - 16px) * 1.5))) / 2 + 8px));
+  top: calc((100dvh - var(--cr2-stage-h)) / 2 + 8px);
+  right: calc((100dvw - var(--cr2-stage-w)) / 2 + 8px);
   z-index: 30;
   display: grid;
   place-items: center;
@@ -19,7 +19,7 @@
   inset: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
+  grid-template-columns: var(--cr2-stage-w);
   align-content: center;
   justify-content: center;
   background: transparent;
@@ -30,8 +30,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
-  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  width: var(--cr2-stage-w);
+  height: var(--cr2-stage-h);
   content: '';
   background: rgba(0, 0, 0, 0.7);
   transform: translate(-50%, -50%);
@@ -41,10 +41,10 @@
   display: grid;
   grid-template-columns: minmax(150px, 30%) minmax(0, 1fr);
   justify-self: end;
-  width: min(760px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
-  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
-  max-width: calc(100vw - 16px);
-  max-height: calc(100vh - 16px);
+  width: min(760px, var(--cr2-stage-w));
+  height: var(--cr2-stage-h);
+  max-width: var(--cr2-stage-w);
+  max-height: var(--cr2-stage-h);
   animation: cr2-pause-slide-in 150ms ease-out;
   pointer-events: auto;
   z-index: 1;
@@ -315,8 +315,8 @@
 
   .cr2-pause-shell {
     grid-template-columns: minmax(112px, 35%) minmax(0, 1fr);
-    width: min(1080px, calc(100dvw - 8px), calc((100dvh - 8px) * 1.5));
-    height: min(720px, calc(100dvh - 8px), calc((100dvw - 8px) / 1.5));
+    width: var(--cr2-stage-w);
+    height: var(--cr2-stage-h);
   }
 
   .cr2-pause-panel {

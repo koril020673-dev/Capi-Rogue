@@ -18,6 +18,10 @@
   --cr2-ui-font-md: var(--cr2-ui-font);
   --cr2-ui-font-lg: calc(var(--cr2-ui-font) * 1.28);
   --cr2-ui-font-xl: calc(var(--cr2-ui-font) * 1.72);
+  --cr2-stage-ratio: 1.5;
+  --cr2-stage-margin: 8px;
+  --cr2-stage-w: min(1080px, calc(100dvw - (var(--cr2-stage-margin) * 2)), calc((100dvh - (var(--cr2-stage-margin) * 2)) * var(--cr2-stage-ratio)));
+  --cr2-stage-h: calc(var(--cr2-stage-w) / var(--cr2-stage-ratio));
 }
 
 * {
@@ -27,14 +31,17 @@
 html,
 body,
 #root {
+  width: 100%;
+  height: 100%;
   min-height: 100%;
   margin: 0;
+  overflow: hidden;
   overscroll-behavior: none;
   touch-action: manipulation;
 }
 
 body {
-  overflow-x: hidden;
+  overflow: hidden;
   background: var(--cr2-bg);
   color: var(--cr2-text);
   font-family: var(--cr2-font-readable);
@@ -60,7 +67,9 @@ button:disabled {
 }
 
 .cr2-app {
-  min-height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
+  min-height: 100dvh;
   color: var(--cr2-text);
   overflow: hidden;
 }
@@ -142,7 +151,10 @@ button:disabled {
 
 .cr2-bg-scene {
   position: relative;
-  min-height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
   background: #000000;
 }
 
@@ -219,8 +231,10 @@ button:disabled {
   z-index: 1;
   display: grid;
   place-items: center;
-  min-height: 100vh;
-  padding: clamp(6px, 1.2vw, 14px);
+  width: 100dvw;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -1876,5 +1890,43 @@ button:disabled {
   .cr2-ledger-panel--combined,
   .cr2-result-report-panel {
     padding: 5px;
+  }
+}
+
+.cr2-login-screen,
+.cr2-title-screen,
+.cr2-advisor-screen,
+.cr2-event-screen,
+.cr2-settlement-screen,
+.cr2-result-screen,
+.cr2-reward-screen,
+.cr2-gameover-screen,
+.cr2-main-screen,
+.cr2-character-create-screen,
+.cr2-record-screen {
+  width: var(--cr2-stage-w) !important;
+  height: var(--cr2-stage-h) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: var(--cr2-stage-w) !important;
+  max-height: var(--cr2-stage-h) !important;
+  aspect-ratio: 3 / 2 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  flex: 0 0 auto !important;
+}
+
+.cr2-title-screen--new,
+.cr2-settlement-screen--combined {
+  width: var(--cr2-stage-w) !important;
+  height: var(--cr2-stage-h) !important;
+  max-width: var(--cr2-stage-w) !important;
+  max-height: var(--cr2-stage-h) !important;
+  aspect-ratio: 3 / 2 !important;
+}
+
+@media (max-width: 760px), (max-height: 560px) {
+  :root {
+    --cr2-stage-margin: 4px;
   }
 }
