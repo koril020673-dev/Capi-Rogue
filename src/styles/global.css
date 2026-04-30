@@ -52,6 +52,7 @@ button:disabled {
 .cr2-app {
   min-height: 100vh;
   color: var(--cr2-text);
+  overflow: hidden;
 }
 
 .cr2-advisor-theme--analyst,
@@ -200,6 +201,16 @@ button:disabled {
   min-height: 100vh;
   margin: 0 auto;
   padding: 24px;
+}
+
+.cr2-main-screen {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  width: min(1080px, 100vw, calc(100vh * 1.5));
+  height: min(720px, 100vh, calc(100vw / 1.5));
+  min-height: 0;
+  padding: clamp(8px, 1.4vw, 16px);
+  overflow: hidden;
 }
 
 .cr2-login-screen,
@@ -447,9 +458,9 @@ button:disabled {
 .cr2-status-bar {
   display: grid;
   grid-template-columns: minmax(72px, 0.34fr) minmax(72px, 0.34fr) minmax(220px, 1fr) minmax(104px, 0.48fr) minmax(96px, 0.42fr) minmax(128px, 0.58fr);
-  gap: 8px;
+  gap: 6px;
   align-items: stretch;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .cr2-status-block {
@@ -459,8 +470,8 @@ button:disabled {
   border: 2px solid var(--cr2-grid);
   border-radius: 4px;
   background: rgba(0, 14, 0, 0.9);
-  min-height: 58px;
-  padding: 8px;
+  min-height: 48px;
+  padding: 6px 8px;
 }
 
 .cr2-status-block--wide {
@@ -501,8 +512,10 @@ button:disabled {
 .cr2-battle-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 28%);
-  gap: 16px;
+  gap: 12px;
   align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .cr2-left-panel,
@@ -515,8 +528,8 @@ button:disabled {
 .cr2-left-panel {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(360px, 1fr) auto auto;
-  min-height: 660px;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -574,9 +587,9 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(112px, 23%) minmax(0, 1fr);
   align-items: center;
-  gap: 18px;
-  padding: 22px;
-  min-height: 360px;
+  gap: 14px;
+  padding: 16px;
+  min-height: 0;
 }
 
 .cr2-demand-core {
@@ -605,7 +618,7 @@ button:disabled {
 
 .cr2-demand-routes {
   display: grid;
-  gap: 18px;
+  gap: 10px;
 }
 
 .cr2-demand-node {
@@ -737,10 +750,10 @@ button:disabled {
 
 .cr2-demand-card {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   border: 2px solid var(--cr2-grid);
   border-radius: 6px;
-  padding: 12px;
+  padding: 9px;
   background: #000000;
   min-width: 0;
 }
@@ -793,20 +806,20 @@ button:disabled {
 .cr2-bottom-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
   border-top: 2px solid var(--cr2-grid);
-  padding: 12px;
+  padding: 8px;
 }
 
 .cr2-strategy-warning,
 .cr2-company-summary {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   border: 1px solid rgba(0, 170, 0, 0.55);
   border-radius: 4px;
-  padding: 12px;
-  font-size: 13px;
-  line-height: 1.55;
+  padding: 8px;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .cr2-strategy-warning--risk {
@@ -864,24 +877,25 @@ button:disabled {
 .cr2-right-panel {
   display: grid;
   align-content: start;
-  gap: 16px;
-  min-height: 660px;
-  padding: 18px;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
 }
 
 .cr2-panel-title h2 {
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: 18px;
-  line-height: 1.45;
+  font-size: 16px;
+  line-height: 1.35;
 }
 
 .cr2-panel-title p {
   margin: 0;
   color: var(--cr2-muted);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .cr2-rival-metric-list,
@@ -889,27 +903,27 @@ button:disabled {
 .cr2-factory-readout,
 .cr2-event-effect-list {
   display: grid;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.7;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .cr2-forecast-box {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   border-top: 1px solid rgba(0, 170, 0, 0.45);
-  padding-top: 14px;
+  padding-top: 10px;
 }
 
 .cr2-quality-cost-readout {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   border: 1px solid rgba(0, 170, 0, 0.55);
   border-radius: 4px;
-  padding: 10px;
+  padding: 8px;
   background: rgba(0, 0, 0, 0.42);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .cr2-quality-cost-readout div {
@@ -969,7 +983,32 @@ button:disabled {
 
 .cr2-choice-grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+}
+
+.cr2-right-panel--quality {
+  gap: 8px;
+}
+
+.cr2-right-panel--quality .cr2-rival-metric-list {
+  max-height: 142px;
+  overflow: auto;
+}
+
+.cr2-right-panel--quality .cr2-choice-grid {
+  gap: 6px;
+}
+
+.cr2-right-panel--quality .cr2-choice-button {
+  min-height: 36px;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.cr2-right-panel--quality .cr2-choice-button small {
+  margin-top: 2px;
+  font-size: 10px;
 }
 
 .cr2-segmented {
@@ -1365,7 +1404,7 @@ button:disabled {
   .cr2-reward-screen,
   .cr2-gameover-screen,
   .cr2-main-screen {
-    padding: 14px;
+    padding: 8px;
   }
 
   .cr2-fixed-action {

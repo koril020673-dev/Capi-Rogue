@@ -158,7 +158,7 @@ export default function RightPanel({ preview }) {
 
   if (strategy.activeTab === STRATEGY_TABS.QUALITY) {
     return (
-      <aside className="cr2-right-panel">
+      <aside className="cr2-right-panel cr2-right-panel--quality">
         <PanelTitle title={TEXT.quality} subtitle={TEXT.qualitySub} />
         <RivalInfoList rivals={preview.rivals} revealExtraInfo={revealExtraRivalInfo} />
         <div className="cr2-choice-grid">
