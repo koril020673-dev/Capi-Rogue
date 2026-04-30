@@ -4,9 +4,22 @@ import RightPanel from '../components/RightPanel';
 import StatusBar from '../components/StatusBar';
 import StrategyWarning from '../components/StrategyWarning';
 import TabBar from '../components/TabBar';
-import { ECONOMIC_PHASE_LABELS } from '../constants/economy';
+import { ECONOMIC_PHASE_LABELS, ECONOMIC_PHASES } from '../constants/economy';
 import { selectMarketPreview, useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
+import boomImage from '../assets/phase_image/bg_phase_boom.png';
+import contractionImage from '../assets/phase_image/bg_phase_contraction.png';
+import growthImage from '../assets/phase_image/bg_phase_growth.png';
+import recessionImage from '../assets/phase_image/bg_phase_recession.png';
+import stableImage from '../assets/phase_image/bg_phase_stable.png';
+
+const PHASE_IMAGES = Object.freeze({
+  [ECONOMIC_PHASES.BOOM]: boomImage,
+  [ECONOMIC_PHASES.GROWTH]: growthImage,
+  [ECONOMIC_PHASES.STABLE]: stableImage,
+  [ECONOMIC_PHASES.CONTRACTION]: contractionImage,
+  [ECONOMIC_PHASES.RECESSION]: recessionImage,
+});
 
 const TEXT = Object.freeze({
   capital: '\uC790\uBCF8',
@@ -38,7 +51,10 @@ export default function MainScreen() {
         onConfirm={confirmExternalEvent}
       />
       <section className="cr2-battle-layout">
-        <div className="cr2-left-panel">
+        <div
+          className={`cr2-left-panel cr2-left-panel--phase-${phase}`}
+          style={{ '--cr2-phase-bg': `url(${PHASE_IMAGES[phase]})` }}
+        >
           <div className="cr2-phase-strip">
             <span>{ECONOMIC_PHASE_LABELS[phase]}</span>
             {marketEffects

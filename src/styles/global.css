@@ -518,10 +518,45 @@ button:disabled {
 }
 
 .cr2-left-panel {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(360px, 1fr) auto auto;
   min-height: 660px;
   overflow: hidden;
+}
+
+.cr2-left-panel::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: '';
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.34) 46%, rgba(0, 0, 0, 0.78)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.72)),
+    var(--cr2-phase-bg);
+  background-position: center;
+  background-size: cover;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.cr2-left-panel::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: '';
+  background-image:
+    linear-gradient(rgba(0, 255, 65, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.08) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mix-blend-mode: screen;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.cr2-left-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .cr2-phase-strip {
