@@ -446,7 +446,7 @@ button:disabled {
 
 .cr2-status-bar {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(120px, 0.4fr);
+  grid-template-columns: minmax(86px, 0.36fr) minmax(260px, 1fr) minmax(120px, 0.44fr);
   gap: 8px;
   align-items: stretch;
   margin-bottom: 14px;
