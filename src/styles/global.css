@@ -446,14 +446,13 @@ button:disabled {
 
 .cr2-status-bar {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(112px, 0.9fr);
+  grid-template-columns: minmax(260px, 1fr) minmax(120px, 0.4fr);
   gap: 8px;
   align-items: stretch;
   margin-bottom: 14px;
 }
 
-.cr2-status-block,
-.cr2-credit-actions {
+.cr2-status-block {
   display: grid;
   align-content: center;
   gap: 6px;
@@ -490,10 +489,6 @@ button:disabled {
 
 .cr2-health-slot--on {
   background: var(--cr2-accent);
-}
-
-.cr2-credit-actions {
-  grid-template-columns: repeat(3, 1fr);
 }
 
 .cr2-icon-button {

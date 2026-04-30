@@ -1,5 +1,4 @@
 import { REWARD_CARDS, REWARD_GRADES } from '../constants/rewards';
-import { getCreditGrantForFloor } from './creditEngine';
 
 export function isRewardFloor(floor) {
   return floor > 0 && floor % 5 === 0;
@@ -90,12 +89,6 @@ export function applyRewardToPlayer(player, reward) {
     return Object.freeze({ player: Object.freeze({ ...player, brand: player.brand + effect.amount }) });
   }
 
-  if (effect.type === 'creditTokens') {
-    return Object.freeze({
-      player: Object.freeze({ ...player, creditTokens: player.creditTokens + effect.amount }),
-    });
-  }
-
   if (effect.type === 'qualityAndCost') {
     return Object.freeze({
       player: Object.freeze({
@@ -150,8 +143,4 @@ export function applyRewardToPlayer(player, reward) {
   }
 
   return Object.freeze({ player });
-}
-
-export function getRewardCreditGrant(floor) {
-  return getCreditGrantForFloor(floor);
 }

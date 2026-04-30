@@ -5,11 +5,18 @@ export const REWARD_GRADES = Object.freeze({
   LEGEND: 'legend',
 });
 
+export const REWARD_GRADE_DETAILS = Object.freeze({
+  [REWARD_GRADES.NORMAL]: Object.freeze({ label: 'Normal', healthRecovery: 1 }),
+  [REWARD_GRADES.RARE]: Object.freeze({ label: 'Rare', healthRecovery: 2 }),
+  [REWARD_GRADES.EPIC]: Object.freeze({ label: 'Epic', healthRecovery: 3 }),
+  [REWARD_GRADES.LEGEND]: Object.freeze({ label: 'Legend', healthRecovery: 'FULL' }),
+});
+
 export const REWARD_GRADE_LABELS = Object.freeze({
-  [REWARD_GRADES.NORMAL]: 'Normal',
-  [REWARD_GRADES.RARE]: 'Rare',
-  [REWARD_GRADES.EPIC]: 'Epic',
-  [REWARD_GRADES.LEGEND]: 'Legend',
+  [REWARD_GRADES.NORMAL]: REWARD_GRADE_DETAILS[REWARD_GRADES.NORMAL].label,
+  [REWARD_GRADES.RARE]: REWARD_GRADE_DETAILS[REWARD_GRADES.RARE].label,
+  [REWARD_GRADES.EPIC]: REWARD_GRADE_DETAILS[REWARD_GRADES.EPIC].label,
+  [REWARD_GRADES.LEGEND]: REWARD_GRADE_DETAILS[REWARD_GRADES.LEGEND].label,
 });
 
 export const REWARD_CARDS = Object.freeze([
@@ -48,13 +55,7 @@ export const REWARD_CARDS = Object.freeze([
     description: '\uBE0C\uB79C\uB4DC +2',
     effect: Object.freeze({ type: 'brand', amount: 2 }),
   }),
-  Object.freeze({
-    id: 'credit-line',
-    grade: REWARD_GRADES.RARE,
-    title: '\uC2E0\uC6A9 \uD55C\uB3C4',
-    description: '\uD06C\uB808\uB527 +2',
-    effect: Object.freeze({ type: 'creditTokens', amount: 2 }),
-  }),
+  // TODO: 크레딧 보상 항목은 크레딧 시스템 삭제로 제거됨.
   Object.freeze({
     id: 'precision-line',
     grade: REWARD_GRADES.EPIC,

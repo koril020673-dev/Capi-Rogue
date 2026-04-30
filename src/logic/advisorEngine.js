@@ -55,16 +55,6 @@ export function getAdvisorOrderCapMultiplier(advisorId) {
   return advisor.passive.orderCapMultiplier ?? 1;
 }
 
-export function getAdvisorRewardCreditBonus(advisorId) {
-  const advisor = getAdvisorById(advisorId);
-
-  return advisor.passive.extraCreditPerReward ?? 0;
-}
-
-export function hasCreditOnlyHealthRecovery(advisorId) {
-  return Boolean(getAdvisorById(advisorId).passive.healthRecoveryOnlyByCredit);
-}
-
 export function applyAdvisorStartBonus(player, advisorId) {
   const maxHealth = getAdvisorMaxHealth(advisorId);
 

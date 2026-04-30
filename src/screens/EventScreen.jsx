@@ -12,8 +12,6 @@ export default function EventScreen() {
   const outcome = useGameStore((state) => state.currentInternalOutcome);
   const chooseInternalEventOption = useGameStore((state) => state.chooseInternalEventOption);
   const confirmInternalEventOutcome = useGameStore((state) => state.confirmInternalEventOutcome);
-  const useCreditToken = useGameStore((state) => state.useCreditToken);
-  const creditTokens = useGameStore((state) => state.player.creditTokens);
 
   if (!event) {
     return null;
@@ -39,29 +37,19 @@ export default function EventScreen() {
             </button>
           </section>
         ) : (
-          <>
-            <div className="cr2-event-choice-list">
-              {event.choices.map((choice, index) => (
-                <button
-                  className={`cr2-event-choice cr2-event-choice--${choice.type.toLowerCase()}`}
-                  key={choice.id}
-                  type="button"
-                  onClick={() => chooseInternalEventOption(choice.id)}
-                >
-                  <span>{String.fromCharCode(65 + index)}. {choice.label}</span>
-                  <small>{TYPE_LABELS[choice.type]} 선택지 · {getProbabilityHint(choice)}</small>
-                </button>
-              ))}
-            </div>
-            <button
-              className="cr2-secondary-button"
-              disabled={creditTokens <= 0}
-              type="button"
-              onClick={() => useCreditToken('card-reroll')}
-            >
-              카드 교체
-            </button>
-          </>
+          <div className="cr2-event-choice-list">
+            {event.choices.map((choice, index) => (
+              <button
+                className={`cr2-event-choice cr2-event-choice--${choice.type.toLowerCase()}`}
+                key={choice.id}
+                type="button"
+                onClick={() => chooseInternalEventOption(choice.id)}
+              >
+                <span>{String.fromCharCode(65 + index)}. {choice.label}</span>
+                <small>{TYPE_LABELS[choice.type]} 선택지 · {getProbabilityHint(choice)}</small>
+              </button>
+            ))}
+          </div>
         )}
       </article>
     </main>
