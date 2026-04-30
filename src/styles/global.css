@@ -1125,7 +1125,7 @@ button:disabled {
 }
 
 .cr2-result-grid--compact {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .cr2-ledger-item {
@@ -1151,6 +1151,22 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+.cr2-ledger-item--wide {
+  grid-column: span 2;
+}
+
+.cr2-ledger-item--wide strong {
+  font-size: 15px;
+}
+
+.cr2-ledger-item--compact span {
+  font-size: 9px;
+}
+
+.cr2-ledger-item--compact strong {
+  font-size: 11px;
+}
+
 .cr2-ledger-note-stack {
   display: grid;
   gap: 8px;
@@ -1165,33 +1181,6 @@ button:disabled {
 
 .cr2-result-report-panel .cr2-hint-line {
   padding-top: 8px;
-}
-
-.cr2-settlement-diagnosis {
-  display: grid;
-  gap: 6px;
-  border: 2px solid var(--cr2-diagnosis-color);
-  border-radius: 6px;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.58);
-}
-
-.cr2-settlement-diagnosis strong {
-  color: var(--cr2-diagnosis-color);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.cr2-settlement-diagnosis p,
-.cr2-settlement-diagnosis small {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.55;
-  word-break: keep-all;
-}
-
-.cr2-settlement-diagnosis small {
-  color: var(--cr2-muted);
 }
 
 .cr2-advisor-report {

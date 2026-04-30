@@ -1,11 +1,5 @@
 import { useMemo } from 'react';
 import StatusBar from '../components/StatusBar';
-import {
-  DIAGNOSIS_COLORS,
-  getDiagnosis,
-  getRandomAdvice,
-  getRandomDiagnosisMessage,
-} from '../constants/diagnosis';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { generateReport } from '../logic/reportEngine';
 import { useGameStore } from '../store/useGameStore';
@@ -33,7 +27,7 @@ const TEXT = Object.freeze({
   operationExpense: '운영비',
   debtService: '부채 비용',
   capitalChange: '자본 변화',
-  healthChange: '체력 변화',
+  healthChange: '경영 체력',
   momentum: '모멘텀',
   nextReward: '다음 보상',
   finalResult: '최종 결과 보기',
@@ -52,9 +46,6 @@ export default function SettlementScreen() {
   const playerShare =
     settlement?.demandSplit.find((participant) => participant.id === 'player')?.marketShare ?? 0;
   const capitalChange = settlement ? settlement.capitalAfter - settlement.capitalBefore : 0;
-  const diagnosis = useMemo(() => getDiagnosis(gameState), [gameState]);
-  const diagnosisMessage = useMemo(() => getRandomDiagnosisMessage(diagnosis), [diagnosis]);
-  const advice = useMemo(() => getRandomAdvice(diagnosis), [diagnosis]);
   const advisor = getAdvisorById(gameState.selectedAdvisorId);
   const report = useMemo(
     () => generateReport(gameState, gameState.selectedAdvisorId),
@@ -109,24 +100,16 @@ export default function SettlementScreen() {
             </h2>
           </header>
 
-          <section
-            className="cr2-settlement-diagnosis"
-            style={{ '--cr2-diagnosis-color': DIAGNOSIS_COLORS[diagnosis] ?? '#00AA00' }}
-          >
-            <strong>{getDiagnosisLabel(diagnosis)}</strong>
-            <p>{diagnosisMessage}</p>
-            <small>{advice}</small>
-          </section>
-
           <div className="cr2-result-grid cr2-result-grid--compact">
-            <LedgerItem label={TEXT.capitalChange} value={formatWon(result.capitalChange)} danger={result.capitalChange < 0} />
+            <LedgerItem label={TEXT.capitalChange} value={formatWon(result.capitalChange)} danger={result.capitalChange < 0} compact />
             <LedgerItem
               label={TEXT.healthChange}
               value={result.healthDelta > 0 ? `+${result.healthDelta}` : result.healthDelta}
               danger={result.healthDelta < 0}
+              wide
             />
-            <LedgerItem label={TEXT.momentum} value={result.momentumScore} danger={result.momentumScore < 0} />
-            <LedgerItem label={TEXT.nextReward} value={getRewardStatus(gameState.floor)} />
+            <LedgerItem label={TEXT.momentum} value={result.momentumScore} danger={result.momentumScore < 0} compact />
+            <LedgerItem label={TEXT.nextReward} value={getRewardStatus(gameState.floor)} compact />
           </div>
 
           <AdvisorReport report={report} advisor={advisor} advisorId={gameState.selectedAdvisorId} />
@@ -141,9 +124,16 @@ export default function SettlementScreen() {
   );
 }
 
-function LedgerItem({ label, value, danger = false }) {
+function LedgerItem({ label, value, danger = false, wide = false, compact = false }) {
+  const className = [
+    'cr2-ledger-item',
+    danger ? 'cr2-ledger-item--danger' : '',
+    wide ? 'cr2-ledger-item--wide' : '',
+    compact ? 'cr2-ledger-item--compact' : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className={danger ? 'cr2-ledger-item cr2-ledger-item--danger' : 'cr2-ledger-item'}>
+    <div className={className}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -206,17 +196,6 @@ function ReportSection({ section, showPercentBar, large }) {
       </div>
     </article>
   );
-}
-
-function getDiagnosisLabel(status) {
-  const labels = {
-    GROWTH: '성장 중',
-    STABLE: '안정',
-    CAUTION: '주의',
-    CRISIS: '비상',
-  };
-
-  return labels[status] ?? labels.STABLE;
 }
 
 function getNextStepLabel(result, floor) {
