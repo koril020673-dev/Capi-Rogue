@@ -423,7 +423,7 @@ export const useGameStore = create((set, get) => ({
   },
 
   showResult() {
-    set({ screen: SCREEN_IDS.RESULT });
+    set({ screen: SCREEN_IDS.SETTLEMENT });
   },
 
   continueFromResult() {

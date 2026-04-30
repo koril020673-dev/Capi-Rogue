@@ -5,7 +5,6 @@ import EventScreen from './screens/EventScreen';
 import GameOverScreen from './screens/GameOverScreen';
 import LoginScreen from './screens/LoginScreen';
 import MainScreen from './screens/MainScreen';
-import ResultScreen from './screens/ResultScreen';
 import RewardScreen from './screens/RewardScreen';
 import SettlementScreen from './screens/SettlementScreen';
 import TitleScreen from './screens/TitleScreen';
@@ -52,12 +51,8 @@ function renderScreen(screen) {
     return <EventScreen />;
   }
 
-  if (screen === SCREEN_IDS.SETTLEMENT) {
+  if (screen === SCREEN_IDS.SETTLEMENT || screen === SCREEN_IDS.RESULT) {
     return <SettlementScreen />;
-  }
-
-  if (screen === SCREEN_IDS.RESULT) {
-    return <ResultScreen />;
   }
 
   if (screen === SCREEN_IDS.REWARD) {
