@@ -166,9 +166,7 @@ export const useGameStore = create((set, get) => ({
 
     set({
       session: Object.freeze({ mode: 'account', userId: userId.trim() }),
-      screen: savedGame?.playerProfile?.profileId
-        ? SCREEN_IDS.ADVISOR_SELECT
-        : SCREEN_IDS.CHARACTER_CREATE,
+      screen: SCREEN_IDS.TITLE,
       playerProfile: Object.freeze(savedGame?.playerProfile ?? INITIAL_PLAYER_PROFILE),
       unlockedAdvisorOrder: Math.max(
         ADVISORS.length,
@@ -181,7 +179,7 @@ export const useGameStore = create((set, get) => ({
   enterGuestMode() {
     set({
       session: Object.freeze({ mode: 'guest', userId: '' }),
-      screen: SCREEN_IDS.CHARACTER_CREATE,
+      screen: SCREEN_IDS.TITLE,
       login: INITIAL_LOGIN,
     });
   },

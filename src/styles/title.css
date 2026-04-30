@@ -1,0 +1,199 @@
+.cr2-title-screen--new {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: clamp(18px, 3vw, 34px);
+  isolation: isolate;
+}
+
+.cr2-title-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.32) 48%, rgba(0, 0, 0, 0.78)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.82)),
+    var(--cr2-title-bg);
+  background-position: center;
+  background-size: cover;
+}
+
+.cr2-title-screen--new::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.16),
+      rgba(0, 0, 0, 0.16) 2px,
+      transparent 2px,
+      transparent 5px
+    ),
+    linear-gradient(rgba(0, 255, 65, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.06) 1px, transparent 1px);
+  background-size: auto, 22px 22px, 22px 22px;
+  pointer-events: none;
+}
+
+.cr2-title-account {
+  position: absolute;
+  top: clamp(16px, 2vw, 26px);
+  right: clamp(16px, 2.4vw, 34px);
+  max-width: min(320px, 45vw);
+  border: 2px solid rgba(0, 255, 65, 0.75);
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--cr2-accent);
+  padding: 8px 12px;
+  font-family: var(--cr2-font-pixel);
+  font-size: clamp(8px, 1vw, 11px);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.cr2-title-logo-stack {
+  align-self: start;
+  justify-self: center;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(620px, 78vw);
+  margin-top: clamp(36px, 8vh, 86px);
+  text-align: center;
+}
+
+.cr2-title-logo-stack img {
+  display: block;
+  width: min(560px, 72vw);
+  height: auto;
+  image-rendering: auto;
+  filter: drop-shadow(0 0 14px rgba(0, 255, 65, 0.34));
+}
+
+.cr2-title-logo-stack span,
+.cr2-title-logo-stack p {
+  margin: 0;
+  font-family: var(--cr2-font-pixel);
+  text-shadow: 2px 2px 0 #000000;
+}
+
+.cr2-title-logo-stack span {
+  color: var(--cr2-muted);
+  font-size: clamp(8px, 1.1vw, 12px);
+}
+
+.cr2-title-logo-stack p {
+  color: var(--cr2-accent);
+  font-size: clamp(12px, 1.7vw, 18px);
+  line-height: 1.8;
+}
+
+.cr2-title-menu-box {
+  position: absolute;
+  right: clamp(18px, 3vw, 44px);
+  bottom: clamp(22px, 4vh, 48px);
+  display: grid;
+  gap: 2px;
+  width: min(320px, 42vw);
+  border: 3px solid var(--cr2-warning);
+  border-radius: 6px;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.8), 0 0 18px rgba(220, 20, 60, 0.28);
+  padding: 12px;
+}
+
+.cr2-title-menu-item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--cr2-text);
+  padding: 5px 6px;
+  font-family: var(--cr2-font-pixel);
+  font-size: clamp(9px, 1.2vw, 13px);
+  line-height: 1.5;
+  text-align: left;
+}
+
+.cr2-title-menu-item span {
+  color: var(--cr2-accent);
+  min-width: 0;
+}
+
+.cr2-title-menu-item strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 400;
+}
+
+.cr2-title-menu-item--selected {
+  color: var(--cr2-accent);
+}
+
+.cr2-title-menu-item--disabled,
+.cr2-title-menu-item:disabled {
+  color: #006b00;
+  opacity: 1;
+}
+
+.cr2-title-menu-item:focus-visible {
+  outline: 2px solid var(--cr2-accent);
+  outline-offset: 2px;
+}
+
+.cr2-title-notice {
+  position: absolute;
+  left: clamp(18px, 3vw, 44px);
+  bottom: clamp(22px, 4vh, 48px);
+  max-width: min(420px, 46vw);
+  border: 2px solid var(--cr2-grid);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.78);
+  color: var(--cr2-accent);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+@media (max-width: 720px), (max-height: 560px) {
+  .cr2-title-screen--new {
+    grid-template-rows: auto 1fr;
+    align-content: start;
+    padding: 14px;
+  }
+
+  .cr2-title-account {
+    position: relative;
+    top: auto;
+    right: auto;
+    justify-self: end;
+    max-width: 70vw;
+  }
+
+  .cr2-title-logo-stack {
+    width: min(520px, 90vw);
+    margin-top: 24px;
+  }
+
+  .cr2-title-menu-box {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    width: auto;
+  }
+
+  .cr2-title-notice {
+    left: 14px;
+    right: 14px;
+    bottom: 214px;
+    max-width: none;
+  }
+}
