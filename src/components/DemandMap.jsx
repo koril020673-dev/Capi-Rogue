@@ -1,7 +1,11 @@
-import analystImage from '../assets/advisor_profile_pack/advisor_analyst_profile.png';
-import gamblerImage from '../assets/advisor_profile_pack/advisor_gambler_profile.png';
-import guardianImage from '../assets/advisor_profile_pack/advisor_guardian_profile.png';
-import raiderImage from '../assets/advisor_profile_pack/advisor_raider_profile.png';
+import analystImage from '../assets/optimized/advisor_profile/advisor_analyst_profile.png';
+import gamblerImage from '../assets/optimized/advisor_profile/advisor_gambler_profile.png';
+import guardianImage from '../assets/optimized/advisor_profile/advisor_guardian_profile.png';
+import raiderImage from '../assets/optimized/advisor_profile/advisor_raider_profile.png';
+import femaleAProfile from '../assets/optimized/player/player_female_a_profile.png';
+import femaleBProfile from '../assets/optimized/player/player_female_b_profile.png';
+import maleAProfile from '../assets/optimized/player/player_male_a_profile.png';
+import maleBProfile from '../assets/optimized/player/player_male_b_profile.png';
 import rivalCheolminImage from '../assets/rival_image/rival_champion_cheolmin.png';
 import rivalDogeonImage from '../assets/rival_image/rival_champion_dogeon.png';
 import rivalHyegyeongImage from '../assets/rival_image/rival_champion_hyegyeong.png';
@@ -19,6 +23,13 @@ const ADVISOR_IMAGES = Object.freeze({
   gambler: gamblerImage,
   guardian: guardianImage,
   raider: raiderImage,
+});
+
+const PLAYER_PROFILE_IMAGES = Object.freeze({
+  female_a: femaleAProfile,
+  female_b: femaleBProfile,
+  male_a: maleAProfile,
+  male_b: maleBProfile,
 });
 
 const RIVAL_IMAGES = Object.freeze({
@@ -68,6 +79,7 @@ function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
   const healthPercent = Math.max(0, Math.min(100, Math.round((participant.health ?? 1) * 100)));
   const arrowClass = revealDemand ? getShareClass(participant.marketShare) : 'cr2-demand-arrow--md';
   const rivalImage = !isPlayer ? RIVAL_IMAGES[participant.imageFile] : null;
+  const playerProfileImage = PLAYER_PROFILE_IMAGES[playerProfile.profileId] ?? playerProfile.profileImage;
 
   return (
     <article className={isPlayer ? 'cr2-demand-node cr2-demand-node--player' : 'cr2-demand-node'}>
@@ -76,7 +88,7 @@ function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
         {isPlayer ? (
           <div className="cr2-demand-player-row">
             <span className="cr2-demand-player-portrait">
-              {playerProfile.profileImage ? <img src={playerProfile.profileImage} alt="" /> : null}
+              {playerProfileImage ? <img src={playerProfileImage} alt="" decoding="async" /> : null}
             </span>
             <div>
               <span>{participant.slotLabel}</span>
@@ -84,13 +96,13 @@ function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
               {playerProfile.playerName ? <small>{playerProfile.playerName}</small> : null}
             </div>
             <span className="cr2-demand-advisor-portrait">
-              <img src={ADVISOR_IMAGES[selectedAdvisorId]} alt="" />
+              <img src={ADVISOR_IMAGES[selectedAdvisorId]} alt="" decoding="async" />
             </span>
           </div>
         ) : (
           <div className="cr2-demand-rival-row">
             <span className="cr2-demand-rival-portrait">
-              {rivalImage ? <img src={rivalImage} alt="" /> : null}
+              {rivalImage ? <img src={rivalImage} alt="" decoding="async" loading="lazy" /> : null}
             </span>
             <div>
               <span>{participant.slotLabel}</span>

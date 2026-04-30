@@ -1,9 +1,9 @@
 import { ADVISORS } from '../constants/advisors';
 import { useGameStore } from '../store/useGameStore';
-import analystImage from '../assets/advisor_fullbody_v2_pack/advisor_analyst_v2.png';
-import gamblerImage from '../assets/advisor_fullbody_v2_pack/advisor_gambler_v2.png';
-import guardianImage from '../assets/advisor_fullbody_v2_pack/advisor_guardian_v2.png';
-import raiderImage from '../assets/advisor_fullbody_v2_pack/advisor_raider_v2.png';
+import analystImage from '../assets/optimized/advisor_fullbody/advisor_analyst_v2.png';
+import gamblerImage from '../assets/optimized/advisor_fullbody/advisor_gambler_v2.png';
+import guardianImage from '../assets/optimized/advisor_fullbody/advisor_guardian_v2.png';
+import raiderImage from '../assets/optimized/advisor_fullbody/advisor_raider_v2.png';
 import '../styles/advisor.css';
 
 const ADVISOR_IMAGES = Object.freeze({
@@ -106,7 +106,7 @@ export default function AdvisorSelectScreen() {
                   <span className="cr2-starter-name">{advisor.name}</span>
                   <span className="cr2-starter-style">{advisor.style}</span>
                   <span className="cr2-starter-portrait">
-                    <img src={ADVISOR_IMAGES[advisor.id]} alt="" />
+                    <img src={ADVISOR_IMAGES[advisor.id]} alt="" decoding="async" loading="lazy" />
                   </span>
                   <span className="cr2-starter-summary">{details.summary}</span>
                 </button>
@@ -120,7 +120,7 @@ export default function AdvisorSelectScreen() {
               style={{ '--cr2-card-color': selectedAdvisor.themeColor }}
             >
               <div className="cr2-advisor-detail-portrait">
-                <img src={ADVISOR_IMAGES[selectedAdvisor.id]} alt="" />
+                <img src={ADVISOR_IMAGES[selectedAdvisor.id]} alt="" decoding="async" />
               </div>
               <div className="cr2-advisor-detail-title">
                 <span>{selectedAdvisor.name}</span>

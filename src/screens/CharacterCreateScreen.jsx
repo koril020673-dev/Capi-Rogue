@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import femaleAFull from '../assets/profile_image/player_female_a_full.png';
-import femaleAProfile from '../assets/profile_image/player_female_a_profile.png';
-import femaleBFull from '../assets/profile_image/player_female_b_full.png';
-import femaleBProfile from '../assets/profile_image/player_female_b_profile.png';
-import maleAFull from '../assets/profile_image/player_male_a_full.png';
-import maleAProfile from '../assets/profile_image/player_male_a_profile.png';
-import maleBFull from '../assets/profile_image/player_male_b_full.png';
-import maleBProfile from '../assets/profile_image/player_male_b_profile.png';
+import femaleAFull from '../assets/optimized/player/player_female_a_full.png';
+import femaleAProfile from '../assets/optimized/player/player_female_a_profile.png';
+import femaleBFull from '../assets/optimized/player/player_female_b_full.png';
+import femaleBProfile from '../assets/optimized/player/player_female_b_profile.png';
+import maleAFull from '../assets/optimized/player/player_male_a_full.png';
+import maleAProfile from '../assets/optimized/player/player_male_a_profile.png';
+import maleBFull from '../assets/optimized/player/player_male_b_full.png';
+import maleBProfile from '../assets/optimized/player/player_male_b_profile.png';
 import { useGameStore } from '../store/useGameStore';
 import '../styles/characterCreate.css';
 
@@ -98,7 +98,7 @@ export default function CharacterCreateScreen() {
                 type="button"
                 onClick={() => setSelectedProfileId(profile.id)}
               >
-                <img src={profile.fullImage} alt="" />
+                <img src={profile.fullImage} alt="" decoding="async" loading="lazy" />
                 <span>{profile.gender} {profile.id.endsWith('_a') ? 'A' : 'B'}</span>
               </button>
             ))}
@@ -122,7 +122,7 @@ export default function CharacterCreateScreen() {
 
         <section className="cr2-character-preview">
           <div className="cr2-character-preview-image">
-            <img src={selectedProfile.fullImage} alt="" />
+            <img src={selectedProfile.fullImage} alt="" decoding="async" />
           </div>
           <div>
             <h2>{TEXT.preview}</h2>
