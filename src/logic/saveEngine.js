@@ -1,7 +1,9 @@
+import { getUser } from './authEngine';
+import { supabase } from '../lib/supabase';
+
 const SAVE_KEY = 'capirogue-save-v1';
 const RECORDS_KEY = 'capirogue-records-v1';
 
-// TODO: Backend provider is TBD. Replace localStorage with Supabase/Firebase sync here.
 export function saveGameToLocalStorage(snapshot) {
   window.localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot));
 }
@@ -44,6 +46,130 @@ export function saveRecordToLocalStorage(record) {
   const records = loadRecordsFromLocalStorage();
 
   window.localStorage.setItem(RECORDS_KEY, JSON.stringify([record, ...records].slice(0, 20)));
+}
+
+export async function saveGame(gameState) {
+  if (!supabase) {
+    return null;
+  }
+
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('game_saves')
+      .upsert(
+        {
+          user_id: user.id,
+          game_state_json: gameState,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' },
+      )
+      .select()
+      .single();
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+export async function loadGame() {
+  if (!supabase) {
+    return null;
+  }
+
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('game_saves')
+      .select('game_state_json')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return data.game_state_json ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveRecord(recordData) {
+  if (!supabase) {
+    return null;
+  }
+
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('records')
+      .insert({
+        ...recordData,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+export async function loadRecords() {
+  if (!supabase) {
+    return null;
+  }
+
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('records')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { data: data ?? [], error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
 }
 
 export function createSaveSnapshot(state) {
