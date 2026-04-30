@@ -24,22 +24,72 @@ export const RIVAL_INITIAL_CAPITAL = Object.freeze({
 
 export const RIVAL_PROFILES = Object.freeze({
   [RIVAL_TIERS.ENTRY]: Object.freeze([
-    Object.freeze({ id: 'junhyuk', name: '창업 3개월차 준혁', gender: '남', imageFile: 'rival_entry_junhyuk.png' }),
-    Object.freeze({ id: 'sua', name: '알바 모아서 창업한 수아', gender: '여', imageFile: 'rival_entry_sua.png' }),
+    Object.freeze({
+      id: 'junhyuk',
+      name: '창업 3개월차 준혁',
+      gender: '남',
+      imageFile: 'rival_entry_junhyuk.png',
+    }),
+    Object.freeze({
+      id: 'sua',
+      name: '알바 모아서 창업한 수아',
+      gender: '여',
+      imageFile: 'rival_entry_sua.png',
+    }),
   ]),
   [RIVAL_TIERS.MID]: Object.freeze([
-    Object.freeze({ id: 'sungjin', name: '대기업 퇴사한 성진', gender: '남', imageFile: 'rival_mid_sungjin.png' }),
-    Object.freeze({ id: 'jieun', name: '조용히 치고 올라오는 지은', gender: '여', imageFile: 'rival_mid_jieun.png' }),
+    Object.freeze({
+      id: 'sungjin',
+      name: '대기업 퇴사한 성진',
+      gender: '남',
+      imageFile: 'rival_mid_sungjin.png',
+    }),
+    Object.freeze({
+      id: 'jieun',
+      name: '조용히 치고 올라오는 지은',
+      gender: '여',
+      imageFile: 'rival_mid_jieun.png',
+    }),
   ]),
   [RIVAL_TIERS.SENIOR]: Object.freeze([
-    Object.freeze({ id: 'junseo', name: '냉혈한 재벌 2세 준서', gender: '남', imageFile: 'rival_senior_junseo.png' }),
-    Object.freeze({ id: 'seoyeon', name: '엘리트 MBA 서연', gender: '여', imageFile: 'rival_senior_seoyeon.png' }),
-    Object.freeze({ id: 'taejun', name: '베테랑 사냥꾼 태준', gender: '남', imageFile: 'rival_senior_taejun.png' }),
+    Object.freeze({
+      id: 'junseo',
+      name: '냉혈한 재벌 2세 준서',
+      gender: '남',
+      imageFile: 'rival_senior_junseo.png',
+    }),
+    Object.freeze({
+      id: 'seoyeon',
+      name: '엘리트 MBA 서연',
+      gender: '여',
+      imageFile: 'rival_senior_seoyeon.png',
+    }),
+    Object.freeze({
+      id: 'taejun',
+      name: '베테랑 사냥꾼 태준',
+      gender: '남',
+      imageFile: 'rival_senior_taejun.png',
+    }),
   ]),
   [RIVAL_TIERS.CHAMPION]: Object.freeze([
-    Object.freeze({ id: 'cheolmin', name: '시장의 지배자 철민', gender: '남', imageFile: 'rival_champion_cheolmin.png' }),
-    Object.freeze({ id: 'dogeon', name: '전설의 기업인 도건', gender: '남', imageFile: 'rival_champion_dogeon.png' }),
-    Object.freeze({ id: 'hyegyeong', name: '업계의 어머니 혜경', gender: '여', imageFile: 'rival_champion_hyegyeong.png' }),
+    Object.freeze({
+      id: 'cheolmin',
+      name: '시장의 지배자 철민',
+      gender: '남',
+      imageFile: 'rival_champion_cheolmin.png',
+    }),
+    Object.freeze({
+      id: 'dogeon',
+      name: '전설의 기업인 도건',
+      gender: '남',
+      imageFile: 'rival_champion_dogeon.png',
+    }),
+    Object.freeze({
+      id: 'hyegyeong',
+      name: '업계의 어머니 혜경',
+      gender: '여',
+      imageFile: 'rival_champion_hyegyeong.png',
+    }),
   ]),
 });
 
