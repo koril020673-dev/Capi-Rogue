@@ -1,5 +1,6 @@
 import BackgroundScene from './components/BackgroundScene';
 import AdvisorSelectScreen from './screens/AdvisorSelectScreen';
+import CharacterCreateScreen from './screens/CharacterCreateScreen';
 import EventScreen from './screens/EventScreen';
 import GameOverScreen from './screens/GameOverScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -33,6 +34,10 @@ function renderScreen(screen) {
 
   if (screen === SCREEN_IDS.TITLE) {
     return <TitleScreen />;
+  }
+
+  if (screen === SCREEN_IDS.CHARACTER_CREATE) {
+    return <CharacterCreateScreen />;
   }
 
   if (screen === SCREEN_IDS.ADVISOR_SELECT) {

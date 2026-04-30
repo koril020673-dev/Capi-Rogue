@@ -30,6 +30,7 @@ import { createSaveSnapshot, loadGameFromLocalStorage, saveGameToLocalStorage } 
 export const SCREEN_IDS = Object.freeze({
   LOGIN: 'login',
   TITLE: 'title',
+  CHARACTER_CREATE: 'character-create',
   ADVISOR_SELECT: 'advisor-select',
   MAIN: 'main',
   EVENT: 'event',
@@ -62,7 +63,15 @@ const INITIAL_LOGIN = Object.freeze({
   error: '',
 });
 
-function createRunState(advisorId) {
+const INITIAL_PLAYER_PROFILE = Object.freeze({
+  profileId: null,
+  playerName: '',
+  companyName: '',
+  profileImage: null,
+  fullImage: null,
+});
+
+function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
   const advisorPlayer = applyAdvisorStartBonus(INITIAL_PLAYER, advisorId);
 
   return Object.freeze({
@@ -72,7 +81,10 @@ function createRunState(advisorId) {
     selectedAdvisor: getAdvisorById(advisorId),
     floor: 1,
     phase: ECONOMIC_PHASES.STABLE,
-    player: advisorPlayer,
+    player: Object.freeze({
+      ...advisorPlayer,
+      companyName: playerProfile.companyName || advisorPlayer.companyName,
+    }),
     strategy: { ...DEFAULT_STRATEGY_SELECTION },
     rivals: createInitialRivals(),
     marketEffects: Object.freeze([]),
@@ -95,6 +107,7 @@ const baseState = Object.freeze({
   screen: SCREEN_IDS.LOGIN,
   login: INITIAL_LOGIN,
   session: Object.freeze({ mode: 'guest', userId: '' }),
+  playerProfile: INITIAL_PLAYER_PROFILE,
   selectedAdvisorId: ADVISORS[0].id,
   selectedAdvisor: ADVISORS[0],
   unlockedAdvisorOrder: ADVISORS.length,
@@ -149,7 +162,10 @@ export const useGameStore = create((set, get) => ({
 
     set({
       session: Object.freeze({ mode: 'account', userId: userId.trim() }),
-      screen: SCREEN_IDS.TITLE,
+      screen: savedGame?.playerProfile?.profileId
+        ? SCREEN_IDS.ADVISOR_SELECT
+        : SCREEN_IDS.CHARACTER_CREATE,
+      playerProfile: Object.freeze(savedGame?.playerProfile ?? INITIAL_PLAYER_PROFILE),
       unlockedAdvisorOrder: Math.max(
         ADVISORS.length,
         savedGame?.unlockedAdvisorOrder ?? get().unlockedAdvisorOrder,
@@ -161,9 +177,51 @@ export const useGameStore = create((set, get) => ({
   enterGuestMode() {
     set({
       session: Object.freeze({ mode: 'guest', userId: '' }),
-      screen: SCREEN_IDS.TITLE,
+      screen: SCREEN_IDS.CHARACTER_CREATE,
       login: INITIAL_LOGIN,
     });
+  },
+
+  setPlayerProfile(profile) {
+    set({
+      playerProfile: Object.freeze({
+        profileId: profile.profileId,
+        playerName: profile.playerName,
+        companyName: profile.companyName,
+        profileImage: profile.profileImage,
+        fullImage: profile.fullImage,
+      }),
+    });
+  },
+
+  completeCharacterCreate(profile) {
+    const playerProfile = Object.freeze({
+      profileId: profile.profileId,
+      playerName: profile.playerName,
+      companyName: profile.companyName,
+      profileImage: profile.profileImage,
+      fullImage: profile.fullImage,
+    });
+
+    set((state) => ({
+      playerProfile,
+      player: Object.freeze({
+        ...state.player,
+        companyName: playerProfile.companyName,
+      }),
+      screen: SCREEN_IDS.ADVISOR_SELECT,
+    }));
+
+    // TODO: Supabase 저장 연동.
+    // profiles 테이블에 user_id, profile_id, player_name, company_name, created_at 저장.
+    if (get().session.mode !== 'guest') {
+      saveGameToLocalStorage(
+        createSaveSnapshot({
+          ...get(),
+          playerProfile,
+        }),
+      );
+    }
   },
 
   goToAdvisorSelect() {
@@ -184,12 +242,13 @@ export const useGameStore = create((set, get) => ({
   },
 
   startRun(advisorId = get().selectedAdvisorId) {
-    const nextRunState = createRunState(advisorId);
+    const nextRunState = createRunState(advisorId, get().playerProfile);
     const preparedFloor = prepareFloor(nextRunState);
 
     set((state) => ({
       ...nextRunState,
       session: state.session,
+      playerProfile: state.playerProfile,
       unlockedAdvisorOrder: state.unlockedAdvisorOrder,
       legacyCards: state.legacyCards,
       ...preparedFloor,

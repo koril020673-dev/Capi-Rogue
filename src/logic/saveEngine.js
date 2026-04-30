@@ -26,6 +26,7 @@ export function clearLocalSave() {
 export function createSaveSnapshot(state) {
   return Object.freeze({
     session: state.session,
+    playerProfile: state.playerProfile,
     unlockedAdvisorOrder: state.unlockedAdvisorOrder,
     legacyCards: state.legacyCards,
     // TODO: Legacy card stack cap is TBD by design.
