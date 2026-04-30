@@ -1,10 +1,10 @@
-# CapiRogue2 Development Status
+﻿# CapiRogue Development Status
 
 Last updated: 2026-04-29
 
 ## Project Overview
 
-CapiRogue2 is a Vite + React browser game prototype. The app uses Zustand for global game state and is organized around screen-based flow.
+CapiRogue is a Vite + React browser game prototype. The app uses Zustand for global game state and is organized around screen-based flow.
 
 Current entry points:
 
@@ -166,5 +166,5 @@ The store includes state and actions for:
    ```powershell
    git init
    git add .
-   git commit -m "Initial CapiRogue2 prototype"
+   git commit -m "Initial CapiRogue prototype"
    ```

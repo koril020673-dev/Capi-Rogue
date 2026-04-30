@@ -1,5 +1,5 @@
-const SAVE_KEY = 'capirogue2-save-v1';
-const RECORDS_KEY = 'capirogue2-records-v1';
+const SAVE_KEY = 'capirogue-save-v1';
+const RECORDS_KEY = 'capirogue-records-v1';
 
 // TODO: Backend provider is TBD. Replace localStorage with Supabase/Firebase sync here.
 export function saveGameToLocalStorage(snapshot) {

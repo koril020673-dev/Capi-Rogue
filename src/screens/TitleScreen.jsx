@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ECONOMIC_PHASES } from '../constants/economy';
 import { loadGameFromLocalStorage } from '../logic/saveEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
-import logoImage from '../assets/logo/logo_capirogue2.png';
+import logoImage from '../assets/optimized/logo/logo_image.png';
 import boomImage from '../assets/optimized/bg_phase_pack/bg_phase_boom.jpg';
 import contractionImage from '../assets/optimized/bg_phase_pack/bg_phase_contraction.jpg';
 import growthImage from '../assets/optimized/bg_phase_pack/bg_phase_growth.jpg';
@@ -118,8 +118,8 @@ export default function TitleScreen() {
       <div className="cr2-title-backdrop" style={{ '--cr2-title-bg': `url(${background})` }} />
       <div className="cr2-title-account">{accountName}</div>
 
-      <section className="cr2-title-logo-stack" aria-label="CapiRogue2">
-        <img src={logoImage} alt="CapiRogue2" decoding="async" />
+      <section className="cr2-title-logo-stack" aria-label="CapiRogue">
+        <img src={logoImage} alt="CapiRogue" decoding="async" />
         <span>{TEXT.version}</span>
         <p>{TEXT.tagline}</p>
       </section>
