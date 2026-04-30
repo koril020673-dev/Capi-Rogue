@@ -1,9 +1,12 @@
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseConfigError } from '../lib/supabase';
 
 function missingClientResult() {
+  const error = new Error(supabaseConfigError ?? 'Supabase environment variables are not configured.');
+  error.code = supabaseConfigError ?? 'MISSING_SUPABASE_ENV';
+
   return {
     user: null,
-    error: new Error('Supabase environment variables are not configured.'),
+    error,
   };
 }
 

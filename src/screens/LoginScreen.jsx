@@ -20,6 +20,8 @@ const TEXT = Object.freeze({
   weakPassword: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
   invalidEmail: '\uC774\uBA54\uC77C\uD615 \uC544\uC774\uB514\uB294 \uC774\uBA54\uC77C \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
   authNotReady: 'Supabase \uC124\uC815\uC774 \uC5C6\uC5B4 \uACC4\uC815 \uAE30\uB2A5\uC744 \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.',
+  invalidSupabaseUrl: 'Supabase URL\uC740 https://\uD504\uB85C\uC81D\uD2B8.supabase.co \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574\uC57C \uD569\uB2C8\uB2E4.',
+  invalidSupabaseKey: 'Supabase anon key\uAC00 \uB204\uB77D\uB418\uC5C8\uAC70\uB098 \uD615\uC2DD\uC774 \uC798\uBABB\uB410\uC2B5\uB2C8\uB2E4.',
   networkError: '\uB124\uD2B8\uC6CC\uD06C \uC5F0\uACB0 \uB610\uB294 \uC778\uC99D \uC11C\uBC84\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.',
   signupFailed: '\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.',
   idHelp: '\uC601\uBB38/\uC22B\uC790 3\uC790 \uC774\uC0C1, \uB610\uB294 \uC774\uBA54\uC77C \uD615\uC2DD',
@@ -48,6 +50,18 @@ function hashId(value) {
 }
 
 function getSignupErrorMessage(error) {
+  if (error?.code === 'INVALID_SUPABASE_URL') {
+    return TEXT.invalidSupabaseUrl;
+  }
+
+  if (error?.code === 'INVALID_SUPABASE_ANON_KEY') {
+    return TEXT.invalidSupabaseKey;
+  }
+
+  if (error?.code === 'MISSING_SUPABASE_ENV') {
+    return TEXT.authNotReady;
+  }
+
   if (error?.code === 'USER_ALREADY_EXISTS') {
     return TEXT.existingAccount;
   }
@@ -78,6 +92,18 @@ function getSignupErrorMessage(error) {
 }
 
 function getLoginErrorMessage(error) {
+  if (error?.code === 'INVALID_SUPABASE_URL') {
+    return TEXT.invalidSupabaseUrl;
+  }
+
+  if (error?.code === 'INVALID_SUPABASE_ANON_KEY') {
+    return TEXT.invalidSupabaseKey;
+  }
+
+  if (error?.code === 'MISSING_SUPABASE_ENV') {
+    return TEXT.authNotReady;
+  }
+
   const message = String(error?.message ?? '').toLowerCase();
 
   if (message.includes('environment')) {
