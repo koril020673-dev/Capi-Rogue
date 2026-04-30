@@ -16,37 +16,46 @@ const ADVISOR_IMAGES = Object.freeze({
 const ADVISOR_DETAILS = Object.freeze({
   raider: Object.freeze({
     icon: 'R',
-    summary: '\uB9E4\uB825\uB3C4 +7%',
-    buffs: Object.freeze(['\uB9E4\uB825\uB3C4 \uACC4\uC0B0 \u00D7 1.07']),
+    summary: '\uACF5\uACA9 \uC131\uC7A5',
+    buffs: Object.freeze([
+      '\uB9E4\uB825\uB3C4 +7%',
+      '\uBAA8\uBA58\uD140 \uC0C1\uC2B9\uC18D\uB3C4 \u00D7 1.5',
+      '\uB77C\uC774\uBC8C\uBCF4\uB2E4 \uC800\uAC00\uBA74 \uB9E4\uB825\uB3C4 +5~10%',
+    ]),
     nerfs: Object.freeze(['\uCD5C\uB300 \uCCB4\uB825 8']),
     difficulty: '\u2605\u2605\u2605\u2606',
   }),
   guardian: Object.freeze({
     icon: 'G',
-    summary: '\uC190\uC2E4 \uBC29\uC5B4',
-    buffs: Object.freeze(['\uCCB4\uB825 \uAC10\uC18C\uB7C9 -1']),
-    nerfs: Object.freeze(['\uBC1C\uC8FC\uB7C9 \uC0C1\uD55C -10%']),
+    summary: '\uC704\uD5D8 \uBC29\uC5B4',
+    buffs: Object.freeze([
+      '\uCCB4\uB825 \uAC10\uC18C\uB7C9 -1',
+      '\uB300\uCD9C \uC774\uC790 -10%',
+      '\uC801\uC790 \uC2DC \uCCB4\uB825 \uAC10\uC18C \uD655\uB960 -20%',
+    ]),
+    nerfs: Object.freeze(['\uBC1C\uC8FC\uB7C9 \uC0C1\uD55C -10%', '\uBAA8\uBA58\uD140 \uC0C1\uC2B9\uC18D\uB3C4 \u00D7 0.8']),
     difficulty: '\u2605\u2606\u2606\u2606',
   }),
   analyst: Object.freeze({
     icon: 'A',
-    summary: '\uC815\uBCF4\uC640 \uD06C\uB808\uB527',
+    summary: '\uC815\uBCF4 \uC6B0\uC704',
     buffs: Object.freeze([
       '\uB77C\uC774\uBC8C \uC815\uBCF4 \uCD94\uAC00 \uACF5\uAC1C',
       '\uBCF4\uC0C1 \uC2DC \uD06C\uB808\uB527 +1',
       '\uACBD\uAE30 \uAD6D\uBA74 \uC804\uD658 1\uD134 \uC804 \uC608\uACE0',
     ]),
-    nerfs: Object.freeze(['\uC9C1\uC811 \uC804\uD22C \uBC84\uD504 \uC5C6\uC74C']),
+    nerfs: Object.freeze(['\uC9C1\uC811 \uC218\uCE58 \uBC84\uD504 \uC5C6\uC74C', '\uCD08\uBC18 \uD06C\uB808\uB527 \uC218\uAE09 \uB290\uB9BC']),
     difficulty: '\u2605\u2605\u2606\u2606',
   }),
   gambler: Object.freeze({
     icon: '$',
     summary: '\uC774\uBCA4\uD2B8 \uD55C\uBC29',
     buffs: Object.freeze([
-      '\uB3C4\uBC15\uC801 \uC120\uD0DD\uC9C0 \uD655\uB960 +15%',
-      '\uB9D0\uB3C4 \uC548 \uB418\uB294 \uC120\uD0DD\uC9C0 \uB300\uBC15 +15%',
+      '\uB3C4\uBC15\uC801 \uC120\uD0DD\uC9C0 30% \u2192 45%',
+      '\uB9D0\uB3C4 \uC548 \uB418\uB294 \uC120\uD0DD\uC9C0 20% \u2192 35%',
+      '\uC774\uBCA4\uD2B8 \uCE74\uB4DC 1\uD134\uC5D0 2\uC7A5 \uB4F1\uC7A5',
     ]),
-    nerfs: Object.freeze(['\uC790\uB3D9 \uCCB4\uB825 \uD68C\uBCF5 \uC5C6\uC74C']),
+    nerfs: Object.freeze(['\uC790\uB3D9 \uCCB4\uB825 \uD68C\uBCF5 \uC5C6\uC74C', '\uC678\uBD80 \uC774\uBCA4\uD2B8 \uD6A8\uACFC \u00D7 1.3']),
     difficulty: '\u2605\u2605\u2605\u2605',
   }),
 });

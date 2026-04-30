@@ -6,6 +6,8 @@ import {
   getRandomAdvice,
   getRandomDiagnosisMessage,
 } from '../constants/diagnosis';
+import { getAdvisorById } from '../logic/advisorEngine';
+import { generateReport } from '../logic/reportEngine';
 import { useGameStore } from '../store/useGameStore';
 
 const CHART_COLORS = ['#00FF41', '#00AA00', '#36D1DC', '#FFB700'];
@@ -33,6 +35,7 @@ const TEXT = Object.freeze({
   rival: '\uB77C\uC774\uBC8C',
   revenue: '\uB9E4\uCD9C',
   profitTrend: '\uC21C\uC774\uC775 + \uCD94\uC138',
+  monthlyDecisionReport: '\uC774\uBC88 \uB2EC \uACB0\uC815 \uBD84\uC11D',
   pieAria: '\uC2DC\uC7A5 \uC810\uC720\uC728 \uC6D0\uD615 \uADF8\uB798\uD504',
   barAria: '\uB9E4\uCD9C \uC21C\uC774\uC775 \uB9C9\uB300 \uADF8\uB798\uD504',
   won: '\uC6D0',
@@ -53,6 +56,11 @@ export default function ResultScreen() {
   const diagnosis = useMemo(() => getDiagnosis(gameState), [gameState]);
   const diagnosisMessage = useMemo(() => getRandomDiagnosisMessage(diagnosis), [diagnosis]);
   const advice = useMemo(() => getRandomAdvice(diagnosis), [diagnosis]);
+  const advisor = getAdvisorById(gameState.selectedAdvisorId);
+  const report = useMemo(
+    () => generateReport(gameState, gameState.selectedAdvisorId),
+    [gameState],
+  );
 
   if (!result) {
     return null;
@@ -129,6 +137,8 @@ export default function ResultScreen() {
           <ResultMetric label={TEXT.nextReward} value={getRewardStatus(floor)} />
         </div>
 
+        <AdvisorReport report={report} advisor={advisor} advisorId={gameState.selectedAdvisorId} />
+
         <p className="cr2-hint-line">{result.hint}</p>
         <button className="cr2-primary-button cr2-primary-button--large" type="button" onClick={continueFromResult}>
           {getNextStepLabel(result, floor)}
@@ -157,6 +167,64 @@ function ChartPanel({ title, action, children }) {
         {action}
       </div>
       {children}
+    </article>
+  );
+}
+
+function AdvisorReport({ report, advisor, advisorId }) {
+  const isAnalyst = advisorId === 'analyst';
+  const isGambler = advisorId === 'gambler';
+
+  return (
+    <section
+      className={`cr2-advisor-report ${isAnalyst ? 'cr2-advisor-report--analyst' : ''} ${isGambler ? 'cr2-advisor-report--gambler' : ''}`}
+      style={{ '--cr2-advisor-report-color': advisor.themeColor }}
+    >
+      <div className="cr2-advisor-report-head">
+        <span>{advisor.name}</span>
+        <h2>{TEXT.monthlyDecisionReport}</h2>
+      </div>
+      <div className="cr2-advisor-report-list">
+        {report.sections.map((section, index) => (
+          <ReportSection
+            key={`${section.id}-${index}`}
+            section={section}
+            showPercentBar={isAnalyst && typeof section.percent === 'number'}
+            large={isGambler && index === 0}
+          />
+        ))}
+      </div>
+      {report.suggestion ? (
+        <div className="cr2-advisor-report-suggestion">
+          <span>{REPORT_ICONS.suggestion}</span>
+          <strong>{report.suggestion}</strong>
+        </div>
+      ) : null}
+      {report.warning ? (
+        <div className="cr2-advisor-report-warning">
+          <span>{REPORT_ICONS.event}</span>
+          <strong>{report.warning}</strong>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function ReportSection({ section, showPercentBar, large }) {
+  const percent = Math.max(0, Math.min(100, Number(section.percent) || 0));
+
+  return (
+    <article className={`cr2-report-row cr2-report-row--${section.tone} ${large ? 'cr2-report-row--large' : ''}`}>
+      <span className="cr2-report-icon">{REPORT_ICONS[section.kind] ?? REPORT_ICONS.choice}</span>
+      <div>
+        <strong>{section.title}</strong>
+        <p>{section.text}</p>
+        {showPercentBar ? (
+          <span className="cr2-report-percent-bar">
+            <i style={{ width: `${percent}%` }} />
+          </span>
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -217,6 +285,14 @@ function MarketSharePie({ data }) {
     </div>
   );
 }
+
+const REPORT_ICONS = Object.freeze({
+  choice: '✅',
+  event: '⚠️',
+  down: '📉',
+  up: '📈',
+  suggestion: '💡',
+});
 
 function RevenueProfitBars({ data, trendUp }) {
   const width = 640;
@@ -646,9 +722,136 @@ const RESULT_SCREEN_CSS = `
   text-anchor: start;
 }
 
+.cr2-advisor-report {
+  display: grid;
+  gap: 14px;
+  border: 2px solid var(--cr2-advisor-report-color);
+  border-radius: 6px;
+  margin: 18px 0;
+  padding: 16px;
+  background: #0A0A0A;
+  box-shadow: inset 0 0 0 2px rgba(0, 255, 65, 0.04);
+}
+
+.cr2-advisor-report-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cr2-advisor-report-head span {
+  color: var(--cr2-advisor-report-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.cr2-advisor-report-head h2 {
+  margin: 0;
+  color: #00FF41;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.cr2-advisor-report-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cr2-report-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgba(0, 170, 0, 0.5);
+  border-radius: 6px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.cr2-report-icon {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.cr2-report-row strong,
+.cr2-report-row p {
+  margin: 0;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.cr2-report-row strong {
+  color: var(--cr2-advisor-report-color);
+  font-size: 11px;
+}
+
+.cr2-report-row p {
+  color: var(--cr2-text);
+  font-size: 10px;
+}
+
+.cr2-report-row--positive p {
+  color: #00FF41;
+}
+
+.cr2-report-row--negative p {
+  color: #DC143C;
+}
+
+.cr2-report-row--warning p {
+  color: #FFD700;
+}
+
+.cr2-report-row--large {
+  grid-column: 1 / -1;
+}
+
+.cr2-report-row--large p {
+  font-size: 14px;
+}
+
+.cr2-report-percent-bar {
+  display: block;
+  height: 8px;
+  border: 1px solid rgba(0, 170, 0, 0.58);
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.cr2-report-percent-bar i {
+  display: block;
+  height: 100%;
+  background: var(--cr2-advisor-report-color);
+}
+
+.cr2-advisor-report-suggestion,
+.cr2-advisor-report-warning {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid rgba(0, 170, 0, 0.38);
+  padding-top: 12px;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.cr2-advisor-report-suggestion strong {
+  color: #00FF41;
+}
+
+.cr2-advisor-report-warning strong {
+  color: #DC143C;
+}
+
 @media (max-width: 860px) {
   .cr2-result-chart-grid,
-  .cr2-pie-layout {
+  .cr2-pie-layout,
+  .cr2-advisor-report-list {
     grid-template-columns: 1fr;
   }
 }
