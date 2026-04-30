@@ -17,6 +17,13 @@ function alreadyExistsError() {
   return error;
 }
 
+function emailConfirmationRequiredError() {
+  const error = new Error('Email confirmation is required');
+  error.code = 'EMAIL_CONFIRMATION_REQUIRED';
+
+  return error;
+}
+
 function isAlreadyExistsError(error) {
   const message = String(error?.message ?? '').toLowerCase();
 
@@ -45,6 +52,13 @@ export async function signUp(email, password) {
       return {
         user: null,
         error: alreadyExistsError(),
+      };
+    }
+
+    if (data?.user && !data?.session) {
+      return {
+        user: null,
+        error: emailConfirmationRequiredError(),
       };
     }
 

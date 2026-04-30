@@ -15,6 +15,9 @@ const TEXT = Object.freeze({
   close: '\uB2EB\uAE30',
   missingInput: '\uC544\uC774\uB514\uC640 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
   missingAccount: '\uC5C6\uB294 \uC544\uC774\uB514\uC774\uAC70\uB098 \uBE44\uBC00\uBC88\uD638\uAC00 \uD2C0\uB838\uC2B5\uB2C8\uB2E4.',
+  wrongPassword: '\uBE44\uBC00\uBC88\uD638\uAC00 \uD2C0\uB838\uC2B5\uB2C8\uB2E4.',
+  emailNotConfirmed: 'Supabase\uC758 \uC774\uBA54\uC77C \uD655\uC778 \uC124\uC815\uC774 \uCF1C\uC838 \uC788\uC5B4 \uB85C\uADF8\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. Authentication > Providers > Email\uC5D0\uC11C Confirm email\uC744 \uB044\uACE0 \uB2E4\uC2DC \uAC00\uC785\uD574\uC8FC\uC138\uC694.',
+  tooManyRequests: '\uB85C\uADF8\uC778 \uC2DC\uB3C4\uAC00 \uB108\uBB34 \uB9CE\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.',
   existingAccount: '\uC774\uBBF8\uC788\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
   signupSuccess: '\uC131\uACF5\uC801\uC73C\uB85C \uC544\uC774\uB514 \uC0DD\uC131\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4',
   weakPassword: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
@@ -50,6 +53,10 @@ function hashId(value) {
 }
 
 function getSignupErrorMessage(error) {
+  if (error?.code === 'EMAIL_CONFIRMATION_REQUIRED') {
+    return TEXT.emailNotConfirmed;
+  }
+
   if (error?.code === 'INVALID_SUPABASE_URL') {
     return TEXT.invalidSupabaseUrl;
   }
@@ -92,6 +99,7 @@ function getSignupErrorMessage(error) {
 }
 
 function getLoginErrorMessage(error) {
+  const status = Number(error?.status ?? 0);
   if (error?.code === 'INVALID_SUPABASE_URL') {
     return TEXT.invalidSupabaseUrl;
   }
@@ -105,6 +113,22 @@ function getLoginErrorMessage(error) {
   }
 
   const message = String(error?.message ?? '').toLowerCase();
+
+  if (message.includes('email not confirmed') || message.includes('not confirmed')) {
+    return TEXT.emailNotConfirmed;
+  }
+
+  if (message.includes('invalid login credentials')) {
+    return TEXT.missingAccount;
+  }
+
+  if (message.includes('password')) {
+    return TEXT.wrongPassword;
+  }
+
+  if (status === 429 || message.includes('too many') || message.includes('rate limit')) {
+    return TEXT.tooManyRequests;
+  }
 
   if (message.includes('environment')) {
     return TEXT.authNotReady;
