@@ -1,20 +1,25 @@
 .cr2-record-screen {
   display: grid;
   place-items: center;
-  min-height: 100vh;
+  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
+  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  min-height: 0;
   background: #000000;
-  padding: 24px;
+  padding: clamp(12px, 2vw, 22px);
+  overflow: hidden;
 }
 
 .cr2-record-panel {
   display: grid;
   gap: 18px;
   width: min(920px, 100%);
+  max-height: 100%;
   border: 2px solid var(--cr2-grid);
   border-radius: 8px;
   background: rgba(0, 10, 0, 0.92);
   box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
   padding: clamp(18px, 3vw, 30px);
+  overflow: auto;
 }
 
 .cr2-record-head {

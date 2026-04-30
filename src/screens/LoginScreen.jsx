@@ -1,4 +1,5 @@
 import { useGameStore } from '../store/useGameStore';
+import logoImage from '../assets/optimized/logo/logo_image.png';
 
 export default function LoginScreen() {
   const login = useGameStore((state) => state.login);
@@ -8,14 +9,13 @@ export default function LoginScreen() {
 
   return (
     <main className="cr2-login-screen">
+      <img className="cr2-login-logo" src={logoImage} alt="CapiRogue" />
       <section className="cr2-login-panel">
-        <p className="cr2-kicker">CAPIROGUE2</p>
-        <h1>자본의 로그라이크</h1>
-        <p className="cr2-title-copy">
-          로컬 프로필로 시작하면 이 브라우저에 레거시와 해금 기록이 저장됩니다.
-        </p>
+        <p className="cr2-kicker">LOGIN</p>
+        <h1>접속</h1>
+        <p className="cr2-title-copy">계정으로 시작하거나 게스트 모드로 바로 플레이하세요.</p>
         <label className="cr2-field">
-          <span>프로필 이름</span>
+          <span>계정명</span>
           <input
             className="cr2-input"
             type="text"
@@ -24,7 +24,7 @@ export default function LoginScreen() {
           />
         </label>
         <label className="cr2-field">
-          <span>확인 코드</span>
+          <span>비밀번호</span>
           <input
             className="cr2-input"
             type="password"
@@ -35,10 +35,10 @@ export default function LoginScreen() {
         {login.error ? <p className="cr2-error-text">{login.error}</p> : null}
         <div className="cr2-button-row">
           <button className="cr2-primary-button" type="button" onClick={submitLogin}>
-            프로필 시작
+            시작
           </button>
           <button className="cr2-secondary-button" type="button" onClick={enterGuestMode}>
-            게스트 시작
+            게스트
           </button>
         </div>
       </section>

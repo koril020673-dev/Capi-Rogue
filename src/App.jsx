@@ -22,7 +22,7 @@ export default function App() {
       className={`cr2-app cr2-advisor-theme--${selectedAdvisorId}`}
       style={{ '--cr2-theme-color': themeColor, '--cr2-advisor': themeColor }}
     >
-      <BackgroundScene>{renderScreen(screen)}</BackgroundScene>
+      <BackgroundScene screen={screen}>{renderScreen(screen)}</BackgroundScene>
     </div>
   );
 }

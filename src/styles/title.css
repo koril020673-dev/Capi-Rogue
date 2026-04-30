@@ -2,7 +2,9 @@
   position: relative;
   display: grid;
   grid-template-rows: 1fr auto;
-  min-height: 100vh;
+  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
+  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  min-height: 0;
   overflow: hidden;
   padding: clamp(18px, 3vw, 34px);
   isolation: isolate;

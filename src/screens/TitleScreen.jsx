@@ -28,7 +28,6 @@ const TEXT = Object.freeze({
   settings: '설정',
   noSave: '저장된 게임이 없습니다.',
   continueTodo: 'TODO: Supabase 저장 데이터 로드. 현재는 로컬 프로필을 불러옵니다.',
-  recordsTodo: 'TODO: 플레이 기록 화면 준비 중입니다.',
   settingsTodo: 'TODO: 설정 모달 준비 중입니다.',
 });
 

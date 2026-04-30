@@ -124,6 +124,10 @@ button:disabled {
   background: #000000;
 }
 
+.cr2-bg-scene--screen-login {
+  background: #8a8a8a;
+}
+
 .cr2-bg-scene::before {
   position: fixed;
   inset: 0;
@@ -182,10 +186,19 @@ button:disabled {
   );
 }
 
+.cr2-bg-scene--screen-login::before,
+.cr2-bg-scene--screen-login .cr2-bg-grid,
+.cr2-bg-scene--screen-login .cr2-bg-scanline {
+  display: none;
+}
+
 .cr2-shell {
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
   min-height: 100vh;
+  padding: clamp(6px, 1.2vw, 14px);
 }
 
 .cr2-login-screen,
@@ -201,6 +214,58 @@ button:disabled {
   min-height: 100vh;
   margin: 0 auto;
   padding: 24px;
+}
+
+.cr2-login-screen,
+.cr2-title-screen,
+.cr2-advisor-screen,
+.cr2-event-screen,
+.cr2-settlement-screen,
+.cr2-result-screen,
+.cr2-reward-screen,
+.cr2-gameover-screen,
+.cr2-main-screen,
+.cr2-character-create-screen,
+.cr2-record-screen {
+  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
+  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cr2-login-screen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  place-items: center;
+  gap: 20px;
+  background: #8a8a8a;
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.cr2-login-logo {
+  display: block;
+  width: min(360px, 58%);
+  height: auto;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.42));
+}
+
+.cr2-login-panel {
+  align-self: start;
+  width: min(380px, 92%);
+  border-color: #202020;
+  background: rgba(10, 10, 10, 0.94);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.14);
+  padding: 20px;
+}
+
+.cr2-login-panel h1 {
+  font-size: 22px;
+}
+
+.cr2-login-panel .cr2-title-copy {
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .cr2-main-screen {
@@ -256,6 +321,25 @@ button:disabled {
   font-size: clamp(22px, 4vw, 44px);
   line-height: 1.35;
   word-break: keep-all;
+}
+
+.cr2-login-panel {
+  align-self: start;
+  width: min(380px, 92%);
+  border-color: #202020;
+  background: rgba(10, 10, 10, 0.94);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.14);
+  padding: 20px;
+}
+
+.cr2-login-panel h1 {
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.cr2-login-panel .cr2-title-copy {
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .cr2-kicker,
