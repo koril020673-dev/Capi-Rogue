@@ -72,30 +72,65 @@
   font-size: var(--cr2-ui-font-xs);
 }
 
-.cr2-settings-volume {
+.cr2-settings-slider {
   display: grid;
-  grid-template-columns: 24px repeat(11, minmax(0, 1fr)) 24px;
-  gap: 3px;
+  grid-template-columns: 58px minmax(0, 1fr);
   align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
-.cr2-settings-volume button {
-  min-width: 0;
-  min-height: 28px;
-  border: 1px solid rgba(0, 170, 0, 0.55);
-  background: #070713;
-  color: var(--cr2-text);
-  font-family: inherit;
+.cr2-settings-slider-value {
+  color: var(--cr2-danger);
   font-size: var(--cr2-ui-font-xs);
-  line-height: 1.35;
-  padding: 4px 2px;
+  line-height: 1.4;
+  text-align: right;
 }
 
-.cr2-settings-volume-option--active {
-  border-color: var(--cr2-danger) !important;
-  color: var(--cr2-danger) !important;
-  background: rgba(220, 20, 60, 0.1) !important;
+.cr2-settings-slider input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cr2-settings-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 7px;
+  border: 1px solid rgba(0, 170, 0, 0.76);
+  background:
+    linear-gradient(90deg, var(--cr2-danger) 0 var(--cr2-volume-percent), #070713 var(--cr2-volume-percent) 100%);
+}
+
+.cr2-settings-slider input[type="range"]::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  appearance: none;
+  border: 2px solid var(--cr2-danger);
+  background: var(--cr2-accent);
+  box-shadow: 0 0 0 2px #050505;
+}
+
+.cr2-settings-slider input[type="range"]::-moz-range-track {
+  height: 7px;
+  border: 1px solid rgba(0, 170, 0, 0.76);
+  background: #070713;
+}
+
+.cr2-settings-slider input[type="range"]::-moz-range-progress {
+  height: 7px;
+  background: var(--cr2-danger);
+}
+
+.cr2-settings-slider input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--cr2-danger);
+  border-radius: 0;
+  background: var(--cr2-accent);
+  box-shadow: 0 0 0 2px #050505;
 }
 
 .cr2-settings-note {

@@ -7,8 +7,6 @@ const TABS = Object.freeze([
   Object.freeze({ id: 'display', label: '디스플레이' }),
 ]);
 
-const VOLUME_VALUES = Object.freeze([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
-
 export default function GameSettings({ onBack }) {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [selectedRow, setSelectedRow] = useState(0);
@@ -41,10 +39,7 @@ export default function GameSettings({ onBack }) {
   }
 
   function stepVolume(key, direction) {
-    const currentIndex = Math.max(0, VOLUME_VALUES.indexOf(settings[key]));
-    const nextIndex = Math.max(0, Math.min(VOLUME_VALUES.length - 1, currentIndex + direction));
-
-    updateSetting(key, VOLUME_VALUES[nextIndex]);
+    updateSetting(key, clampVolume(settings[key] + direction * 10));
   }
 
   function handleRowKeyDown(event, row) {
@@ -110,7 +105,6 @@ export default function GameSettings({ onBack }) {
             <SettingValue
               row={row}
               settings={settings}
-              onStepVolume={stepVolume}
               onUpdate={updateSetting}
             />
           </article>
@@ -118,7 +112,7 @@ export default function GameSettings({ onBack }) {
       </section>
 
       {activeTab === 'display' ? (
-        <p className="cr2-settings-note">배경화면을 끄면 성능이 향상됩니다</p>
+        <p className="cr2-settings-note">배경화면을 끄면 성능이 향상됩니다.</p>
       ) : null}
 
       <button className="cr2-settings-back" type="button" onClick={onBack}>
@@ -128,7 +122,7 @@ export default function GameSettings({ onBack }) {
   );
 }
 
-function SettingValue({ row, settings, onStepVolume, onUpdate }) {
+function SettingValue({ row, settings, onUpdate }) {
   if (row.type === 'language') {
     return <strong className="cr2-settings-current">{settings[row.key] === 'ko' ? '한국어' : 'English'}</strong>;
   }
@@ -138,20 +132,24 @@ function SettingValue({ row, settings, onStepVolume, onUpdate }) {
   }
 
   if (row.type === 'volume') {
+    const value = clampVolume(settings[row.key]);
+
     return (
-      <div className="cr2-settings-volume" onClick={(event) => event.stopPropagation()}>
-        <button type="button" onClick={() => onStepVolume(row.key, -1)}>{'<'}</button>
-        {VOLUME_VALUES.map((value) => (
-          <button
-            className={settings[row.key] === value ? 'cr2-settings-volume-option cr2-settings-volume-option--active' : 'cr2-settings-volume-option'}
-            key={value}
-            type="button"
-            onClick={() => onUpdate(row.key, value)}
-          >
-            {formatVolume(value)}
-          </button>
-        ))}
-        <button type="button" onClick={() => onStepVolume(row.key, 1)}>{'>'}</button>
+      <div
+        className="cr2-settings-slider"
+        style={{ '--cr2-volume-percent': `${value}%` }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <strong className="cr2-settings-slider-value">{formatVolume(value)}</strong>
+        <input
+          aria-label={row.label}
+          max="100"
+          min="0"
+          step="1"
+          type="range"
+          value={value}
+          onChange={(event) => onUpdate(row.key, clampVolume(event.target.value))}
+        />
       </div>
     );
   }
@@ -186,6 +184,10 @@ function getRows(tabId) {
   ];
 }
 
+function clampVolume(value) {
+  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+}
+
 function formatVolume(value) {
-  return value === 0 ? '음소거' : String(value);
+  return value === 0 ? '음소거' : `${value}`;
 }

@@ -265,6 +265,12 @@
   gap: 14px;
 }
 
+.cr2-pause-section--dictionary {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
 .cr2-pause-section h2,
 .cr2-pause-section h3 {
   margin: 0;
@@ -338,6 +344,22 @@
 .cr2-pause-term-list {
   display: grid;
   gap: 8px;
+}
+
+.cr2-pause-section--dictionary .cr2-pause-term-list {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: var(--cr2-danger) #070713;
+  scrollbar-width: thin;
+}
+
+.cr2-pause-section--dictionary .cr2-pause-term-list:active {
+  cursor: grabbing;
 }
 
 .cr2-pause-term-list strong,
