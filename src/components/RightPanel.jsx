@@ -151,7 +151,6 @@ export default function RightPanel({ preview }) {
             onChange={(event) => setCustomSalesQuantity(event.target.value)}
           />
         ) : null}
-        <ForecastBox estimate={estimate} concealed={!REVEAL_DEMAND_FORECAST} />
       </aside>
     );
   }
@@ -175,7 +174,6 @@ export default function RightPanel({ preview }) {
           ))}
         </div>
         <QualityCostReadout preview={preview} />
-        <ForecastBox estimate={estimate} concealed={!REVEAL_DEMAND_FORECAST} />
       </aside>
     );
   }
@@ -286,7 +284,6 @@ export default function RightPanel({ preview }) {
             </span>
           </div>
         ) : null}
-        <ForecastBox estimate={estimate} concealed={!REVEAL_DEMAND_FORECAST} />
       </aside>
     );
   }
