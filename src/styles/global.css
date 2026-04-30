@@ -374,12 +374,12 @@ button:disabled {
 
 .cr2-main-screen {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  width: min(1080px, 100vw, calc(100vh * 1.5));
-  height: min(720px, 100vh, calc(100vw / 1.5));
+  grid-template-rows: clamp(44px, calc(var(--cr2-stage-h) * 0.075), 56px) clamp(48px, calc(var(--cr2-stage-h) * 0.082), 60px) minmax(0, 1fr);
+  width: var(--cr2-stage-w);
+  height: var(--cr2-stage-h);
   min-height: 0;
   min-width: 0;
-  padding: clamp(8px, 1.4vw, 16px);
+  padding: clamp(6px, calc(var(--cr2-stage-w) * 0.012), 13px);
   overflow: hidden;
 }
 
@@ -656,7 +656,8 @@ button:disabled {
   grid-template-columns: minmax(52px, 0.3fr) minmax(54px, 0.32fr) minmax(128px, 0.78fr) minmax(68px, 0.42fr) minmax(64px, 0.38fr) minmax(84px, 0.5fr);
   gap: 6px;
   align-items: stretch;
-  margin-bottom: 8px;
+  height: 100%;
+  margin-bottom: 0;
   min-width: 0;
   overflow: hidden;
 }
@@ -668,7 +669,7 @@ button:disabled {
   border: 2px solid var(--cr2-grid);
   border-radius: 4px;
   background: rgba(0, 14, 0, 0.9);
-  min-height: 48px;
+  min-height: 0;
   min-width: 0;
   padding: 6px;
   overflow: hidden;
@@ -711,9 +712,10 @@ button:disabled {
 
 .cr2-battle-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 28%);
+  grid-template-columns: minmax(0, 72fr) minmax(0, 28fr);
   gap: 12px;
   align-items: stretch;
+  height: 100%;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -1705,13 +1707,13 @@ button:disabled {
   }
 
   .cr2-status-bar {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-height: 104px;
-    overflow: auto;
+    grid-template-columns: minmax(46px, 0.3fr) minmax(48px, 0.32fr) minmax(100px, 0.74fr) minmax(58px, 0.42fr) minmax(54px, 0.38fr) minmax(70px, 0.48fr);
+    max-height: none;
+    overflow: hidden;
   }
 
   .cr2-battle-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(170px, 30%);
+    grid-template-columns: minmax(0, 72fr) minmax(0, 28fr);
     gap: 8px;
   }
 
@@ -1722,9 +1724,9 @@ button:disabled {
   }
 
   .cr2-bottom-info {
-    grid-template-columns: 1fr;
-    max-height: 118px;
-    overflow: auto;
+    grid-template-columns: 1fr 1fr;
+    max-height: none;
+    overflow: hidden;
   }
 
   .cr2-right-panel {
@@ -1881,6 +1883,10 @@ button:disabled {
   .cr2-settlement-screen--combined,
   .cr2-main-screen {
     padding: 4px;
+  }
+
+  .cr2-main-screen {
+    grid-template-rows: clamp(34px, calc(var(--cr2-stage-h) * 0.075), 48px) clamp(36px, calc(var(--cr2-stage-h) * 0.082), 52px) minmax(0, 1fr);
   }
 
   .cr2-settlement-report-layout {
