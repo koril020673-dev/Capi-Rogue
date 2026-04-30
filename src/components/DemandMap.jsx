@@ -63,6 +63,7 @@ export default function DemandMap({ totalDemand, participants, revealDemand = fa
 
 function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
+  const playerProfile = useGameStore((state) => state.playerProfile);
   const sharePercent = Math.round(participant.marketShare * 100);
   const healthPercent = Math.max(0, Math.min(100, Math.round((participant.health ?? 1) * 100)));
   const arrowClass = revealDemand ? getShareClass(participant.marketShare) : 'cr2-demand-arrow--md';
@@ -74,9 +75,13 @@ function DemandNode({ participant, isPlayer = false, revealDemand = false }) {
       <div className="cr2-demand-card">
         {isPlayer ? (
           <div className="cr2-demand-player-row">
+            <span className="cr2-demand-player-portrait">
+              {playerProfile.profileImage ? <img src={playerProfile.profileImage} alt="" /> : null}
+            </span>
             <div>
               <span>{participant.slotLabel}</span>
               <strong>{participant.name}</strong>
+              {playerProfile.playerName ? <small>{playerProfile.playerName}</small> : null}
             </div>
             <span className="cr2-demand-advisor-portrait">
               <img src={ADVISOR_IMAGES[selectedAdvisorId]} alt="" />
