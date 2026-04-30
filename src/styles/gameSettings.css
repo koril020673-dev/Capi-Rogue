@@ -5,6 +5,7 @@
   height: 100%;
   min-height: 0;
   font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-settings-tabs {
@@ -21,7 +22,7 @@
   background: transparent;
   color: var(--cr2-text);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.45;
 }
 
@@ -39,7 +40,7 @@
   align-content: start;
   gap: 8px;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .cr2-settings-row {
@@ -61,14 +62,14 @@
 
 .cr2-settings-name {
   color: var(--cr2-text);
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.5;
 }
 
 .cr2-settings-current {
   justify-self: end;
   color: var(--cr2-danger);
-  font-size: 10px;
+  font-size: var(--cr2-ui-font-xs);
 }
 
 .cr2-settings-volume {
@@ -86,7 +87,7 @@
   background: #070713;
   color: var(--cr2-text);
   font-family: inherit;
-  font-size: 10px;
+  font-size: var(--cr2-ui-font-xs);
   line-height: 1.35;
   padding: 4px 2px;
 }
@@ -101,7 +102,7 @@
   margin: 0;
   color: var(--cr2-text);
   font-family: var(--cr2-font-readable);
-  font-size: 13px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.6;
 }
 
@@ -112,7 +113,7 @@
   background: #070713;
   color: var(--cr2-accent);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   padding: 8px 14px;
 }
 

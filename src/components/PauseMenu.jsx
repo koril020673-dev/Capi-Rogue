@@ -69,7 +69,7 @@ export default function PauseMenu() {
                 type="button"
                 onClick={() => setActiveMenuId(item.id)}
               >
-                <span>{item.id === activeMenuId ? '▶' : ''}</span>
+                <span>{item.id === activeMenuId ? '>' : ''}</span>
                 <strong>{item.label}</strong>
               </button>
             ))}

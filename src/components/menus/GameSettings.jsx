@@ -140,7 +140,7 @@ function SettingValue({ row, settings, onStepVolume, onUpdate }) {
   if (row.type === 'volume') {
     return (
       <div className="cr2-settings-volume" onClick={(event) => event.stopPropagation()}>
-        <button type="button" onClick={() => onStepVolume(row.key, -1)}>◀</button>
+        <button type="button" onClick={() => onStepVolume(row.key, -1)}>{'<'}</button>
         {VOLUME_VALUES.map((value) => (
           <button
             className={settings[row.key] === value ? 'cr2-settings-volume-option cr2-settings-volume-option--active' : 'cr2-settings-volume-option'}
@@ -151,7 +151,7 @@ function SettingValue({ row, settings, onStepVolume, onUpdate }) {
             {formatVolume(value)}
           </button>
         ))}
-        <button type="button" onClick={() => onStepVolume(row.key, 1)}>▶</button>
+        <button type="button" onClick={() => onStepVolume(row.key, 1)}>{'>'}</button>
       </div>
     );
   }

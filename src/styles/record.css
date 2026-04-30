@@ -7,6 +7,7 @@
   background: #000000;
   padding: clamp(12px, 2vw, 22px);
   overflow: hidden;
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-record-panel {
@@ -32,7 +33,7 @@
   margin: 0;
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(20px, 3vw, 34px);
+  font-size: clamp(var(--cr2-ui-font-lg), min(3vw, 4.5vh), 34px);
   line-height: 1.45;
 }
 
@@ -58,7 +59,7 @@
 .cr2-record-item span {
   color: var(--cr2-text);
   font-family: var(--cr2-font-readable);
-  font-size: 13px;
+  font-size: var(--cr2-ui-font-sm);
   font-weight: 800;
   line-height: 1.5;
   word-break: keep-all;
@@ -67,7 +68,7 @@
 .cr2-record-item strong {
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(10px, 1.15vw, 13px);
+  font-size: var(--cr2-ui-font-sm);
   font-weight: 400;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -82,7 +83,7 @@
   background: rgba(0, 0, 0, 0.62);
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(12px, 2vw, 18px);
+  font-size: var(--cr2-ui-font-md);
   line-height: 1.7;
   text-align: center;
 }

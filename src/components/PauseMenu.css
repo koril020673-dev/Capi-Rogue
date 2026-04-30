@@ -1,16 +1,17 @@
 .cr2-pause-mobile-button {
   position: fixed;
-  top: max(12px, calc((100vh - 720px) / 2 + 12px));
-  right: max(12px, calc((100vw - 1080px) / 2 + 12px));
+  top: max(8px, calc((100dvh - min(720px, calc(100dvh - 16px), calc((100dvw - 16px) / 1.5))) / 2 + 8px));
+  right: max(8px, calc((100dvw - min(1080px, calc(100dvw - 16px), calc((100dvh - 16px) * 1.5))) / 2 + 8px));
   z-index: 30;
-  display: block;
-  width: 40px;
-  height: 40px;
+  display: grid;
+  place-items: center;
+  width: clamp(28px, min(4vw, 6vh), 40px);
+  height: clamp(28px, min(4vw, 6vh), 40px);
   border: 2px solid var(--cr2-danger);
   background: rgba(26, 26, 46, 0.92);
   color: var(--cr2-accent);
   font-family: inherit;
-  font-size: 18px;
+  font-size: var(--cr2-ui-font-lg);
 }
 
 .cr2-pause-overlay {
@@ -38,7 +39,7 @@
 
 .cr2-pause-shell {
   display: grid;
-  grid-template-columns: 230px minmax(320px, 520px);
+  grid-template-columns: minmax(150px, 30%) minmax(0, 1fr);
   justify-self: end;
   width: min(760px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
   height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
@@ -67,7 +68,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px;
+  padding: clamp(8px, 1.4vw, 16px);
   border-bottom: 2px solid var(--cr2-danger);
 }
 
@@ -78,13 +79,13 @@
 
 .cr2-pause-head strong {
   color: var(--cr2-accent);
-  font-size: 14px;
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-pause-head span,
 .cr2-pause-menu-item strong,
 .cr2-pause-danger-list button {
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
 }
 
 .cr2-pause-close {
@@ -101,7 +102,7 @@
   display: grid;
   align-content: start;
   gap: 4px;
-  padding: 12px;
+  padding: clamp(6px, 1.1vw, 12px);
 }
 
 .cr2-pause-danger-list {
@@ -138,8 +139,8 @@
 
 .cr2-pause-content {
   min-width: 0;
-  overflow: auto;
-  padding: 18px;
+  overflow: hidden;
+  padding: clamp(8px, 1.6vw, 18px);
 }
 
 .cr2-pause-section {
@@ -151,11 +152,11 @@
 .cr2-pause-section h3 {
   margin: 0;
   color: var(--cr2-accent);
-  font-size: 14px;
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-pause-section h3 {
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
 }
 
 .cr2-pause-control,
@@ -165,7 +166,7 @@
   align-items: center;
   gap: 10px;
   color: var(--cr2-text);
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
 }
 
 .cr2-pause-toggle {
@@ -196,7 +197,7 @@
 .cr2-pause-stat-grid dt,
 .cr2-pause-stat-grid dd {
   margin: 0;
-  font-size: 10px;
+  font-size: var(--cr2-ui-font-xs);
 }
 
 .cr2-pause-stat-grid dt {
@@ -213,7 +214,7 @@
   background: #050505;
   color: var(--cr2-accent);
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
   padding: 10px;
 }
 
@@ -226,7 +227,7 @@
 .cr2-pause-advisor-card strong,
 .cr2-rival-dex-card strong {
   color: var(--cr2-accent);
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
 }
 
 .cr2-pause-term-list p,
@@ -240,8 +241,9 @@
 .cr2-rival-dex-card dd {
   margin: 6px 0 0;
   color: var(--cr2-text);
-  font-size: 10px;
+  font-size: var(--cr2-ui-font-xs);
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .cr2-pause-advisor-card {
@@ -312,8 +314,9 @@
   }
 
   .cr2-pause-shell {
-    grid-template-columns: 1fr;
-    width: min(430px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
+    grid-template-columns: minmax(112px, 35%) minmax(0, 1fr);
+    width: min(1080px, calc(100dvw - 8px), calc((100dvh - 8px) * 1.5));
+    height: min(720px, calc(100dvh - 8px), calc((100dvw - 8px) / 1.5));
   }
 
   .cr2-pause-panel {
@@ -321,7 +324,6 @@
   }
 
   .cr2-pause-content {
-    max-height: 54vh;
     border-top: 0;
   }
 

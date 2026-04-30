@@ -159,10 +159,10 @@ export const DIAGNOSIS_COLORS = Object.freeze({
  * 진단 상태에 따른 이모지
  */
 export const DIAGNOSIS_EMOJIS = Object.freeze({
-  GROWTH: '🟢',
-  STABLE: '🟡',
-  CAUTION: '🟠',
-  CRISIS: '🔴',
+  GROWTH: 'GROWTH',
+  STABLE: 'STABLE',
+  CAUTION: 'CAUTION',
+  CRISIS: 'CRISIS',
 });
 
 /**

@@ -5,12 +5,12 @@ import { generateReport } from '../logic/reportEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 
-const REPORT_ICONS = Object.freeze({
-  choice: '✅',
-  event: '⚠️',
-  down: '📉',
-  up: '📈',
-  suggestion: '💡',
+const REPORT_MARKERS = Object.freeze({
+  choice: '선택',
+  event: '변수',
+  down: '하락',
+  up: '상승',
+  suggestion: '제안',
 });
 
 const TEXT = Object.freeze({
@@ -165,13 +165,13 @@ function AdvisorReport({ report, advisor, advisorId }) {
       </div>
       {report.suggestion ? (
         <div className="cr2-advisor-report-suggestion">
-          <span>{REPORT_ICONS.suggestion}</span>
+          <span>{REPORT_MARKERS.suggestion}</span>
           <strong>{report.suggestion}</strong>
         </div>
       ) : null}
       {report.warning ? (
         <div className="cr2-advisor-report-warning">
-          <span>{REPORT_ICONS.event}</span>
+          <span>{REPORT_MARKERS.event}</span>
           <strong>{report.warning}</strong>
         </div>
       ) : null}
@@ -184,7 +184,7 @@ function ReportSection({ section, showPercentBar, large }) {
 
   return (
     <article className={`cr2-report-row cr2-report-row--${section.tone} ${large ? 'cr2-report-row--large' : ''}`}>
-      <span className="cr2-report-icon">{REPORT_ICONS[section.kind] ?? REPORT_ICONS.choice}</span>
+      <span className="cr2-report-icon">{REPORT_MARKERS[section.kind] ?? REPORT_MARKERS.choice}</span>
       <div>
         <strong>{section.title}</strong>
         <p>{section.text}</p>

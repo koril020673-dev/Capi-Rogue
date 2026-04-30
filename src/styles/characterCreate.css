@@ -8,6 +8,7 @@
   padding: clamp(12px, 2vw, 22px);
   background: #000000;
   overflow: hidden;
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-character-panel {
@@ -33,11 +34,11 @@
 }
 
 .cr2-character-panel h1 {
-  font-size: clamp(18px, 3vw, 30px);
+  font-size: clamp(var(--cr2-ui-font-lg), min(3vw, 4.5vh), 30px);
 }
 
 .cr2-character-panel h2 {
-  font-size: 13px;
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-character-section {
@@ -81,7 +82,7 @@
 }
 
 .cr2-character-thumb span {
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   font-weight: 700;
 }
 
@@ -99,7 +100,7 @@
   border-bottom: 1px solid rgba(0, 255, 65, 0.55);
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.6;
   padding: 8px 0;
 }
@@ -111,7 +112,7 @@
   color: var(--cr2-accent);
   outline: none;
   font-family: var(--cr2-font-readable);
-  font-size: 15px;
+  font-size: var(--cr2-ui-font-md);
   font-weight: 800;
 }
 

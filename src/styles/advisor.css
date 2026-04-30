@@ -42,6 +42,7 @@
   background: rgba(0, 10, 0, 0.94);
   padding: 16px;
   overflow: hidden;
+  font-size: var(--cr2-ui-font-md);
 }
 
 .cr2-advisor-select-head {
@@ -52,7 +53,7 @@
   margin: 6px 0 0;
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(16px, 2.4vw, 24px);
+  font-size: clamp(var(--cr2-ui-font-lg), min(2.4vw, 3.6vh), 24px);
   line-height: 1.45;
   word-break: keep-all;
 }
@@ -100,7 +101,7 @@
 .cr2-starter-name {
   color: var(--cr2-card-color);
   font-family: var(--cr2-font-pixel);
-  font-size: 11px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.35;
   text-transform: uppercase;
   text-align: center;
@@ -108,7 +109,7 @@
 
 .cr2-starter-style,
 .cr2-starter-summary {
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
@@ -185,7 +186,7 @@
 .cr2-advisor-detail-title span {
   color: var(--cr2-card-color);
   font-family: var(--cr2-font-pixel);
-  font-size: 13px;
+  font-size: var(--cr2-ui-font-md);
   line-height: 1.4;
 }
 
@@ -193,13 +194,13 @@
 .cr2-advisor-passive strong,
 .cr2-advisor-difficulty strong {
   color: var(--cr2-accent);
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.45;
 }
 
 .cr2-advisor-detail p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.55;
   word-break: keep-all;
 }
@@ -209,7 +210,7 @@
 .cr2-advisor-detail-list {
   display: grid;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--cr2-ui-font-sm);
   line-height: 1.45;
 }
 

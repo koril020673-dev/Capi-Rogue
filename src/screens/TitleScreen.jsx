@@ -201,7 +201,7 @@ export default function TitleScreen() {
               activateMenu(item);
             }}
           >
-            <span>{index === selectedIndex ? '▶' : ''}</span>
+            <span>{index === selectedIndex ? '>' : ''}</span>
             <strong>{item.label}</strong>
           </button>
         ))}
