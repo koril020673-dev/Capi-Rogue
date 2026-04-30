@@ -1392,7 +1392,7 @@ button:disabled {
 
 .cr2-settlement-report-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.36fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.9fr);
   gap: 8px;
   align-items: stretch;
   min-height: 0;
@@ -1413,22 +1413,47 @@ button:disabled {
 
 .cr2-ledger-panel--combined {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1.05fr) auto auto;
+  gap: 7px;
   align-content: start;
   overflow: hidden;
 }
 
 .cr2-result-report-panel {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   align-content: stretch;
   gap: 6px;
   overflow: hidden;
 }
 
-.cr2-ledger-panel--combined h1,
+.cr2-ledger-top h1,
 .cr2-settlement-result-head h2 {
   margin: 4px 0 0;
+}
+
+.cr2-ledger-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 34%);
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cr2-ledger-top > div:first-child {
+  min-width: 0;
+}
+
+.cr2-ledger-top h1 {
+  font-size: var(--cr2-ui-font-xl) !important;
+  line-height: 1.25;
+}
+
+.cr2-ledger-top .cr2-ledger-highlight {
+  margin: 0;
+  display: grid;
+  align-content: center;
+  min-width: 0;
 }
 
 .cr2-settlement-result-head {
@@ -1447,19 +1472,47 @@ button:disabled {
 .cr2-ledger-grid--compact,
 .cr2-result-grid--compact {
   gap: 5px;
-  margin: 6px 0;
+  margin: 0;
 }
 
 .cr2-ledger-grid--compact {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cr2-ledger-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.cr2-ledger-group {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(0, 170, 0, 0.46);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.26);
+  padding: 6px;
+  overflow: hidden;
+}
+
+.cr2-ledger-group h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-size: var(--cr2-ui-font-sm);
+  line-height: 1.35;
 }
 
 .cr2-settlement-charts {
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
   gap: 7px;
   min-height: 0;
-  margin: 4px 0 6px;
+  margin: 0;
   overflow: hidden;
 }
 
@@ -1608,7 +1661,7 @@ button:disabled {
 }
 
 .cr2-result-grid--compact {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .cr2-ledger-item {
@@ -1998,6 +2051,10 @@ button:disabled {
   max-width: var(--cr2-stage-w) !important;
   max-height: var(--cr2-stage-h) !important;
   aspect-ratio: 3 / 2 !important;
+}
+
+.cr2-ledger-panel--combined .cr2-ledger-top h1 {
+  font-size: var(--cr2-ui-font-xl) !important;
 }
 
 @media (max-width: 760px), (max-height: 560px) {

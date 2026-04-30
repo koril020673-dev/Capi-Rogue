@@ -42,6 +42,9 @@ const TEXT = Object.freeze({
   moneyGraph: '매출 / 순이익',
   revenueShort: '매출',
   profitShort: '순익',
+  marketGroup: '시장 / 판매',
+  costGroup: '비용 / 자본',
+  reportTitle: '결과 리포트',
 });
 
 const SHARE_COLORS = Object.freeze(['#00FF41', '#DC143C', '#FFD700', '#42A5FF', '#B06CFF']);
@@ -68,28 +71,36 @@ export default function SettlementScreen() {
       <StatusBar />
       <section className="cr2-settlement-report-layout">
         <section className="cr2-ledger-panel cr2-ledger-panel--combined">
-          <p className="cr2-kicker">MONTHLY SETTLEMENT</p>
-          <h1>{TEXT.title}</h1>
-          <div className={settlement.profit >= 0 ? 'cr2-ledger-highlight' : 'cr2-ledger-highlight cr2-ledger-highlight--loss'}>
-            <span>{TEXT.finalProfit}</span>
-            <strong>{formatWon(settlement.profit)}</strong>
-          </div>
-
-          <div className="cr2-ledger-grid cr2-ledger-grid--compact">
-            <LedgerItem label={TEXT.marketShare} value={`${Math.round(playerShare * 100)}%`} />
-            <LedgerItem label={TEXT.totalDemand} value={settlement.totalDemand.toLocaleString()} />
-            <LedgerItem label={TEXT.plannedProduction} value={settlement.plannedProduction.toLocaleString()} />
-            <LedgerItem label={TEXT.unitsSold} value={settlement.unitsSold.toLocaleString()} />
-            <LedgerItem label={TEXT.unsoldUnits} value={settlement.unsoldUnits.toLocaleString()} danger={settlement.unsoldUnits > 0} />
-            <LedgerItem label={TEXT.revenue} value={formatWon(settlement.revenue)} />
-            <LedgerItem label={TEXT.productionCost} value={formatWon(settlement.productionCost)} danger />
-            <LedgerItem label={TEXT.disposalCost} value={formatWon(settlement.disposalCost)} danger={settlement.disposalCost > 0} />
-            <LedgerItem label={TEXT.operationExpense} value={formatWon(settlement.operationExpense)} danger={settlement.operationExpense > 0} />
-            <LedgerItem label={TEXT.debtService} value={formatWon(settlement.debtService)} danger={settlement.debtService > 0} />
-            <LedgerItem label={TEXT.capitalChange} value={formatWon(capitalChange)} danger={capitalChange < 0} />
+          <div className="cr2-ledger-top">
+            <div>
+              <p className="cr2-kicker">MONTHLY SETTLEMENT</p>
+              <h1>{TEXT.title}</h1>
+            </div>
+            <div className={settlement.profit >= 0 ? 'cr2-ledger-highlight' : 'cr2-ledger-highlight cr2-ledger-highlight--loss'}>
+              <span>{TEXT.finalProfit}</span>
+              <strong>{formatWon(settlement.profit)}</strong>
+            </div>
           </div>
 
           <SettlementCharts settlement={settlement} timeline={gameState.timeline} floor={gameState.floor} />
+
+          <div className="cr2-ledger-groups">
+            <LedgerGroup title={TEXT.marketGroup}>
+              <LedgerItem label={TEXT.marketShare} value={`${Math.round(playerShare * 100)}%`} />
+              <LedgerItem label={TEXT.totalDemand} value={settlement.totalDemand.toLocaleString()} />
+              <LedgerItem label={TEXT.plannedProduction} value={settlement.plannedProduction.toLocaleString()} />
+              <LedgerItem label={TEXT.unitsSold} value={settlement.unitsSold.toLocaleString()} />
+              <LedgerItem label={TEXT.unsoldUnits} value={settlement.unsoldUnits.toLocaleString()} danger={settlement.unsoldUnits > 0} />
+            </LedgerGroup>
+            <LedgerGroup title={TEXT.costGroup}>
+              <LedgerItem label={TEXT.revenue} value={formatWon(settlement.revenue)} />
+              <LedgerItem label={TEXT.productionCost} value={formatWon(settlement.productionCost)} danger />
+              <LedgerItem label={TEXT.disposalCost} value={formatWon(settlement.disposalCost)} danger={settlement.disposalCost > 0} />
+              <LedgerItem label={TEXT.operationExpense} value={formatWon(settlement.operationExpense)} danger={settlement.operationExpense > 0} />
+              <LedgerItem label={TEXT.debtService} value={formatWon(settlement.debtService)} danger={settlement.debtService > 0} />
+              <LedgerItem label={TEXT.capitalChange} value={formatWon(capitalChange)} danger={capitalChange < 0} />
+            </LedgerGroup>
+          </div>
 
           <div className="cr2-ledger-note-stack">
             <p className="cr2-ledger-note">{settlement.operationNote}</p>
@@ -104,13 +115,10 @@ export default function SettlementScreen() {
         <aside className="cr2-result-report-panel">
           <header className="cr2-settlement-result-head">
             <p className="cr2-kicker">FLOOR {gameState.floor} REPORT</p>
-            <h2 className={result.profit >= 0 ? 'cr2-profit-text' : 'cr2-loss-text'}>
-              {formatWon(result.profit)}
-            </h2>
+            <h2>{TEXT.reportTitle}</h2>
           </header>
 
           <div className="cr2-result-grid cr2-result-grid--compact">
-            <LedgerItem label={TEXT.capitalChange} value={formatWon(result.capitalChange)} danger={result.capitalChange < 0} compact />
             <LedgerItem
               label={TEXT.healthChange}
               value={result.healthDelta > 0 ? `+${result.healthDelta}` : result.healthDelta}
@@ -130,6 +138,17 @@ export default function SettlementScreen() {
         </aside>
       </section>
     </main>
+  );
+}
+
+function LedgerGroup({ title, children }) {
+  return (
+    <section className="cr2-ledger-group">
+      <h2>{title}</h2>
+      <div className="cr2-ledger-grid cr2-ledger-grid--compact">
+        {children}
+      </div>
+    </section>
   );
 }
 
