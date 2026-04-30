@@ -42,9 +42,6 @@ const TEXT = Object.freeze({
   profileSelect: '프로필 사진 선택',
   ceoName: 'CEO 이름',
   companyName: '회사 이름',
-  preview: '선택된 프로필 미리보기',
-  ceo: 'CEO',
-  company: '회사',
   start: '시작하기',
 });
 
@@ -60,17 +57,12 @@ export default function CharacterCreateScreen() {
     () => PLAYER_PROFILES.find((profile) => profile.id === selectedProfileId) ?? PLAYER_PROFILES[0],
     [selectedProfileId],
   );
-  const canStart = playerName.trim().length > 0 && companyName.trim().length > 0;
 
   async function handleStart() {
-    if (!canStart) {
-      return;
-    }
-
     const profile = {
       profileId: selectedProfile.id,
-      playerName: playerName.trim(),
-      companyName: companyName.trim(),
+      playerName,
+      companyName,
       profileImage: selectedProfile.profileImage,
       fullImage: selectedProfile.fullImage,
     };
@@ -120,20 +112,8 @@ export default function CharacterCreateScreen() {
           />
         </section>
 
-        <section className="cr2-character-preview">
-          <div className="cr2-character-preview-image">
-            <img src={selectedProfile.fullImage} alt="" decoding="async" />
-          </div>
-          <div>
-            <h2>{TEXT.preview}</h2>
-            <p>{TEXT.ceo}: {playerName || '...'}</p>
-            <p>{TEXT.company}: {companyName || '...'}</p>
-          </div>
-        </section>
-
         <button
           className="cr2-primary-button cr2-character-start"
-          disabled={!canStart}
           type="button"
           onClick={handleStart}
         >

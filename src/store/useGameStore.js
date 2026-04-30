@@ -88,7 +88,7 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
     phase: ECONOMIC_PHASES.STABLE,
     player: Object.freeze({
       ...advisorPlayer,
-      companyName: playerProfile.companyName || advisorPlayer.companyName,
+      companyName: playerProfile.companyName ?? advisorPlayer.companyName,
     }),
     strategy: { ...DEFAULT_STRATEGY_SELECTION },
     rivals: createInitialRivals(),
