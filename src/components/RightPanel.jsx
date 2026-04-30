@@ -11,7 +11,7 @@ import {
   SALES_QUANTITY_OPTIONS,
   STRATEGY_TABS,
 } from '../constants/strategies';
-import { getPlannedProductionCount } from '../logic/settlementEngine';
+import { getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
@@ -44,11 +44,16 @@ const TEXT = Object.freeze({
   expectedAwareness: '\uC608\uC0C1 \uC778\uC9C0\uB3C4',
   hiddenDemand: '\uC810\uC720\uC728\uACFC \uC218\uC694\uB294 \uC815\uC0B0 \uD6C4 \uACF5\uAC1C\uB429\uB2C8\uB2E4.',
   forecast: '\uC774\uBC88 \uB2EC \uC608\uC0C1',
-  concealedForecast: '\uD310\uB9E4 \uAC1C\uC218\uC640 \uC190\uC775\uC740 \uC815\uC0B0\uC5D0\uC11C \uACF5\uAC1C\uB429\uB2C8\uB2E4.',
+  concealedForecast: '\uC810\uC720\uC728\uACFC \uC190\uC775\uC740 \uC815\uC0B0\uC5D0\uC11C \uACF5\uAC1C\uB429\uB2C8\uB2E4.',
+  totalDemand: '\uCD1D \uC218\uC694',
   production: '\uC0DD\uC0B0',
   sold: '\uD310\uB9E4',
   revenue: '\uB9E4\uCD9C',
   cost: '\uBE44\uC6A9',
+  fixedOutflow: '\uC608\uC815 \uC9C0\uCD9C',
+  productionCost: '\uC0DD\uC0B0\uBE44',
+  operationExpense: '\uC6B4\uC601\uBE44',
+  debtService: '\uC774\uC790',
   capitalChange: '\uC608\uC0C1 \uC790\uBCF8 \uBCC0\uD654',
   selectedQuality: '\uC120\uD0DD \uD488\uC9C8',
   unitCost: '\uB2E8\uC704 \uC6D0\uAC00',
@@ -165,7 +170,8 @@ export default function RightPanel({ preview }) {
               type="button"
               onClick={() => selectQualityOption(option.id)}
             >
-              {option.label}
+              <span>{option.label}</span>
+              <small>{formatWon(getQualityOptionUnitCost(preview, strategy, option.id))}</small>
             </button>
           ))}
         </div>
@@ -317,10 +323,18 @@ function PanelTitle({ title, subtitle }) {
 
 function ForecastBox({ estimate, expanded = false, concealed = false }) {
   if (concealed) {
+    const fixedOutflow = estimate.productionCost + estimate.operationExpense + estimate.debtService;
+
     return (
       <div className="cr2-forecast-box">
         <span className="cr2-panel-label">{TEXT.forecast}</span>
         <div className="cr2-summary-list">
+          <span>{TEXT.totalDemand} {estimate.totalDemand.toLocaleString()}</span>
+          <span>{TEXT.production} {estimate.plannedProduction.toLocaleString()}</span>
+          <span>{TEXT.productionCost} {formatWon(estimate.productionCost)}</span>
+          <span>{TEXT.operationExpense} {formatWon(estimate.operationExpense)}</span>
+          <span>{TEXT.debtService} {formatWon(estimate.debtService)}</span>
+          <strong className="cr2-loss-text">{TEXT.fixedOutflow} {formatWon(fixedOutflow)}</strong>
           <span>{TEXT.concealedForecast}</span>
         </div>
       </div>
@@ -331,6 +345,7 @@ function ForecastBox({ estimate, expanded = false, concealed = false }) {
     <div className="cr2-forecast-box">
       <span className="cr2-panel-label">{TEXT.forecast}</span>
       <div className="cr2-summary-list">
+        <span>{TEXT.totalDemand} {estimate.totalDemand.toLocaleString()}</span>
         <span>{TEXT.production} {estimate.plannedProduction.toLocaleString()}</span>
         <span>{TEXT.sold} {estimate.unitsSold.toLocaleString()}</span>
         {expanded ? (
@@ -419,6 +434,7 @@ function buildTurnEstimate(preview, strategy) {
   const profit = revenue - totalCost;
 
   return Object.freeze({
+    totalDemand: preview.totalDemand,
     plannedProduction,
     unitsSold,
     unsoldUnits,
@@ -431,4 +447,20 @@ function buildTurnEstimate(preview, strategy) {
     profit,
     capitalChange: profit + operationCapitalChange,
   });
+}
+
+function getQualityOptionUnitCost(preview, strategy, qualityOptionId) {
+  const currentQualityMultiplier = getQualityCostMultiplier(strategy);
+  const marketCostMultiplier = preview.marketModifiers.costMultiplier ?? 1;
+  const fallbackBaseCost = Math.max(
+    1,
+    Math.round(preview.player.unitCost / Math.max(0.1, currentQualityMultiplier * marketCostMultiplier)),
+  );
+  const baseUnitCost = preview.playerAfterOperation?.unitCost ?? fallbackBaseCost;
+  const optionStrategy = Object.freeze({ ...strategy, qualityOptionId });
+
+  return Math.max(
+    1,
+    Math.round(baseUnitCost * marketCostMultiplier * getQualityCostMultiplier(optionStrategy)),
+  );
 }
