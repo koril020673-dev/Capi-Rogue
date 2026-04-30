@@ -60,7 +60,7 @@ export const ADVISORS = Object.freeze([
       autoRecovery: true,
     }),
     diagnosisStyle: 'analytical',
-    themeColor: '#00FF41',
+    themeColor: '#00C2FF',
   }),
   Object.freeze({
     id: ADVISOR_IDS.GAMBLER,

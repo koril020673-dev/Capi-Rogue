@@ -57,7 +57,7 @@ button:disabled {
 
 .cr2-advisor-theme--analyst,
 .cr2-advisor-tone--analyst {
-  --cr2-advisor: #00ff41;
+  --cr2-advisor: #00c2ff;
 }
 
 .cr2-advisor-theme--builder,
@@ -199,6 +199,7 @@ button:disabled {
   place-items: center;
   min-height: 100vh;
   padding: clamp(6px, 1.2vw, 14px);
+  overflow: hidden;
 }
 
 .cr2-login-screen,
@@ -229,6 +230,8 @@ button:disabled {
 .cr2-record-screen {
   width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
   height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
