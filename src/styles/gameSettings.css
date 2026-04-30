@@ -116,17 +116,3 @@
   font-size: var(--cr2-ui-font-sm);
   padding: 8px 14px;
 }
-
-@media (max-width: 820px) {
-  .cr2-settings-row {
-    grid-template-columns: 1fr;
-  }
-
-  .cr2-settings-current {
-    justify-self: start;
-  }
-
-  .cr2-settings-volume {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-}

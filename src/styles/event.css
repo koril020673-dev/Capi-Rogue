@@ -152,10 +152,3 @@
 .cr2-event-result--bad {
   color: #dc143c;
 }
-
-@media (max-width: 640px) {
-  .cr2-event-banner {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}

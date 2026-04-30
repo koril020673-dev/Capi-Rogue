@@ -1,8 +1,8 @@
 .cr2-record-screen {
   display: grid;
   place-items: center;
-  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
-  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  width: var(--cr2-stage-w);
+  height: var(--cr2-stage-h);
   min-height: 0;
   background: #000000;
   padding: clamp(12px, 2vw, 22px);
@@ -20,7 +20,7 @@
   background: rgba(0, 10, 0, 0.92);
   box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
   padding: clamp(18px, 3vw, 30px);
-  overflow: auto;
+  overflow: hidden;
 }
 
 .cr2-record-head {
@@ -91,23 +91,4 @@
 .cr2-record-back {
   justify-self: center;
   min-width: 180px;
-}
-
-@media (max-width: 720px) {
-  .cr2-record-screen {
-    padding: 14px;
-  }
-
-  .cr2-record-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cr2-record-item {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-
-  .cr2-record-item strong {
-    text-align: left;
-  }
 }

@@ -1,8 +1,8 @@
 .cr2-character-create-screen {
   display: grid;
   place-items: center;
-  width: min(1080px, calc(100vw - 16px), calc((100vh - 16px) * 1.5));
-  height: min(720px, calc(100vh - 16px), calc((100vw - 16px) / 1.5));
+  width: var(--cr2-stage-w);
+  height: var(--cr2-stage-h);
   min-height: 0;
   margin: 0 auto;
   padding: clamp(12px, 2vw, 22px);
@@ -21,7 +21,7 @@
   background: rgba(0, 10, 0, 0.94);
   box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
   padding: clamp(16px, 2vw, 22px);
-  overflow: auto;
+  overflow: hidden;
 }
 
 .cr2-character-panel h1,
@@ -138,14 +138,4 @@
   border-color: var(--cr2-grid);
   background: rgba(0, 170, 0, 0.18);
   color: var(--cr2-grid);
-}
-
-@media (max-width: 640px) {
-  .cr2-character-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .cr2-character-input-row {
-    grid-template-columns: 1fr;
-  }
 }

@@ -152,7 +152,7 @@
   border-radius: 8px;
   background: #0A0A0A;
   padding: 12px;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .cr2-advisor-detail-portrait {
@@ -240,36 +240,4 @@
   width: 100%;
   min-height: 44px;
   padding: 8px 10px;
-}
-
-@media (max-width: 920px) {
-  .cr2-advisor-select-panel {
-    padding: 12px;
-    min-height: auto;
-  }
-
-  .cr2-advisor-select-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 32%);
-  }
-
-  .cr2-starter-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 680px) {
-  .cr2-advisor-select-layout {
-    grid-template-columns: 1fr;
-    overflow: auto;
-  }
-}
-
-@media (max-width: 560px) {
-  .cr2-starter-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cr2-starter-card {
-    min-height: 160px;
-  }
 }
