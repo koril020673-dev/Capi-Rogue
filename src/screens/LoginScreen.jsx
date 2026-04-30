@@ -14,49 +14,24 @@ const TEXT = Object.freeze({
   register: '\uB4F1\uB85D',
   close: '\uB2EB\uAE30',
   missingInput: '\uC544\uC774\uB514\uC640 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
-  missingAccount: '\uC5C6\uB294 \uC544\uC774\uB514\uC774\uAC70\uB098 \uBE44\uBC00\uBC88\uD638\uAC00 \uD2C0\uB838\uC2B5\uB2C8\uB2E4.',
+  missingAccount: '\uC5C6\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4.',
   wrongPassword: '\uBE44\uBC00\uBC88\uD638\uAC00 \uD2C0\uB838\uC2B5\uB2C8\uB2E4.',
-  emailNotConfirmed: 'Supabase\uC758 \uC774\uBA54\uC77C \uD655\uC778 \uC124\uC815\uC774 \uCF1C\uC838 \uC788\uC5B4 \uB85C\uADF8\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. Authentication > Providers > Email\uC5D0\uC11C Confirm email\uC744 \uB044\uACE0 \uB2E4\uC2DC \uAC00\uC785\uD574\uC8FC\uC138\uC694.',
   tooManyRequests: '\uB85C\uADF8\uC778 \uC2DC\uB3C4\uAC00 \uB108\uBB34 \uB9CE\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.',
   existingAccount: '\uC774\uBBF8\uC788\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
   signupSuccess: '\uC131\uACF5\uC801\uC73C\uB85C \uC544\uC774\uB514 \uC0DD\uC131\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4',
   weakPassword: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
-  invalidEmail: '\uC774\uBA54\uC77C\uD615 \uC544\uC774\uB514\uB294 \uC774\uBA54\uC77C \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
   authNotReady: 'Supabase \uC124\uC815\uC774 \uC5C6\uC5B4 \uACC4\uC815 \uAE30\uB2A5\uC744 \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.',
   invalidSupabaseUrl: 'Supabase URL\uC740 https://\uD504\uB85C\uC81D\uD2B8.supabase.co \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574\uC57C \uD569\uB2C8\uB2E4.',
   invalidSupabaseKey: 'Supabase anon key\uAC00 \uB204\uB77D\uB418\uC5C8\uAC70\uB098 \uD615\uC2DD\uC774 \uC798\uBABB\uB410\uC2B5\uB2C8\uB2E4.',
   networkError: '\uB124\uD2B8\uC6CC\uD06C \uC5F0\uACB0 \uB610\uB294 \uC778\uC99D \uC11C\uBC84\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.',
+  tableMissing: 'Supabase\uC5D0 player_accounts \uD14C\uC774\uBE14\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.',
+  policyBlocked: 'Supabase RLS \uC815\uCC45\uC774 \uACC4\uC815 \uC800\uC7A5/\uC870\uD68C\uB97C \uB9C9\uACE0 \uC788\uC2B5\uB2C8\uB2E4.',
   signupFailed: '\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.',
-  idHelp: '\uC601\uBB38/\uC22B\uC790 3\uC790 \uC774\uC0C1, \uB610\uB294 \uC774\uBA54\uC77C \uD615\uC2DD',
+  idHelp: '\uC544\uC774\uB514 3\uC790 \uC774\uC0C1',
   passwordHelp: '\uBE44\uBC00\uBC88\uD638 6\uC790 \uC774\uC0C1',
 });
 
-function toAuthEmail(userId) {
-  const trimmedId = userId.trim();
-
-  if (trimmedId.includes('@')) {
-    return trimmedId;
-  }
-
-  return `user-${hashId(trimmedId)}@capirogue.app`;
-}
-
-function hashId(value) {
-  let hash = 2166136261;
-
-  for (const char of value) {
-    hash ^= char.codePointAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0).toString(16);
-}
-
 function getSignupErrorMessage(error) {
-  if (error?.code === 'EMAIL_CONFIRMATION_REQUIRED') {
-    return TEXT.emailNotConfirmed;
-  }
-
   if (error?.code === 'INVALID_SUPABASE_URL') {
     return TEXT.invalidSupabaseUrl;
   }
@@ -73,6 +48,14 @@ function getSignupErrorMessage(error) {
     return TEXT.existingAccount;
   }
 
+  if (error?.code === 'ACCOUNTS_TABLE_MISSING') {
+    return TEXT.tableMissing;
+  }
+
+  if (error?.code === 'ACCOUNTS_POLICY_BLOCKED') {
+    return TEXT.policyBlocked;
+  }
+
   const message = String(error?.message ?? '').toLowerCase();
 
   if (message.includes('already') || message.includes('registered')) {
@@ -81,10 +64,6 @@ function getSignupErrorMessage(error) {
 
   if (message.includes('environment')) {
     return TEXT.authNotReady;
-  }
-
-  if (message.includes('email') || message.includes('invalid')) {
-    return TEXT.invalidEmail;
   }
 
   if (message.includes('password') || message.includes('weak')) {
@@ -112,19 +91,23 @@ function getLoginErrorMessage(error) {
     return TEXT.authNotReady;
   }
 
-  const message = String(error?.message ?? '').toLowerCase();
-
-  if (message.includes('email not confirmed') || message.includes('not confirmed')) {
-    return TEXT.emailNotConfirmed;
-  }
-
-  if (message.includes('invalid login credentials')) {
+  if (error?.code === 'USER_NOT_FOUND') {
     return TEXT.missingAccount;
   }
 
-  if (message.includes('password')) {
+  if (error?.code === 'WRONG_PASSWORD') {
     return TEXT.wrongPassword;
   }
+
+  if (error?.code === 'ACCOUNTS_TABLE_MISSING') {
+    return TEXT.tableMissing;
+  }
+
+  if (error?.code === 'ACCOUNTS_POLICY_BLOCKED') {
+    return TEXT.policyBlocked;
+  }
+
+  const message = String(error?.message ?? '').toLowerCase();
 
   if (status === 429 || message.includes('too many') || message.includes('rate limit')) {
     return TEXT.tooManyRequests;
@@ -136,10 +119,6 @@ function getLoginErrorMessage(error) {
 
   if (message.includes('fetch') || message.includes('network') || message.includes('failed to')) {
     return TEXT.networkError;
-  }
-
-  if (message.includes('email') || message.includes('invalid')) {
-    return TEXT.invalidEmail;
   }
 
   return TEXT.missingAccount;
@@ -166,7 +145,7 @@ export default function LoginScreen() {
     }
 
     setIsBusy(true);
-    const { user, error } = await signIn(toAuthEmail(login.userId), login.password);
+    const { user, error } = await signIn(login.userId, login.password);
     setIsBusy(false);
 
     if (error || !user) {
@@ -186,7 +165,7 @@ export default function LoginScreen() {
     }
 
     setIsBusy(true);
-    const { user, error } = await signUp(toAuthEmail(signupId), signupPassword);
+    const { user, error } = await signUp(signupId, signupPassword);
     setIsBusy(false);
 
     if (error || !user) {
