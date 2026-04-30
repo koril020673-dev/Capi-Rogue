@@ -1,8 +1,6 @@
 import { ECONOMIC_PHASES } from '../constants/economy';
 import {
   RIVAL_FOCUSES,
-  RIVAL_INITIAL_CAPITAL,
-  RIVAL_JOIN_FLOORS,
   RIVAL_PROFILES,
   RIVAL_TIER_LABELS,
   RIVAL_TIERS,
@@ -28,20 +26,29 @@ export function createInitialRivals(randomValue = Math.random()) {
   ]);
 }
 
-export function activateRivalsForFloor(rivals, floor) {
+export function activateRivalsForFloor(rivals, floor, championUnlocked = false) {
   return Object.freeze(
-    rivals.map((rival) =>
-      Object.freeze({
+    rivals.map((rival) => {
+      const unlocked =
+        rival.floorUnlock === null
+          ? championUnlocked
+          : (rival.floorUnlock ?? rival.joinFloor) <= floor;
+
+      return Object.freeze({
         ...rival,
-        active: rival.joinFloor <= floor && !rival.bankrupt && !rival.respawning,
-      }),
-    ),
+        active: unlocked && !rival.bankrupt && !rival.respawning,
+      });
+    }),
   );
 }
 
 export function getActiveRivals(rivals, floor) {
   return rivals.filter(
-    (rival) => rival.active && rival.joinFloor <= floor && !rival.bankrupt && !rival.respawning,
+    (rival) =>
+      rival.active &&
+      (rival.floorUnlock === null || (rival.floorUnlock ?? rival.joinFloor) <= floor) &&
+      !rival.bankrupt &&
+      !rival.respawning,
   );
 }
 
@@ -59,10 +66,12 @@ export function buildRivalParticipant(rival, phase, marketModifiers = {}, slotIn
     id: rival.id,
     type: 'rival',
     name: rival.name,
-    slotLabel: RIVAL_TIER_LABELS[rival.tier] ?? `${rival.tier}단계`,
+    company: rival.company,
+    slotLabel: rival.company ?? RIVAL_TIER_LABELS[rival.tier] ?? `${rival.tier}단계`,
     tier: rival.tier,
     gender: rival.gender,
     profileId: rival.profileId,
+    sprite: rival.sprite,
     imageFile: rival.imageFile,
     focus: rival.focus,
     color: getRivalHealthColor(health),
@@ -97,7 +106,7 @@ export function updateRivalCapitals(rivals, demand, shares, econPhase) {
       activeIndex += 1;
       const rivalDemand = Math.round(demand * rivalShare);
       const strategy = calcRivalStrategy(rival, econPhase);
-      const orderQty = Math.round(rivalDemand * 0.9);
+      const orderQty = Math.round(rivalDemand * (rival.strategyPreset?.orderMultiplier ?? 0.9));
       const actualSold = Math.min(rivalDemand, orderQty);
       const revenue = actualSold * strategy.sellPrice;
       const cost = strategy.unitCost * orderQty;
@@ -151,24 +160,33 @@ export function processRivalRespawn(rivals) {
         const profilePool = RIVAL_PROFILES[rival.tier];
         const nextIndex = (rival.nameIndex + 1) % profilePool.length;
         const nextProfile = profilePool[nextIndex];
-        const initialCapital = RIVAL_INITIAL_CAPITAL[rival.tier];
+        const stats = nextProfile.stats ?? {};
+        const initialCapital = stats.capital ?? rival.initialCapital;
 
         return Object.freeze({
           ...rival,
           name: nextProfile.name,
+          company: nextProfile.company,
           gender: nextProfile.gender,
           profileId: nextProfile.id,
+          sprite: nextProfile.sprite,
           imageFile: nextProfile.imageFile,
+          stats,
+          strategyPreset: nextProfile.strategy,
+          floorUnlock: nextProfile.floorUnlock,
+          joinFloor: nextProfile.floorUnlock,
           nameIndex: nextIndex,
           capital: initialCapital,
           initialCapital,
+          maxHealth: stats.maxHealth ?? rival.maxHealth,
+          awareness: stats.awareness ?? rival.awareness,
           health: 1,
           bankrupt: false,
           respawning: false,
           respawnIn: 0,
           active: true,
-          qualityScore: getInitialQuality(rival.tier),
-          brandValue: getInitialBrand(rival.tier),
+          qualityScore: stats.quality ?? getInitialQuality(rival.tier),
+          brandValue: stats.brand ?? getInitialBrand(rival.tier),
           sellPrice: getInitialSellPrice(rival.tier),
           attraction: 0,
           share: 0,
@@ -240,6 +258,20 @@ export function resolveRivalWar({ rivals, floor, phase, playerProfit, demandSpli
 }
 
 export function calcRivalStrategy(rival, econPhase) {
+  if (rival.strategyPreset) {
+    const priceMul = rival.strategyPreset.priceMultiplier ?? 1;
+    const orderMultiplier = rival.strategyPreset.orderMultiplier ?? 1;
+    const marketingBudget = rival.strategyPreset.marketingBudget ?? 0;
+
+    return buildStrategy({
+      id: `profile-${rival.profileId ?? rival.tier}`,
+      priceMul: isWeakEconomy(econPhase) ? Math.min(priceMul, 0.95) : priceMul,
+      qualityBonus: rival.focus === RIVAL_FOCUSES.QUALITY || rival.focus === RIVAL_FOCUSES.ALL ? 2 : 0,
+      brandBonus: Math.min(8, Math.round(marketingBudget / 400000)),
+      scopePower: orderMultiplier,
+    });
+  }
+
   if (rival.tier === RIVAL_TIERS.VALUE) {
     return buildStrategy({
       id: 'dumping',
@@ -328,9 +360,10 @@ export function getInitialBrand(tier) {
 }
 
 function createRival(tier, nameIndex, focus, randomValue = Math.random()) {
-  const initialCapital = RIVAL_INITIAL_CAPITAL[tier];
-  const joinFloor = RIVAL_JOIN_FLOORS[tier];
   const profile = RIVAL_PROFILES[tier][nameIndex] ?? RIVAL_PROFILES[tier][0];
+  const stats = profile.stats ?? {};
+  const initialCapital = stats.capital ?? 25000000;
+  const floorUnlock = profile.floorUnlock;
   const finalFocus =
     tier === RIVAL_TIERS.SPECIALIST && !focus
       ? randomValue % 1 < 0.5 ? RIVAL_FOCUSES.BRAND : RIVAL_FOCUSES.QUALITY
@@ -339,26 +372,33 @@ function createRival(tier, nameIndex, focus, randomValue = Math.random()) {
   return Object.freeze({
     id: `rival_${tier}`,
     name: profile.name,
+    company: profile.company,
     gender: profile.gender,
     profileId: profile.id,
+    sprite: profile.sprite,
     imageFile: profile.imageFile,
+    stats,
+    strategyPreset: profile.strategy,
     nameIndex,
     tier,
     focus: finalFocus,
     capital: initialCapital,
     initialCapital,
+    maxHealth: stats.maxHealth ?? 6,
+    awareness: stats.awareness ?? 0.02,
     health: 1,
     bankrupt: false,
     respawning: false,
     respawnIn: 0,
-    qualityScore: getInitialQuality(tier),
-    brandValue: getInitialBrand(tier),
+    qualityScore: stats.quality ?? getInitialQuality(tier),
+    brandValue: stats.brand ?? getInitialBrand(tier),
     currentStrategy: tier === RIVAL_TIERS.VALUE ? 'dumping' : 'branding',
     sellPrice: getInitialSellPrice(tier),
     attraction: 0,
     share: 0,
-    joinFloor,
-    active: joinFloor <= 1,
+    floorUnlock,
+    joinFloor: floorUnlock,
+    active: floorUnlock !== null && floorUnlock <= 1,
   });
 }
 
@@ -463,6 +503,10 @@ function normalizeQualityScore(qualityScore) {
 }
 
 function getRivalAwareness(rival) {
+  if (typeof rival.awareness === 'number') {
+    return rival.awareness;
+  }
+
   return {
     [RIVAL_TIERS.VALUE]: 0.02,
     [RIVAL_TIERS.SPECIALIST]: 0.08,

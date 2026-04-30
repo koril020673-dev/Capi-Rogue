@@ -653,7 +653,7 @@ function advanceToNextFloor(set, get) {
   const nextFloor = state.floor + 1;
   const phaseShift = applyEconomicPhaseShift(state.phase, Math.random());
   const respawnedRivals = processRivalRespawn(state.rivals);
-  const activatedRivals = activateRivalsForFloor(respawnedRivals, nextFloor);
+  const activatedRivals = activateRivalsForFloor(respawnedRivals, nextFloor, state.championUnlocked);
   const healthRecovery = hasCreditOnlyHealthRecovery(state.selectedAdvisorId)
     ? 0
     : getScheduledHealthRecovery(nextFloor);
