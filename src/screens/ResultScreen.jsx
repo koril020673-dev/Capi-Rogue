@@ -1,11 +1,5 @@
 import { useMemo, useState } from 'react';
 import StatusBar from '../components/StatusBar';
-import {
-  DIAGNOSIS_COLORS,
-  getDiagnosis,
-  getRandomAdvice,
-  getRandomDiagnosisMessage,
-} from '../constants/diagnosis';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { generateReport } from '../logic/reportEngine';
 import { useGameStore } from '../store/useGameStore';
@@ -53,9 +47,6 @@ export default function ResultScreen() {
 
   const { currentResult: result, currentSettlement: settlement, floor, timeline } = gameState;
 
-  const diagnosis = useMemo(() => getDiagnosis(gameState), [gameState]);
-  const diagnosisMessage = useMemo(() => getRandomDiagnosisMessage(diagnosis), [diagnosis]);
-  const advice = useMemo(() => getRandomAdvice(diagnosis), [diagnosis]);
   const advisor = getAdvisorById(gameState.selectedAdvisorId);
   const report = useMemo(
     () => generateReport(gameState, gameState.selectedAdvisorId),
@@ -87,15 +78,6 @@ export default function ResultScreen() {
             {profitChangeRate >= 0 ? '\u25B2' : '\u25BC'} {Math.abs(profitChangeRate)}%
           </span>
         </header>
-
-        <section
-          className="cr2-diagnosis-banner"
-          style={{ '--cr2-diagnosis-color': DIAGNOSIS_COLORS[diagnosis] ?? '#00AA00' }}
-        >
-          <strong>{getDiagnosisLabel(diagnosis)}</strong>
-          <p>{diagnosisMessage}</p>
-          <small>{advice}</small>
-        </section>
 
         <section className="cr2-result-chart-grid">
           <ChartPanel title={TEXT.marketShare}>
@@ -453,17 +435,6 @@ function getChangeRate(current, previous) {
   return Math.round(((current - previous) / Math.abs(previous)) * 100);
 }
 
-function getDiagnosisLabel(status) {
-  const labels = {
-    GROWTH: TEXT.growth,
-    STABLE: TEXT.stable,
-    CAUTION: TEXT.caution,
-    CRISIS: TEXT.crisis,
-  };
-
-  return labels[status] ?? labels.STABLE;
-}
-
 function getNextStepLabel(result, floor) {
   if (result.gameOver) {
     return TEXT.finalResult;
@@ -534,35 +505,6 @@ const RESULT_SCREEN_CSS = `
 
 .cr2-result-delta--down {
   color: #DC143C;
-}
-
-.cr2-diagnosis-banner {
-  display: grid;
-  gap: 10px;
-  border: 2px solid var(--cr2-diagnosis-color);
-  border-radius: 6px;
-  margin: 20px 0;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.64);
-  box-shadow: inset 0 0 0 2px rgba(0, 255, 65, 0.06);
-}
-
-.cr2-diagnosis-banner strong {
-  color: var(--cr2-diagnosis-color);
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.cr2-diagnosis-banner p,
-.cr2-diagnosis-banner small {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.8;
-  word-break: keep-all;
-}
-
-.cr2-diagnosis-banner small {
-  color: var(--cr2-muted);
 }
 
 .cr2-result-chart-grid {
