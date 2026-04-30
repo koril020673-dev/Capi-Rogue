@@ -1,46 +1,53 @@
 export const RIVAL_TIERS = Object.freeze({
+  ENTRY: 1,
   VALUE: 1,
+  MID: 2,
   SPECIALIST: 2,
+  SENIOR: 3,
   ELITE: 3,
   CHAMPION: 4,
 });
 
+export const RIVAL_TIER_LABELS = Object.freeze({
+  [RIVAL_TIERS.ENTRY]: 'Entry',
+  [RIVAL_TIERS.MID]: 'Mid',
+  [RIVAL_TIERS.SENIOR]: 'Senior',
+  [RIVAL_TIERS.CHAMPION]: 'Champion',
+});
+
 export const RIVAL_INITIAL_CAPITAL = Object.freeze({
-  [RIVAL_TIERS.VALUE]: 25000000,
-  [RIVAL_TIERS.SPECIALIST]: 30000000,
-  [RIVAL_TIERS.ELITE]: 35000000,
+  [RIVAL_TIERS.ENTRY]: 25000000,
+  [RIVAL_TIERS.MID]: 30000000,
+  [RIVAL_TIERS.SENIOR]: 35000000,
   [RIVAL_TIERS.CHAMPION]: 40000000,
 });
 
-export const RIVAL_NAME_POOL = Object.freeze({
-  [RIVAL_TIERS.VALUE]: Object.freeze([
-    '반바지마트',
-    '꼬마상회',
-    '오성스토어',
-    '미니플렉스',
-    '소소마켓',
+export const RIVAL_PROFILES = Object.freeze({
+  [RIVAL_TIERS.ENTRY]: Object.freeze([
+    Object.freeze({ id: 'junhyuk', name: '창업 3개월차 준혁', gender: '남', imageFile: 'rival_entry_junhyuk.png' }),
+    Object.freeze({ id: 'sua', name: '알바 모아서 창업한 수아', gender: '여', imageFile: 'rival_entry_sua.png' }),
   ]),
-  [RIVAL_TIERS.SPECIALIST]: Object.freeze([
-    '트레이더스',
-    '미드마트',
-    '실력파상사',
-    '중견브랜드',
-    '스탠다드코',
+  [RIVAL_TIERS.MID]: Object.freeze([
+    Object.freeze({ id: 'sungjin', name: '대기업 퇴사한 성진', gender: '남', imageFile: 'rival_mid_sungjin.png' }),
+    Object.freeze({ id: 'jieun', name: '조용히 치고 올라오는 지은', gender: '여', imageFile: 'rival_mid_jieun.png' }),
   ]),
-  [RIVAL_TIERS.ELITE]: Object.freeze([
-    '천왕기업',
-    '엘리트코퍼',
-    '파워브랜드',
-    '퀄리티킹',
-    '마스터플렉스',
+  [RIVAL_TIERS.SENIOR]: Object.freeze([
+    Object.freeze({ id: 'junseo', name: '냉혈한 재벌 2세 준서', gender: '남', imageFile: 'rival_senior_junseo.png' }),
+    Object.freeze({ id: 'seoyeon', name: '엘리트 MBA 서연', gender: '여', imageFile: 'rival_senior_seoyeon.png' }),
+    Object.freeze({ id: 'taejun', name: '베테랑 사냥꾼 태준', gender: '남', imageFile: 'rival_senior_taejun.png' }),
   ]),
   [RIVAL_TIERS.CHAMPION]: Object.freeze([
-    '챔피언코퍼',
-    '울티마그룹',
-    '서버린마켓',
-    '토탈브랜드',
-    '에이스코퍼',
+    Object.freeze({ id: 'cheolmin', name: '시장의 지배자 철민', gender: '남', imageFile: 'rival_champion_cheolmin.png' }),
+    Object.freeze({ id: 'dogeon', name: '전설의 기업인 도건', gender: '남', imageFile: 'rival_champion_dogeon.png' }),
+    Object.freeze({ id: 'hyegyeong', name: '업계의 어머니 혜경', gender: '여', imageFile: 'rival_champion_hyegyeong.png' }),
   ]),
+});
+
+export const RIVAL_NAME_POOL = Object.freeze({
+  [RIVAL_TIERS.ENTRY]: Object.freeze(RIVAL_PROFILES[RIVAL_TIERS.ENTRY].map((profile) => profile.name)),
+  [RIVAL_TIERS.MID]: Object.freeze(RIVAL_PROFILES[RIVAL_TIERS.MID].map((profile) => profile.name)),
+  [RIVAL_TIERS.SENIOR]: Object.freeze(RIVAL_PROFILES[RIVAL_TIERS.SENIOR].map((profile) => profile.name)),
+  [RIVAL_TIERS.CHAMPION]: Object.freeze(RIVAL_PROFILES[RIVAL_TIERS.CHAMPION].map((profile) => profile.name)),
 });
 
 export const RIVAL_FOCUSES = Object.freeze({
@@ -52,8 +59,8 @@ export const RIVAL_FOCUSES = Object.freeze({
 });
 
 export const RIVAL_JOIN_FLOORS = Object.freeze({
-  [RIVAL_TIERS.VALUE]: 1,
-  [RIVAL_TIERS.SPECIALIST]: 10,
-  [RIVAL_TIERS.ELITE]: 30,
+  [RIVAL_TIERS.ENTRY]: 1,
+  [RIVAL_TIERS.MID]: 10,
+  [RIVAL_TIERS.SENIOR]: 30,
   [RIVAL_TIERS.CHAMPION]: 60,
 });

@@ -3,7 +3,8 @@ import {
   RIVAL_FOCUSES,
   RIVAL_INITIAL_CAPITAL,
   RIVAL_JOIN_FLOORS,
-  RIVAL_NAME_POOL,
+  RIVAL_PROFILES,
+  RIVAL_TIER_LABELS,
   RIVAL_TIERS,
 } from '../constants/rivals';
 
@@ -58,8 +59,11 @@ export function buildRivalParticipant(rival, phase, marketModifiers = {}, slotIn
     id: rival.id,
     type: 'rival',
     name: rival.name,
-    slotLabel: `${rival.tier}단계`,
+    slotLabel: RIVAL_TIER_LABELS[rival.tier] ?? `${rival.tier}단계`,
     tier: rival.tier,
+    gender: rival.gender,
+    profileId: rival.profileId,
+    imageFile: rival.imageFile,
     focus: rival.focus,
     color: getRivalHealthColor(health),
     price: strategy.sellPrice,
@@ -144,13 +148,17 @@ export function processRivalRespawn(rivals) {
       }
 
       if (rival.respawning && rival.respawnIn <= 1) {
-        const namePool = RIVAL_NAME_POOL[rival.tier];
-        const nextIndex = (rival.nameIndex + 1) % namePool.length;
+        const profilePool = RIVAL_PROFILES[rival.tier];
+        const nextIndex = (rival.nameIndex + 1) % profilePool.length;
+        const nextProfile = profilePool[nextIndex];
         const initialCapital = RIVAL_INITIAL_CAPITAL[rival.tier];
 
         return Object.freeze({
           ...rival,
-          name: namePool[nextIndex],
+          name: nextProfile.name,
+          gender: nextProfile.gender,
+          profileId: nextProfile.id,
+          imageFile: nextProfile.imageFile,
           nameIndex: nextIndex,
           capital: initialCapital,
           initialCapital,
@@ -322,6 +330,7 @@ export function getInitialBrand(tier) {
 function createRival(tier, nameIndex, focus, randomValue = Math.random()) {
   const initialCapital = RIVAL_INITIAL_CAPITAL[tier];
   const joinFloor = RIVAL_JOIN_FLOORS[tier];
+  const profile = RIVAL_PROFILES[tier][nameIndex] ?? RIVAL_PROFILES[tier][0];
   const finalFocus =
     tier === RIVAL_TIERS.SPECIALIST && !focus
       ? randomValue % 1 < 0.5 ? RIVAL_FOCUSES.BRAND : RIVAL_FOCUSES.QUALITY
@@ -329,7 +338,10 @@ function createRival(tier, nameIndex, focus, randomValue = Math.random()) {
 
   return Object.freeze({
     id: `rival_${tier}`,
-    name: RIVAL_NAME_POOL[tier][nameIndex],
+    name: profile.name,
+    gender: profile.gender,
+    profileId: profile.id,
+    imageFile: profile.imageFile,
     nameIndex,
     tier,
     focus: finalFocus,
