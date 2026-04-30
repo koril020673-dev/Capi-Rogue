@@ -14,11 +14,16 @@ const TEXT = Object.freeze({
   register: '\uB4F1\uB85D',
   close: '\uB2EB\uAE30',
   missingInput: '\uC544\uC774\uB514\uC640 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
-  missingAccount: '\uC5C6\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
+  missingAccount: '\uC5C6\uB294 \uC544\uC774\uB514\uC774\uAC70\uB098 \uBE44\uBC00\uBC88\uD638\uAC00 \uD2C0\uB838\uC2B5\uB2C8\uB2E4.',
   existingAccount: '\uC774\uBBF8\uC788\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
   signupSuccess: '\uC131\uACF5\uC801\uC73C\uB85C \uC544\uC774\uB514 \uC0DD\uC131\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4',
   weakPassword: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+  invalidEmail: '\uC774\uBA54\uC77C\uD615 \uC544\uC774\uB514\uB294 \uC774\uBA54\uC77C \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+  authNotReady: 'Supabase \uC124\uC815\uC774 \uC5C6\uC5B4 \uACC4\uC815 \uAE30\uB2A5\uC744 \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.',
+  networkError: '\uB124\uD2B8\uC6CC\uD06C \uC5F0\uACB0 \uB610\uB294 \uC778\uC99D \uC11C\uBC84\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.',
   signupFailed: '\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.',
+  idHelp: '\uC601\uBB38/\uC22B\uC790 3\uC790 \uC774\uC0C1, \uB610\uB294 \uC774\uBA54\uC77C \uD615\uC2DD',
+  passwordHelp: '\uBE44\uBC00\uBC88\uD638 6\uC790 \uC774\uC0C1',
 });
 
 function toAuthEmail(userId) {
@@ -53,11 +58,41 @@ function getSignupErrorMessage(error) {
     return TEXT.existingAccount;
   }
 
+  if (message.includes('environment')) {
+    return TEXT.authNotReady;
+  }
+
+  if (message.includes('email') || message.includes('invalid')) {
+    return TEXT.invalidEmail;
+  }
+
   if (message.includes('password') || message.includes('weak')) {
     return TEXT.weakPassword;
   }
 
+  if (message.includes('fetch') || message.includes('network') || message.includes('failed to')) {
+    return TEXT.networkError;
+  }
+
   return TEXT.signupFailed;
+}
+
+function getLoginErrorMessage(error) {
+  const message = String(error?.message ?? '').toLowerCase();
+
+  if (message.includes('environment')) {
+    return TEXT.authNotReady;
+  }
+
+  if (message.includes('fetch') || message.includes('network') || message.includes('failed to')) {
+    return TEXT.networkError;
+  }
+
+  if (message.includes('email') || message.includes('invalid')) {
+    return TEXT.invalidEmail;
+  }
+
+  return TEXT.missingAccount;
 }
 
 export default function LoginScreen() {
@@ -85,7 +120,7 @@ export default function LoginScreen() {
     setIsBusy(false);
 
     if (error || !user) {
-      setMessage(TEXT.missingAccount);
+      setMessage(getLoginErrorMessage(error));
       return;
     }
 
@@ -142,6 +177,7 @@ export default function LoginScreen() {
               setLoginField('userId', event.target.value);
             }}
           />
+          <small className="cr2-field-help">{TEXT.idHelp}</small>
         </label>
         <label className="cr2-field">
           <span>{TEXT.password}</span>
@@ -154,6 +190,7 @@ export default function LoginScreen() {
               setLoginField('password', event.target.value);
             }}
           />
+          <small className="cr2-field-help">{TEXT.passwordHelp}</small>
         </label>
         {message ? <p className="cr2-login-message">{message}</p> : null}
         <div className="cr2-button-row cr2-login-actions">
@@ -192,6 +229,7 @@ export default function LoginScreen() {
                 setSignupId(event.target.value);
               }}
             />
+            <small className="cr2-field-help">{TEXT.idHelp}</small>
           </label>
           <label className="cr2-field">
             <span>{TEXT.password}</span>
@@ -204,6 +242,7 @@ export default function LoginScreen() {
                 setSignupPassword(event.target.value);
               }}
             />
+            <small className="cr2-field-help">{TEXT.passwordHelp}</small>
           </label>
           {signupError ? <p className="cr2-error-text">{signupError}</p> : null}
           <button className="cr2-primary-button" type="button" onClick={handleSignup} disabled={isBusy}>
