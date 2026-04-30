@@ -125,9 +125,9 @@ function getLoginErrorMessage(error) {
 }
 
 export default function LoginScreen() {
-  const login = useGameStore((state) => state.login);
+  const loginForm = useGameStore((state) => state.loginForm);
   const setLoginField = useGameStore((state) => state.setLoginField);
-  const submitLogin = useGameStore((state) => state.login);
+  const submitLogin = useGameStore((state) => state.submitLogin);
   const enterGuestMode = useGameStore((state) => state.enterGuestMode);
   const [message, setMessage] = useState('');
   const [signupOpen, setSignupOpen] = useState(false);
@@ -139,13 +139,13 @@ export default function LoginScreen() {
   async function handleLogin() {
     setMessage('');
 
-    if (!login.userId.trim() || !login.password.trim()) {
+    if (!loginForm.userId.trim() || !loginForm.password.trim()) {
       setMessage(TEXT.missingInput);
       return;
     }
 
     setIsBusy(true);
-    const { user, error } = await signIn(login.userId, login.password);
+    const { user, error } = await signIn(loginForm.userId, loginForm.password);
     setIsBusy(false);
 
     if (error || !user) {
@@ -183,7 +183,7 @@ export default function LoginScreen() {
 
   function openSignup() {
     setSignupError('');
-    setSignupId(login.userId);
+    setSignupId(loginForm.userId);
     setSignupPassword('');
     setSignupOpen(true);
   }
@@ -200,7 +200,7 @@ export default function LoginScreen() {
           <input
             className="cr2-input"
             type="text"
-            value={login.userId}
+            value={loginForm.userId}
             onChange={(event) => {
               setMessage('');
               setLoginField('userId', event.target.value);
@@ -213,7 +213,7 @@ export default function LoginScreen() {
           <input
             className="cr2-input"
             type="password"
-            value={login.password}
+            value={loginForm.password}
             onChange={(event) => {
               setMessage('');
               setLoginField('password', event.target.value);

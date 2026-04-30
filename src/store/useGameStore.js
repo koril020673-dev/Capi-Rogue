@@ -110,7 +110,7 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
 
 const baseState = Object.freeze({
   screen: SCREEN_IDS.LOGIN,
-  login: INITIAL_LOGIN,
+  loginForm: INITIAL_LOGIN,
   session: Object.freeze({ mode: 'guest', userId: '' }),
   playerProfile: INITIAL_PLAYER_PROFILE,
   selectedAdvisorId: ADVISORS[0].id,
@@ -142,21 +142,21 @@ export const useGameStore = create((set, get) => ({
 
   setLoginField(field, value) {
     set((state) => ({
-      login: Object.freeze({
-        ...state.login,
+      loginForm: Object.freeze({
+        ...state.loginForm,
         [field]: value,
         error: '',
       }),
     }));
   },
 
-  login() {
-    const { userId, password } = get().login;
+  submitLogin() {
+    const { userId, password } = get().loginForm;
 
     if (!userId.trim() || !password.trim()) {
       set((state) => ({
-        login: Object.freeze({
-          ...state.login,
+        loginForm: Object.freeze({
+          ...state.loginForm,
           error: '\uD504\uB85C\uD544 \uC774\uB984\uACFC \uD655\uC778 \uCF54\uB4DC\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.',
         }),
       }));
@@ -181,7 +181,7 @@ export const useGameStore = create((set, get) => ({
     set({
       session: Object.freeze({ mode: 'guest', userId: '' }),
       screen: SCREEN_IDS.TITLE,
-      login: INITIAL_LOGIN,
+      loginForm: INITIAL_LOGIN,
     });
   },
 
