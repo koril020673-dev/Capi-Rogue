@@ -854,15 +854,15 @@ button:disabled {
 
 .cr2-demand-left {
   display: grid;
-  grid-template-rows: minmax(0, auto) minmax(86px, 1fr);
-  align-items: start;
+  grid-template-rows: minmax(118px, 0.72fr) auto;
+  align-items: stretch;
   gap: 12px;
   min-width: 0;
   min-height: 0;
 }
 
 .cr2-demand-core {
-  align-self: center;
+  align-self: start;
   justify-self: center;
   display: grid;
   place-items: center;
@@ -907,6 +907,7 @@ button:disabled {
 
 .cr2-demand-node--player {
   grid-template-columns: minmax(0, 1fr);
+  align-self: end;
 }
 
 .cr2-demand-node--player .cr2-demand-arrow {

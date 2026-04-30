@@ -1,14 +1,119 @@
 import { ADVISOR_IDS } from '../constants/advisors';
-import { PRICE_STRATEGY_IDS } from '../constants/strategies';
 import { getSelectedPrice } from './settlementEngine';
 
-const GAMBLER_PROMPTS = Object.freeze([
-  '이번엔 크게 가세요.',
-  '한 번 더 걸어볼 만합니다.',
-  '지금이 기회입니다. 망설이지 마세요.',
-  '운이 따르고 있습니다. 밀어붙이세요.',
-  '겁쟁이는 절대 못 얻습니다.',
-]);
+const RAIDER_MESSAGES = Object.freeze({
+  shareUp: Object.freeze([
+    '시장을 먹고 있습니다. 지금이 기회입니다.',
+    '점유율이 올랐습니다. 더 밀어붙이세요.',
+    '좋은 흐름입니다. 가격을 더 낮춰 쐐기를 박으세요.',
+  ]),
+  shareDown: Object.freeze([
+    '밀리고 있습니다. 가격을 점검하세요.',
+    '라이벌에게 시장을 내주고 있습니다.',
+    '지금 물러서면 더 힘들어집니다.',
+  ]),
+  priceLow: Object.freeze([
+    '가격 경쟁력 있습니다. 이 기세를 유지하세요.',
+    '라이벌보다 싸게 팔고 있습니다. 공격할 타이밍입니다.',
+  ]),
+  priceHigh: Object.freeze([
+    '가격이 너무 높습니다. 점유율을 잃고 있어요.',
+    '지금 당장 가격을 낮추세요.',
+  ]),
+  suggestion: Object.freeze([
+    '판매가를 라이벌 평균보다 10% 이상 낮게 잡으세요.',
+    '모멘텀이 좋을 때 발주량을 늘리세요.',
+    '지금 공격하면 점유율을 가져올 수 있습니다.',
+  ]),
+});
+
+const GUARDIAN_MESSAGES = Object.freeze({
+  debtSafe: Object.freeze([
+    '재무 상태 안정적입니다.',
+    '현금 흐름이 건전합니다. 이 상태를 유지하세요.',
+  ]),
+  debtCaution: Object.freeze([
+    '부채 비율이 올라가고 있습니다. 주의가 필요합니다.',
+    '이자 부담이 커지고 있습니다. 대출 상환을 고려하세요.',
+  ]),
+  debtDanger: Object.freeze([
+    '부채가 위험 수준입니다. 즉각 대응하세요.',
+    '지금 가장 위험한 것은 부채입니다.',
+    '신규 투자보다 현금 보전이 먼저입니다.',
+  ]),
+  healthDown: Object.freeze([
+    '체력이 줄었습니다. 원인을 확인하세요.',
+    '연속 적자가 체력을 갉아먹고 있습니다.',
+  ]),
+  risks: Object.freeze([
+    '다음 달 이자 납부액을 확인하세요.',
+    '미판매 재고가 원가를 늘리고 있습니다.',
+    '라이벌 이벤트 효과가 아직 남아있습니다.',
+    '원가 상승 이벤트가 진행 중입니다.',
+    '적자가 지속되면 신용등급이 하락합니다.',
+  ]),
+  suggestion: Object.freeze([
+    '발주량을 줄여 미판매 리스크를 낮추세요.',
+    '마케팅 비용을 줄이고 현금을 확보하세요.',
+    '대출 일부를 상환해 이자 부담을 줄이세요.',
+  ]),
+});
+
+const ANALYST_MESSAGES = Object.freeze({
+  shareUpReasons: Object.freeze([
+    '판매가가 라이벌 평균보다 낮아 수요를 가져왔습니다. 기여도 {n}%',
+    '브랜드 우위로 소비자를 확보했습니다. 기여도 {n}%',
+    '경기 국면 호조로 전체 수요가 증가했습니다. 기여도 {n}%',
+  ]),
+  shareDownReasons: Object.freeze([
+    '판매가가 라이벌 평균보다 높아 수요를 잃었습니다. 기여도 {n}%',
+    '라이벌 마케팅 강화로 인지도 격차가 벌어졌습니다. 기여도 {n}%',
+    '외부 이벤트로 전체 수요가 감소했습니다. 기여도 {n}%',
+    '라이벌 브랜드가 내 브랜드보다 강해졌습니다. 기여도 {n}%',
+  ]),
+  phaseWarning: Object.freeze([
+    '다음 달 위축 국면 진입 가능성이 높습니다.',
+    '다음 달 성장 국면으로 전환될 수 있습니다.',
+    '현재 국면이 유지될 가능성이 높습니다.',
+  ]),
+  rivalHint: Object.freeze([
+    '{name}이 다음 달 가격 인하를 준비할 가능성이 있습니다.',
+    '{name}이 마케팅 투자를 늘릴 것으로 예상됩니다.',
+    '{name}의 전략 변화 징후가 없습니다.',
+  ]),
+  suggestion: Object.freeze([
+    '판매가를 원가 x {n}배로 조정하면 점유율을 회복할 수 있습니다.',
+    '마케팅 투자를 {n}원 늘리면 인지도 격차를 좁힐 수 있습니다.',
+    '다음 달 위축 국면에 대비해 발주량을 줄이세요.',
+  ]),
+});
+
+const GAMBLER_MESSAGES = Object.freeze({
+  success: Object.freeze([
+    '성공했습니다. {prob}% 확률에서 해냈습니다.',
+    '운이 따랐습니다. 더 크게 걸어볼 만합니다.',
+    '이번 판은 이겼습니다.',
+  ]),
+  failure: Object.freeze([
+    '실패했습니다. {prob}% 확률에서 걸렸습니다.',
+    '운이 없었습니다. 다음 판에서 만회하세요.',
+    '이번엔 틀렸지만 확률은 여전히 유리합니다.',
+  ]),
+  urge: Object.freeze([
+    '이번엔 크게 가세요.',
+    '한 번 더 걸어볼 만합니다.',
+    '지금이 기회입니다. 망설이지 마세요.',
+    '운이 따르고 있습니다. 밀어붙이세요.',
+    '겁쟁이는 절대 못 얻습니다.',
+    '확률은 당신 편입니다.',
+  ]),
+  nextEventHint: Object.freeze({
+    PRODUCTION: '다음 이벤트는 생산 관련일 가능성이 높습니다.',
+    HR: '다음 이벤트는 인사 관련일 가능성이 높습니다.',
+    MARKETING: '다음 이벤트는 마케팅 관련일 가능성이 높습니다.',
+    FINANCE: '다음 이벤트는 재무 관련일 가능성이 높습니다.',
+  }),
+});
 
 export function generateReport(gameState, advisorId) {
   if (advisorId === ADVISOR_IDS.GUARDIAN) {
@@ -32,14 +137,16 @@ function buildRaiderReport(gameState) {
     ? Math.round(((playerPrice - rivalAveragePrice) / rivalAveragePrice) * 100)
     : 0;
   const cheaperThanRivals = playerPrice < rivalAveragePrice;
+  const shareMessage = pick(shareDelta >= 0 ? RAIDER_MESSAGES.shareUp : RAIDER_MESSAGES.shareDown);
+  const priceMessage = pick(cheaperThanRivals ? RAIDER_MESSAGES.priceLow : RAIDER_MESSAGES.priceHigh);
 
   return freezeReport({
     sections: [
-      createSection('up', '점유율 변화', formatPercentPoint(shareDelta), shareDelta >= 0 ? 'positive' : 'negative', Math.min(100, Math.abs(shareDelta) * 500)),
+      createSection('up', '점유율 변화', `${formatPercentPoint(shareDelta)}. ${shareMessage}`, shareDelta >= 0 ? 'positive' : 'negative', Math.min(100, Math.abs(shareDelta) * 500)),
       createSection('choice', '모멘텀 추세', momentumDelta >= 0 ? `+${momentumDelta}` : `${momentumDelta}`, momentumDelta >= 0 ? 'positive' : 'negative'),
-      createSection('choice', '가격 경쟁력', `라이벌 평균 대비 ${priceGap >= 0 ? '+' : ''}${priceGap}%`, cheaperThanRivals ? 'positive' : 'negative'),
+      createSection('choice', '가격 경쟁력', `라이벌 평균 대비 ${priceGap >= 0 ? '+' : ''}${priceGap}%. ${priceMessage}`, cheaperThanRivals ? 'positive' : 'negative'),
     ],
-    suggestion: cheaperThanRivals ? '이 기세 유지하세요.' : '지금 더 낮출 수 있습니다.',
+    suggestion: pick(RAIDER_MESSAGES.suggestion),
     warning: '',
   });
 }
@@ -47,7 +154,7 @@ function buildRaiderReport(gameState) {
 function buildGuardianReport(gameState) {
   const result = gameState.currentResult ?? {};
   const settlement = gameState.currentSettlement ?? {};
-  const debt = gameState.player?.debt ?? settlement.playerAfterOperation?.debt ?? 0;
+  const debt = getDebt(gameState, settlement);
   const capital = Math.max(1, gameState.player?.capital ?? settlement.capitalAfter ?? 1);
   const debtRatio = debt / capital;
   const debtRisk = debtRatio >= 0.55 ? '위험' : debtRatio >= 0.28 ? '주의' : '안전';
@@ -57,10 +164,10 @@ function buildGuardianReport(gameState) {
   return freezeReport({
     sections: [
       createSection('choice', '체력 변화 원인', healthReason, (result.healthDelta ?? 0) < 0 ? 'negative' : 'positive'),
-      createSection('event', '부채 위험도', `${debtRisk} (${Math.round(debtRatio * 100)}%)`, debtRisk === '위험' ? 'negative' : debtRisk === '주의' ? 'warning' : 'positive'),
+      createSection('event', '부채 위험도', `${getDebtMessage(debtRisk)} (${Math.round(debtRatio * 100)}%)`, debtRisk === '위험' ? 'negative' : debtRisk === '주의' ? 'warning' : 'positive'),
       ...risks.map((risk) => createSection('event', '다음 달 리스크', risk, 'warning')),
     ],
-    suggestion: '방어선을 유지하고 현금 소모를 먼저 줄이세요.',
+    suggestion: pick(GUARDIAN_MESSAGES.suggestion),
     warning: `지금 가장 위험한 것은 ${risks[0] ?? '현금 흐름'}입니다.`,
   });
 }
@@ -71,19 +178,28 @@ function buildAnalystReport(gameState) {
     .sort((a, b) => Math.abs(b.percent) - Math.abs(a.percent))
     .slice(0, 3);
   const topCause = causes[0];
-  const targetPrice = Math.round((gameState.player?.unitCost ?? 18000) * 1.5);
+  const targetPriceMultiplier = 1.5;
+  const marketingSuggestion = 500000;
 
   return freezeReport({
     sections: [
       ...causes.map((cause) =>
-        createSection(cause.percent >= 0 ? 'up' : 'down', cause.label, formatPercentPoint(cause.percent), cause.percent >= 0 ? 'positive' : 'negative', Math.min(100, Math.abs(cause.percent) * 10)),
+        createSection(
+          cause.percent >= 0 ? 'up' : 'down',
+          cause.label,
+          getAnalystReasonText(cause),
+          cause.percent >= 0 ? 'positive' : 'negative',
+          Math.min(100, Math.abs(cause.percent) * 10),
+        ),
       ),
       createSection('event', '국면 전환 예고', getPhaseWarning(gameState), 'warning'),
       createSection('event', '라이벌 예상 전략', getRivalStrategyHint(gameState), 'warning'),
     ],
     suggestion: topCause?.label?.includes('판매가')
-      ? `판매가를 원가 x 1.5 수준인 ${formatWon(targetPrice)} 근처로 낮추세요.`
-      : `${topCause?.label ?? '가장 큰 변수'}부터 조정하세요.`,
+      ? fillTemplate(ANALYST_MESSAGES.suggestion[0], { n: targetPriceMultiplier })
+      : topCause?.label?.includes('마케팅') || topCause?.label?.includes('인지도')
+        ? fillTemplate(ANALYST_MESSAGES.suggestion[1], { n: marketingSuggestion.toLocaleString() })
+        : pick(ANALYST_MESSAGES.suggestion),
     warning: topCause ? `가장 큰 원인은 ${topCause.label}입니다.` : '',
   });
 }
@@ -92,21 +208,26 @@ function buildGamblerReport(gameState) {
   const outcome = gameState.currentSettlement?.internalOutcome;
   const tier = outcome?.tier ?? 'GAMBLE';
   const probability = getGamblerProbability(tier, gameState.selectedAdvisorId);
+  const probabilityPercent = Math.round(probability * 100);
   const success = outcome?.success ?? (gameState.currentResult?.profit ?? 0) >= 0;
   const categoryHint = getNextEventCategoryHint(gameState);
+  const resultText = fillTemplate(
+    pick(success ? GAMBLER_MESSAGES.success : GAMBLER_MESSAGES.failure),
+    { prob: probabilityPercent },
+  );
 
   return freezeReport({
     sections: [
       createSection(
         'choice',
-        '이번 턴 이벤트 선택',
-        outcome ? `${outcome.choiceLabel ?? '선택지'}: ${outcome.description}` : '이번 턴에는 내부 이벤트 선택이 없었습니다.',
+        '이번 이벤트 선택',
+        outcome ? `${outcome.choiceLabel ?? '선택지'}: ${outcome.description}` : '이번 달에는 내부 이벤트 선택이 없었습니다.',
         success ? 'positive' : 'negative',
       ),
-      createSection('choice', '확률 결과', `${Math.round(probability * 100)}% 확률에서 ${success ? '성공했습니다' : '실패했습니다'}.`, success ? 'positive' : 'negative', probability * 100),
+      createSection('choice', '확률 결과', resultText, success ? 'positive' : 'negative', probabilityPercent),
       createSection('event', '다음 이벤트 힌트', categoryHint, 'warning'),
     ],
-    suggestion: getRandomGamblerPrompt(gameState.floor ?? 1),
+    suggestion: pick(GAMBLER_MESSAGES.urge),
     warning: '',
   });
 }
@@ -141,18 +262,39 @@ function getPreviousMomentum(gameState) {
 
 function getHealthReason(healthDelta, settlement) {
   if (healthDelta >= 0) {
-    return '순이익과 방어 보정으로 체력 손실이 발생하지 않았습니다.';
+    return '체력 손실은 없었습니다. 현재 운영 방어선이 유지되고 있습니다.';
   }
 
   if ((settlement.playerWarHealthDelta ?? 0) < 0) {
-    return '라이벌전 압박과 적자 영향으로 체력이 감소했습니다.';
+    return pick(GUARDIAN_MESSAGES.healthDown);
   }
 
   if ((settlement.profit ?? 0) < 0) {
-    return '순이익 적자로 체력이 감소했습니다.';
+    return '이번 달 적자가 체력 감소로 이어졌습니다.';
   }
 
   return '운영 리스크 누적으로 체력이 감소했습니다.';
+}
+
+function getDebt(gameState, settlement) {
+  const loanDebt = (gameState.loans ?? settlement.nextLoans ?? []).reduce(
+    (sum, loan) => sum + (loan.principal ?? 0),
+    0,
+  );
+
+  return loanDebt || gameState.player?.debt || settlement.playerAfterOperation?.debt || 0;
+}
+
+function getDebtMessage(debtRisk) {
+  if (debtRisk === '위험') {
+    return pick(GUARDIAN_MESSAGES.debtDanger);
+  }
+
+  if (debtRisk === '주의') {
+    return pick(GUARDIAN_MESSAGES.debtCaution);
+  }
+
+  return pick(GUARDIAN_MESSAGES.debtSafe);
 }
 
 function getGuardianRisks(gameState, debtRisk) {
@@ -160,26 +302,26 @@ function getGuardianRisks(gameState, debtRisk) {
   const risks = [];
 
   if (debtRisk !== '안전') {
-    risks.push('부채 이자 부담');
+    risks.push(GUARDIAN_MESSAGES.risks[0]);
   }
 
   if ((settlement.unsoldUnits ?? 0) > 0) {
-    risks.push('미판매 재고 폐기 비용');
+    risks.push(GUARDIAN_MESSAGES.risks[1]);
   }
 
   if ((settlement.marketModifiers?.costMultiplier ?? 1) > 1) {
-    risks.push('원가 상승 이벤트');
+    risks.push(GUARDIAN_MESSAGES.risks[3]);
   }
 
   if ((gameState.currentRivalEvent ?? gameState.lastExternalEvent)?.category === 'RIVAL') {
-    risks.push('라이벌 이벤트 지속 효과');
+    risks.push(GUARDIAN_MESSAGES.risks[2]);
   }
 
   if ((settlement.profit ?? 0) < 0) {
-    risks.push('순이익 적자 지속');
+    risks.push(GUARDIAN_MESSAGES.risks[4]);
   }
 
-  return risks.length ? risks : ['다음 달 수요 변동'];
+  return risks.length ? risks : ['다음 달 수요 변동을 확인하세요.'];
 }
 
 function getAnalystCauses(gameState, playerPrice, rivalAveragePrice, shareDelta) {
@@ -188,35 +330,83 @@ function getAnalystCauses(gameState, playerPrice, rivalAveragePrice, shareDelta)
   const priceDiff = rivalAveragePrice > 0 ? ((rivalAveragePrice - playerPrice) / rivalAveragePrice) * 100 : 0;
 
   if (Math.abs(priceDiff) >= 2) {
-    causes.push({ label: playerPrice > rivalAveragePrice ? '내 판매가 높음' : '내 판매가 낮음', percent: priceDiff / 2 });
-  }
-
-  if ((settlement.marketModifiers?.demandMultiplier ?? 1) !== 1) {
     causes.push({
-      label: '외부 이벤트 수요 변화',
-      percent: Math.round(((settlement.marketModifiers.demandMultiplier ?? 1) - 1) * 100),
+      label: playerPrice > rivalAveragePrice ? '판매가 높음' : '판매가 낮음',
+      percent: priceDiff / 2,
+      reasonType: playerPrice > rivalAveragePrice ? 'priceHigh' : 'priceLow',
     });
   }
 
-  const rivalWithMarketing = settlement.demandSplit?.find((item) => item.type === 'rival' && (item.brand ?? 0) > (settlement.demandSplit?.find((p) => p.id === 'player')?.brand ?? 0));
-  if (rivalWithMarketing) {
-    causes.push({ label: '라이벌 마케팅 우위', percent: -4 });
+  if ((settlement.marketModifiers?.demandMultiplier ?? 1) !== 1) {
+    const percent = Math.round(((settlement.marketModifiers.demandMultiplier ?? 1) - 1) * 100);
+
+    causes.push({
+      label: percent >= 0 ? '경기 국면 호조' : '외부 이벤트 수요 감소',
+      percent,
+      reasonType: percent >= 0 ? 'phaseGood' : 'externalDown',
+    });
   }
 
-  causes.push({ label: shareDelta >= 0 ? '점유율 상승 흐름' : '점유율 하락 흐름', percent: Math.round(shareDelta * 100) });
+  const player = settlement.demandSplit?.find((item) => item.id === 'player');
+  const rivalWithMarketing = settlement.demandSplit?.find(
+    (item) => item.type === 'rival' && (item.brand ?? 0) > (player?.brand ?? 0),
+  );
+
+  if (rivalWithMarketing) {
+    causes.push({ label: '라이벌 마케팅 우위', percent: -4, reasonType: 'rivalMarketing' });
+  }
+
+  causes.push({
+    label: shareDelta >= 0 ? '점유율 상승 흐름' : '점유율 하락 흐름',
+    percent: Math.round(shareDelta * 100),
+    reasonType: shareDelta >= 0 ? 'shareUp' : 'shareDown',
+  });
 
   return causes.filter((cause) => Number.isFinite(cause.percent) && cause.percent !== 0);
 }
 
-function getPhaseWarning(gameState) {
-  const timeline = gameState.timeline ?? [];
-  const lastPhase = timeline.at(-1)?.phase;
+function getAnalystReasonText(cause) {
+  const n = Math.abs(Math.round(cause.percent));
 
-  if (lastPhase && lastPhase !== gameState.phase) {
-    return `${lastPhase}에서 ${gameState.phase} 국면으로 전환 조짐이 있습니다.`;
+  if (cause.percent >= 0) {
+    if (cause.reasonType === 'priceLow') {
+      return fillTemplate(ANALYST_MESSAGES.shareUpReasons[0], { n });
+    }
+
+    if (cause.reasonType === 'phaseGood') {
+      return fillTemplate(ANALYST_MESSAGES.shareUpReasons[2], { n });
+    }
+
+    return fillTemplate(pick(ANALYST_MESSAGES.shareUpReasons), { n });
   }
 
-  return '다음 1턴 안에 급격한 국면 전환 신호는 약합니다.';
+  if (cause.reasonType === 'priceHigh') {
+    return fillTemplate(ANALYST_MESSAGES.shareDownReasons[0], { n });
+  }
+
+  if (cause.reasonType === 'rivalMarketing') {
+    return fillTemplate(ANALYST_MESSAGES.shareDownReasons[1], { n });
+  }
+
+  if (cause.reasonType === 'externalDown') {
+    return fillTemplate(ANALYST_MESSAGES.shareDownReasons[2], { n });
+  }
+
+  return fillTemplate(pick(ANALYST_MESSAGES.shareDownReasons), { n });
+}
+
+function getPhaseWarning(gameState) {
+  const phase = gameState.phase ?? 'stable';
+
+  if (phase === 'contraction' || phase === 'recession') {
+    return ANALYST_MESSAGES.phaseWarning[0];
+  }
+
+  if (phase === 'growth' || phase === 'boom') {
+    return ANALYST_MESSAGES.phaseWarning[1];
+  }
+
+  return ANALYST_MESSAGES.phaseWarning[2];
 }
 
 function getRivalStrategyHint(gameState) {
@@ -226,11 +416,14 @@ function getRivalStrategyHint(gameState) {
     return '활성 라이벌이 적어 방어적 운영 가능성이 높습니다.';
   }
 
-  if ((rival.price ?? 0) < (gameState.currentSettlement?.demandSplit?.find((item) => item.id === 'player')?.price ?? 0)) {
-    return `${rival.name}은 가격 압박을 이어갈 가능성이 높습니다.`;
-  }
+  const player = gameState.currentSettlement?.demandSplit?.find((item) => item.id === 'player');
+  const template = (rival.price ?? 0) < (player?.price ?? 0)
+    ? ANALYST_MESSAGES.rivalHint[0]
+    : (rival.brand ?? 0) > (player?.brand ?? 0)
+      ? ANALYST_MESSAGES.rivalHint[1]
+      : ANALYST_MESSAGES.rivalHint[2];
 
-  return `${rival.name}은 브랜드/품질 우위를 밀 가능성이 높습니다.`;
+  return fillTemplate(template, { name: rival.name ?? '라이벌' });
 }
 
 function getGamblerProbability(tier, advisorId) {
@@ -254,13 +447,10 @@ function getGamblerProbability(tier, advisorId) {
 
 function getNextEventCategoryHint(gameState) {
   const floor = gameState.floor ?? 1;
-  const hints = ['PRODUCTION', 'HR', 'MARKETING', 'FINANCE'];
+  const categories = ['PRODUCTION', 'HR', 'MARKETING', 'FINANCE'];
+  const category = categories[floor % categories.length];
 
-  return `${hints[floor % hints.length]} 계열 카드가 나올 흐름입니다.`;
-}
-
-function getRandomGamblerPrompt(seed) {
-  return GAMBLER_PROMPTS[Math.abs(seed) % GAMBLER_PROMPTS.length];
+  return GAMBLER_MESSAGES.nextEventHint[category];
 }
 
 function createSection(kind, title, text, tone = 'neutral', percent = null) {
@@ -282,6 +472,17 @@ function freezeReport(report) {
   });
 }
 
+function pick(messages) {
+  return messages[Math.floor(Math.random() * messages.length)] ?? messages[0] ?? '';
+}
+
+function fillTemplate(template, values) {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
+}
+
 function average(values) {
   if (!values.length) {
     return 0;
@@ -294,8 +495,4 @@ function formatPercentPoint(value) {
   const points = Math.round(value * 100);
 
   return `${points >= 0 ? '+' : ''}${points}%p`;
-}
-
-function formatWon(value) {
-  return `${Math.round(value).toLocaleString()}원`;
 }
