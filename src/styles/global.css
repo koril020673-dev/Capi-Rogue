@@ -6,6 +6,7 @@
   --cr2-text: #00aa00;
   --cr2-accent: #00ff41;
   --cr2-warning: #dc143c;
+  --cr2-danger: #dc143c;
   --cr2-muted: rgba(0, 170, 0, 0.62);
   --cr2-panel: rgba(0, 18, 0, 0.88);
   --cr2-advisor: #00ff41;
@@ -53,6 +54,18 @@ button:disabled {
   min-height: 100vh;
   color: var(--cr2-text);
   overflow: hidden;
+}
+
+.cr2-app--background-off .cr2-bg-scene,
+.cr2-app--background-off .cr2-title-backdrop,
+.cr2-app--background-off .cr2-left-panel {
+  background: #000000 !important;
+  background-image: none !important;
+}
+
+.cr2-app--background-off .cr2-bg-scene::before,
+.cr2-app--background-off .cr2-bg-grid {
+  display: none;
 }
 
 .cr2-advisor-theme--analyst,

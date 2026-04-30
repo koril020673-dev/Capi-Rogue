@@ -77,13 +77,16 @@ export default function AudioController() {
       return;
     }
 
-    bgm.volume = Math.max(0, Math.min(1, settings.bgmVolume / 100));
-  }, [settings.bgmVolume]);
+    bgm.volume = getBgmVolume(settings);
+    if (!settings.bgmEnabled || getBgmVolume(settings) <= 0) {
+      bgm.pause();
+    }
+  }, [settings]);
 
   useEffect(() => {
     const bgm = bgmRef.current;
 
-    if (!bgm || !audioUnlocked) {
+    if (!bgm || !audioUnlocked || !settings.bgmEnabled || getBgmVolume(settings) <= 0) {
       return;
     }
 
@@ -95,17 +98,17 @@ export default function AudioController() {
     }
 
     bgm.loop = true;
-    bgm.volume = Math.max(0, Math.min(1, settings.bgmVolume / 100));
+    bgm.volume = getBgmVolume(settings);
     bgm.play().catch(() => {});
-  }, [audioUnlocked, bgmSrc, settings.bgmVolume]);
+  }, [audioUnlocked, bgmSrc, settings]);
 
   useEffect(() => {
     function handleClick(event) {
-      if (!settings.sfxEnabled || !event.target?.closest?.('button')) {
+      if (!settings.sfxEnabled || getSfxVolume(settings) <= 0 || !event.target?.closest?.('button')) {
         return;
       }
 
-      playOneShot(clickRef.current, 0.45);
+      playOneShot(clickRef.current, getSfxVolume(settings) * 0.45);
     }
 
     document.addEventListener('click', handleClick, true);
@@ -114,8 +117,8 @@ export default function AudioController() {
   }, [settings.sfxEnabled]);
 
   useEffect(() => {
-    if (floor > previousFloorRef.current && settings.sfxEnabled) {
-      playOneShot(nextFloorRef.current, 0.7);
+    if (floor > previousFloorRef.current && settings.sfxEnabled && getSfxVolume(settings) > 0) {
+      playOneShot(nextFloorRef.current, getSfxVolume(settings) * 0.7);
     }
 
     previousFloorRef.current = floor;
@@ -155,4 +158,16 @@ function playOneShot(audio, volume) {
   audio.currentTime = 0;
   audio.volume = volume;
   audio.play().catch(() => {});
+}
+
+function getBgmVolume(settings) {
+  return clampVolume(settings.masterVolume) * clampVolume(settings.bgmVolume);
+}
+
+function getSfxVolume(settings) {
+  return clampVolume(settings.masterVolume) * clampVolume(settings.sfxVolume);
+}
+
+function clampVolume(value) {
+  return Math.max(0, Math.min(1, (Number(value) || 0) / 100));
 }

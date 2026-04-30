@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import AudioController from './components/AudioController';
 import BackgroundScene from './components/BackgroundScene';
 import PauseMenu from './components/PauseMenu';
@@ -14,6 +14,7 @@ import SettlementScreen from './screens/SettlementScreen';
 import TitleScreen from './screens/TitleScreen';
 import { SCREEN_IDS, useGameStore } from './store/useGameStore';
 import { getAdvisorThemeColor } from './logic/advisorEngine';
+import { getGameSettings } from './logic/audioEngine';
 
 export default function App() {
   const screen = useGameStore((state) => state.screen);
@@ -21,6 +22,7 @@ export default function App() {
   const isPaused = useGameStore((state) => state.isPaused);
   const setPaused = useGameStore((state) => state.setPaused);
   const incrementPlaytime = useGameStore((state) => state.incrementPlaytime);
+  const [settings, setSettings] = useState(() => getGameSettings());
   const themeColor = getAdvisorThemeColor(selectedAdvisorId);
   const pauseEnabled = isPauseEnabled(screen);
 
@@ -49,9 +51,28 @@ export default function App() {
     return () => window.clearInterval(intervalId);
   }, [incrementPlaytime, isPaused, pauseEnabled]);
 
+  useEffect(() => {
+    function handleSettingsChange() {
+      setSettings(getGameSettings());
+    }
+
+    window.addEventListener('storage', handleSettingsChange);
+    window.addEventListener('cr2-settings-change', handleSettingsChange);
+
+    return () => {
+      window.removeEventListener('storage', handleSettingsChange);
+      window.removeEventListener('cr2-settings-change', handleSettingsChange);
+    };
+  }, []);
+
   return (
     <div
-      className={`cr2-app cr2-advisor-theme--${selectedAdvisorId}`}
+      className={[
+        'cr2-app',
+        `cr2-advisor-theme--${selectedAdvisorId}`,
+        settings.backgroundEnabled ? '' : 'cr2-app--background-off',
+        settings.screenShakeEnabled ? '' : 'cr2-app--no-shake',
+      ].filter(Boolean).join(' ')}
       style={{ '--cr2-theme-color': themeColor, '--cr2-advisor': themeColor }}
     >
       {pauseEnabled ? (

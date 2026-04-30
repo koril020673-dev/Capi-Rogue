@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { saveGameToLocalStorage } from '../logic/saveEngine';
-import { createSaveSnapshot } from '../logic/saveEngine';
+import { createSaveSnapshot, saveGameToLocalStorage } from '../logic/saveEngine';
 import { useGameStore } from '../store/useGameStore';
 import AdvisorInfo from './menus/AdvisorInfo';
 import EconomyDictionary from './menus/EconomyDictionary';
@@ -83,7 +82,7 @@ export default function PauseMenu() {
         </nav>
 
         <section className="cr2-pause-content">
-          <ActivePanel />
+          <ActivePanel onBack={() => setActiveMenuId('record')} />
         </section>
       </section>
     </aside>
