@@ -29,7 +29,7 @@ import { addExternalEventEffect, applyEffectBundleToPlayer, drawInternalEvent, e
 import { applyEconomicPhaseShift, getForcedPhase } from '../logic/econEngine';
 import { calculateSettlement, buildOperationalMarketPreview } from '../logic/settlementEngine';
 import { rollCostReduction, rollQualityUpgrade } from '../logic/factoryEngine';
-import { extendLoan, repayLoan } from '../logic/loanEngine';
+import { extendLoan, repayLoan, takeLoan } from '../logic/loanEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
 import { generateRewardOptions, applyRewardToPlayer, isRewardFloor } from '../logic/rewardEngine';
 import {
@@ -377,6 +377,31 @@ export const useGameStore = create((set, get) => ({
 
   clearFactoryAction() {
     set({ factoryActionThisTurn: null });
+  },
+
+  applyLoan(loanResult) {
+    if (!loanResult?.success || !loanResult.newLoan) {
+      return;
+    }
+
+    set((state) => ({
+      player: Object.freeze({
+        ...state.player,
+        capital: loanResult.newCapital ?? state.player.capital + loanResult.capitalIncrease,
+        debt: loanResult.newDebt ?? state.player.debt + loanResult.capitalIncrease,
+      }),
+      loans: Object.freeze([...state.loans, loanResult.newLoan]),
+    }));
+  },
+
+  takeLoan(loanType, requestedPrincipal = null) {
+    const result = takeLoan(loanType, get(), requestedPrincipal);
+
+    if (result.success) {
+      get().applyLoan(result);
+    }
+
+    return result;
   },
 
   repayMaturedLoan(loanId) {

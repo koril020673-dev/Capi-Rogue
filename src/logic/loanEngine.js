@@ -1,4 +1,4 @@
-import { getGrade, getInterestRate } from './creditEngine';
+import { getGrade, getInterestRate, getLoanLimit } from './creditEngine';
 
 export const LOAN_TYPES = Object.freeze([
   Object.freeze({ id: 'short', name: '단기 대출', duration: 10, extensionGrade: 'B' }),
@@ -17,6 +17,51 @@ export function createLoan(typeId, principal, creditScore, activeEffects = [], i
     principal: Math.max(0, Math.round(Number(principal) || 0)),
     interestRate: getInterestRate(creditScore, activeEffects),
     remainingTurns: type.duration,
+  });
+}
+
+export function takeLoan(loanType, gameState = {}, requestedPrincipal = null) {
+  const creditScore = gameState.creditScore ?? 70;
+  const grade = getGrade(creditScore);
+
+  if (grade === 'D') {
+    return Object.freeze({ success: false, error: '신용등급 D - 대출 불가합니다.' });
+  }
+
+  const loanTypeInfo = LOAN_TYPES.find((loan) => loan.id === loanType);
+
+  if (!loanTypeInfo) {
+    return Object.freeze({ success: false, error: '대출 종류 오류' });
+  }
+
+  const capital = gameState.player?.capital ?? gameState.capital ?? 0;
+  const debt = gameState.player?.debt ?? gameState.debt ?? 0;
+  const loanLimit = getLoanLimit(creditScore, capital);
+  const requestedAmount = requestedPrincipal === null
+    ? loanLimit
+    : Math.max(0, Math.round(Number(requestedPrincipal) || 0));
+  const principal = Math.min(loanLimit, requestedAmount);
+
+  if (principal <= 0) {
+    return Object.freeze({ success: false, error: '대출 한도가 없습니다.' });
+  }
+
+  const activeEffects = gameState.activeEffects ?? gameState.marketEffects ?? [];
+  const advisorId = gameState.advisorId ?? gameState.selectedAdvisorId ?? null;
+  const interestRate = getInterestRate(creditScore, activeEffects, advisorId);
+
+  return Object.freeze({
+    success: true,
+    capitalIncrease: principal,
+    newCapital: capital + principal,
+    newLoan: Object.freeze({
+      id: `loan_${Date.now()}`,
+      type: loanTypeInfo.id,
+      principal,
+      interestRate,
+      remainingTurns: loanTypeInfo.duration,
+    }),
+    newDebt: debt + principal,
   });
 }
 

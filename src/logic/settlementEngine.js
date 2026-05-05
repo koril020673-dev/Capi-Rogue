@@ -20,7 +20,7 @@ import { calculateTotalDemand } from './demandEngine';
 import { getActiveMarketModifiers } from './eventEngine';
 import { calculateDemandSplit } from './marketEngine';
 import { getMomentumDemandModifier } from './momentumEngine';
-import { checkLoanMaturity, createLoan, processInterest, tickLoans } from './loanEngine';
+import { checkLoanMaturity, processInterest, takeLoan, tickLoans } from './loanEngine';
 import {
   COST_REDUCTION_TIERS,
   QUALITY_UPGRADE_TIERS,
@@ -258,22 +258,36 @@ function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5, proc
 
     if (bankActionId === BANK_ACTION_IDS.BORROW) {
       const amount = Math.max(0, Number(strategy.bankBorrowAmount) || 2000000);
+      const loanResult = takeLoan(
+        strategy.loanTypeId ?? 'normal',
+        Object.freeze({
+          ...state,
+          player,
+          activeEffects: state.marketEffects ?? [],
+        }),
+        amount,
+      );
+
+      if (!loanResult.success) {
+        return Object.freeze({
+          player,
+          loans: state.loans ?? [],
+          expense: 0,
+          note: loanResult.error ?? '\uB300\uCD9C \uC2E4\uD328',
+          factoryFailStreak: state.factoryFailStreak ?? 0,
+          costReductionFailStreak: state.costReductionFailStreak ?? 0,
+        });
+      }
 
       return Object.freeze({
         player: Object.freeze({
           ...player,
-          capital: player.capital + amount,
-          debt: player.debt + amount,
+          capital: loanResult.newCapital,
+          debt: loanResult.newDebt,
         }),
         loans: Object.freeze([
           ...(state.loans ?? []),
-          createLoan(
-            strategy.loanTypeId ?? 'normal',
-            amount,
-            state.creditScore ?? 70,
-            state.marketEffects ?? [],
-            `loan-${state.floor}-${(state.loans ?? []).length + 1}`,
-          ),
+          loanResult.newLoan,
         ]),
         expense: 0,
         note: '\uC740\uD589 \uB300\uCD9C \uC2E4\uD589',
