@@ -12,7 +12,7 @@ import {
   SALES_QUANTITY_OPTIONS,
   STRATEGY_TABS,
 } from '../constants/strategies';
-import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS } from '../logic/factoryEngine';
+import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getActualSuccessRate } from '../logic/factoryEngine';
 import { getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
@@ -94,6 +94,8 @@ export default function RightPanel({ preview }) {
   const estimate = buildTurnEstimate(preview, strategy);
   const currentCapital = Math.max(0, playerState.capital ?? 0);
   const currentDebt = Math.max(0, playerState.debt ?? 0);
+  const factoryFailStreak = useGameStore((state) => state.factoryFailStreak);
+  const costReductionFailStreak = useGameStore((state) => state.costReductionFailStreak);
   const maxOrderAmount = getMaxAffordableOrder(preview);
   const currentPlannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const isOrderOverCapital = currentPlannedProduction > maxOrderAmount;
@@ -261,7 +263,8 @@ export default function RightPanel({ preview }) {
                 setFactoryModalFocus(FACTORY_UPGRADE_FOCUS.QUALITY);
               }}
             >
-              {canQualityUpgrade ? TEXT.qualityUpgrade : TEXT.capitalShort}
+              <span>{canQualityUpgrade ? TEXT.qualityUpgrade : TEXT.capitalShort}</span>
+              <small>{getFactoryOptionText(FACTORY_UPGRADE_FOCUS.QUALITY, strategy, factoryFailStreak)}</small>
             </button>
             <button
               className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.COST ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
@@ -272,7 +275,8 @@ export default function RightPanel({ preview }) {
                 setFactoryModalFocus(FACTORY_UPGRADE_FOCUS.COST);
               }}
             >
-              {canCostReduction ? TEXT.costCut : TEXT.capitalShort}
+              <span>{canCostReduction ? TEXT.costCut : TEXT.capitalShort}</span>
+              <small>{getFactoryOptionText(FACTORY_UPGRADE_FOCUS.COST, strategy, costReductionFailStreak)}</small>
             </button>
           </div>
         ) : null}
@@ -557,6 +561,16 @@ function getFactoryUpgradeCost(focus, strategy) {
   }
 
   return 0;
+}
+
+function getFactoryOptionText(focus, strategy, failStreak) {
+  const tier =
+    focus === FACTORY_UPGRADE_FOCUS.QUALITY
+      ? QUALITY_UPGRADE_TIERS[strategy.factoryUpgradeTierIndex ?? 0] ?? QUALITY_UPGRADE_TIERS[0]
+      : COST_REDUCTION_TIERS[strategy.costReductionTierIndex ?? 0] ?? COST_REDUCTION_TIERS[0];
+  const successRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
+
+  return `연속 실패 ${failStreak}회 → 성공률 ${Math.round(successRate * 100)}%`;
 }
 
 function clampNumber(value, min, max) {

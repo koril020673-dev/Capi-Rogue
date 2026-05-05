@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { FACTORY_UPGRADE_FOCUS } from '../constants/strategies';
-import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getFactoryFailBonus } from '../logic/factoryEngine';
+import {
+  COST_REDUCTION_TIERS,
+  QUALITY_UPGRADE_TIERS,
+  getActualSuccessRate,
+  getFactoryFailBonus,
+} from '../logic/factoryEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 import successSfx from '../assets/sfx/sfx_click.wav';
@@ -36,7 +41,7 @@ export default function FactoryUpgradeModal({ focus, onClose }) {
   const tierIndex = 0;
   const tier = isQuality ? QUALITY_UPGRADE_TIERS[tierIndex] : COST_REDUCTION_TIERS[tierIndex];
   const failStreak = isQuality ? factoryFailStreak : costReductionFailStreak;
-  const successRate = Math.min(0.95, tier.baseRate + getFactoryFailBonus(failStreak));
+  const successRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
   const modalClass = [
     'cr2-factory-modal',
     result?.success ? 'cr2-factory-modal--success' : '',
