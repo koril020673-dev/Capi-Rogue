@@ -70,10 +70,8 @@ const TEXT = Object.freeze({
   maxMarketing: '\uCD5C\uB300 \uB9C8\uCF00\uD305 \uD22C\uC790',
   costDataError: '\uC6D0\uAC00 \uB370\uC774\uD130 \uC624\uB958 - \uC124\uC815\uC744 \uD655\uC778\uD558\uC138\uC694.',
   marketingLimitTitle: '\uB9C8\uCF00\uD305 \uD22C\uC790 \uD55C\uB3C4',
-  marketingLimitMode: '\uD604\uC7AC \uBC29\uC2DD',
   marketingLimitCurrent: '\uD604\uC7AC \uD55C\uB3C4',
   marketingLimitRatio: '\uC790\uBCF8 \uBE44\uC728\uD615',
-  marketingLimitFixed: '\uACE0\uC815 \uC0C1\uD55C\uD615',
   insufficientCapital: '\uBCF4\uC720 \uC790\uBCF8\uC774 \uBD80\uC871\uD569\uB2C8\uB2E4.',
   capitalShort: '\uC790\uBCF8 \uBD80\uC871',
   noDebt: '\uBD80\uCC44 \uC5C6\uC74C',
@@ -96,7 +94,6 @@ export default function RightPanel({ preview }) {
   const proceedAfterStrategy = useGameStore((state) => state.proceedAfterStrategy);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
   const playerState = useGameStore((state) => state.player);
-  const settings = useGameStore((state) => state.settings);
   const factoryActionThisTurn = useGameStore((state) => state.factoryActionThisTurn);
   const selectedAdvisor = getAdvisorById(selectedAdvisorId);
   const revealExtraRivalInfo = Boolean(selectedAdvisor.passive.revealExtraRivalInfo);
@@ -108,8 +105,7 @@ export default function RightPanel({ preview }) {
   const maxOrderAmount = getMaxAffordableOrder(preview);
   const currentPlannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const isOrderOverCapital = currentPlannedProduction > maxOrderAmount;
-  const marketingLimitMode = settings?.marketingLimitMode === 'fixed' ? 'fixed' : 'ratio';
-  const maxMarketingSpend = getMarketingLimit(currentCapital, marketingLimitMode);
+  const maxMarketingSpend = getMarketingLimit(currentCapital);
   const isMarketingOverCapital = (Number(strategy.marketingSpend) || 0) > maxMarketingSpend;
   const isRepayOverCapital = (Number(strategy.bankRepayAmount) || 0) > currentCapital;
   const canRepayDebt = currentDebt > 0 && currentCapital > 0;
@@ -251,11 +247,6 @@ export default function RightPanel({ preview }) {
           <span>{TEXT.expectedCost} {formatWon(preview.player.unitCost)}</span>
           <span>{TEXT.expectedDebt} {formatWon(preview.playerAfterOperation?.debt ?? 0)}</span>
         </div>
-        <MarketingLimitReadout
-          capital={currentCapital}
-          limit={maxMarketingSpend}
-          mode={marketingLimitMode}
-        />
         <div className="cr2-choice-grid">
           {OPERATION_OPTIONS.map((option) => (
             <button
@@ -365,6 +356,10 @@ export default function RightPanel({ preview }) {
             <span className="cr2-panel-label">
               {TEXT.maxMarketing}: {formatWon(maxMarketingSpend)} ({TEXT.capitalBased})
             </span>
+            <MarketingLimitReadout
+              capital={currentCapital}
+              limit={maxMarketingSpend}
+            />
             {isMarketingOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
             <span className="cr2-panel-label">
               {TEXT.expectedAwareness} {Math.round((preview.playerAfterOperation?.awareness ?? 0) * 100)}%
@@ -500,21 +495,16 @@ function QualityCostReadout({ preview }) {
   );
 }
 
-function MarketingLimitReadout({ capital, limit, mode }) {
-  const isRatio = mode === 'ratio';
-  const formula = isRatio
-    ? `(${formatWon(capital)} x 0.3)`
-    : `(MIN(${formatWon(capital)} x 0.2, 500만원))`;
-  const tooltipText = isRatio
-    ? '보유 자본의 30%까지 마케팅에 투자할 수 있습니다. 자본이 많을수록 한도가 늘어납니다. 설정에서 방식을 변경할 수 있습니다.'
-    : '보유 자본의 20% 또는 최대 500만원 중 낮은 금액까지 투자할 수 있습니다. 설정에서 방식을 변경할 수 있습니다.';
+function MarketingLimitReadout({ capital, limit }) {
+  const formula = `(${formatWon(capital)} x 0.3)`;
+  const tooltipText = '보유 자본의 30%까지 마케팅에 투자할 수 있습니다. 자본이 많을수록 한도가 늘어납니다.';
 
   return (
     <div className="cr2-marketing-limit-card">
       <Tooltip content={tooltipText}>
         <span className="cr2-panel-label">{TEXT.marketingLimitTitle}</span>
       </Tooltip>
-      <strong>{TEXT.marketingLimitMode}: {isRatio ? TEXT.marketingLimitRatio : TEXT.marketingLimitFixed}</strong>
+      <strong>{TEXT.marketingLimitRatio}</strong>
       <span>{TEXT.marketingLimitCurrent}: {formatWon(limit)}</span>
       <small>{formula}</small>
     </div>

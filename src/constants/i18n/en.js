@@ -7,7 +7,7 @@ export const en = Object.freeze({
         'TODO: Explain that marketing investment raises awareness.',
         'TODO: Explain diminishing returns at higher awareness.',
         'TODO: Explain awareness decay and brand-linked awareness cap.',
-        'TODO: Explain ratio and fixed marketing limit modes.',
+        'TODO: Explain that the marketing limit is capital x 0.3.',
       ].join('\n'),
     }),
   }),

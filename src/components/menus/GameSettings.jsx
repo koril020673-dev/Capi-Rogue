@@ -48,11 +48,6 @@ export default function GameSettings({ onBack }) {
       return;
     }
 
-    if (row.type === 'marketingLimitMode') {
-      updateSetting(row.key, settings[row.key] === 'ratio' ? 'fixed' : 'ratio');
-      return;
-    }
-
     if (row.type === 'resetTutorials') {
       resetTutorials();
     }
@@ -147,31 +142,6 @@ function SettingValue({ row, settings, onUpdate }) {
     return <strong className="cr2-settings-current">{settings[row.key] ? 'ON' : 'OFF'}</strong>;
   }
 
-  if (row.type === 'marketingLimitMode') {
-    const mode = settings[row.key] === 'fixed' ? 'fixed' : 'ratio';
-
-    return (
-      <div className="cr2-settings-choice-group" onClick={(event) => event.stopPropagation()}>
-        <button
-          className={mode === 'ratio' ? 'cr2-settings-choice cr2-settings-choice--active' : 'cr2-settings-choice'}
-          type="button"
-          onClick={() => onUpdate(row.key, 'ratio')}
-        >
-          자본 비율형
-          <small>자본 x 0.3</small>
-        </button>
-        <button
-          className={mode === 'fixed' ? 'cr2-settings-choice cr2-settings-choice--active' : 'cr2-settings-choice'}
-          type="button"
-          onClick={() => onUpdate(row.key, 'fixed')}
-        >
-          고정 상한형
-          <small>MIN(자본 x 0.2, 500만원)</small>
-        </button>
-      </div>
-    );
-  }
-
   if (row.type === 'resetTutorials') {
     return <strong className="cr2-settings-current">RESET</strong>;
   }
@@ -227,7 +197,6 @@ function getRows(tabId) {
     { key: 'autosaveNoticeEnabled', label: '자동저장 알림', type: 'toggle' },
     { key: 'economyTermHintsEnabled', label: '경제 용어 힌트', type: 'toggle' },
     { key: 'strategyWarningsEnabled', label: '전략 경고 메시지', type: 'toggle' },
-    { key: 'marketingLimitMode', label: '마케팅 한도 방식', type: 'marketingLimitMode' },
   ];
 }
 

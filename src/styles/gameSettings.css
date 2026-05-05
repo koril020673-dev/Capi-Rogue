@@ -72,38 +72,6 @@
   font-size: var(--cr2-ui-font-xs);
 }
 
-.cr2-settings-choice-group {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  min-width: 0;
-}
-
-.cr2-settings-choice {
-  display: grid;
-  gap: 4px;
-  min-height: 34px;
-  border: 1px solid rgba(0, 170, 0, 0.64);
-  background: #070713;
-  color: var(--cr2-text);
-  font-family: inherit;
-  font-size: var(--cr2-ui-font-xs);
-  line-height: 1.35;
-  padding: 6px;
-}
-
-.cr2-settings-choice small {
-  color: rgba(0, 255, 65, 0.72);
-  font-family: var(--cr2-font-readable);
-  font-size: var(--cr2-ui-font-xs);
-}
-
-.cr2-settings-choice--active {
-  border-color: var(--cr2-accent);
-  color: var(--cr2-accent);
-  background: rgba(0, 255, 65, 0.08);
-}
-
 .cr2-settings-slider {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);

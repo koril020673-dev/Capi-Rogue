@@ -13,7 +13,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   sfxOn: true,
   background: true,
   screenShake: true,
-  marketingLimitMode: 'ratio',
   tutorialEnabled: true,
   autosaveNoticeEnabled: true,
   economyTermHintsEnabled: true,
@@ -82,7 +81,6 @@ export function normalizeSettings(settings = {}) {
     bgmVolume: normalizeVolume(merged.bgmVolume),
     sfxVolume: normalizeVolume(merged.sfxVolume),
     language: merged.language === 'en' ? 'en' : 'ko',
-    marketingLimitMode: merged.marketingLimitMode === 'fixed' ? 'fixed' : 'ratio',
   };
 
   normalized.tutorialEnabled = merged.tutorialEnabled ?? merged.tutorial ?? true;
