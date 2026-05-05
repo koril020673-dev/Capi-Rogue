@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
   BANK_ACTION_IDS,
   FACTORY_UPGRADE_FOCUS,
@@ -17,7 +17,6 @@ import { getMarketingLimit, getPlannedProductionCount, getQualityCostMultiplier 
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
-import FactoryUpgradeModal from './FactoryUpgradeModal';
 import Tooltip from './Tooltip';
 
 const REVEAL_DEMAND_FORECAST = false;
@@ -80,8 +79,6 @@ const TEXT = Object.freeze({
 });
 
 export default function RightPanel({ preview }) {
-  const [factoryModalFocus, setFactoryModalFocus] = useState(null);
-  const [factoryModalTierIndex, setFactoryModalTierIndex] = useState(0);
   const strategy = useGameStore((state) => state.strategy);
   const selectPriceOption = useGameStore((state) => state.selectPriceOption);
   const setSalesControl = useGameStore((state) => state.setSalesControl);
@@ -91,12 +88,15 @@ export default function RightPanel({ preview }) {
   const selectQualityOption = useGameStore((state) => state.selectQualityOption);
   const selectOperationOption = useGameStore((state) => state.selectOperationOption);
   const setFactoryUpgradeFocus = useGameStore((state) => state.setFactoryUpgradeFocus);
+  const setFactoryAction = useGameStore((state) => state.setFactoryAction);
+  const clearFactoryAction = useGameStore((state) => state.clearFactoryAction);
   const setBankAction = useGameStore((state) => state.setBankAction);
   const setOperationAmount = useGameStore((state) => state.setOperationAmount);
   const proceedAfterStrategy = useGameStore((state) => state.proceedAfterStrategy);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
   const playerState = useGameStore((state) => state.player);
   const settings = useGameStore((state) => state.settings);
+  const factoryActionThisTurn = useGameStore((state) => state.factoryActionThisTurn);
   const selectedAdvisor = getAdvisorById(selectedAdvisorId);
   const revealExtraRivalInfo = Boolean(selectedAdvisor.passive.revealExtraRivalInfo);
   const estimate = buildTurnEstimate(preview, strategy);
@@ -266,29 +266,28 @@ export default function RightPanel({ preview }) {
           ))}
         </div>
         {strategy.operationOptionId === OPERATION_STRATEGY_IDS.FACTORY_UPGRADE ? (
-          <FactoryUpgradePicker
-            capital={currentCapital}
-            costReduction={playerState.costReduction ?? 0}
-            costReductionFailStreak={costReductionFailStreak}
-            currentCost={playerState.unitCost ?? 0}
-            currentQuality={playerState.maxQuality ?? playerState.quality ?? 0}
-            factoryFailStreak={factoryFailStreak}
-            isMaxCostReduction={isMaxCostReduction}
-            isMaxQuality={isMaxQuality}
-            onOpenModal={(focus, tierIndex) => {
-              setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
-              setFactoryModalFocus(focus);
-              setFactoryModalTierIndex(tierIndex);
-            }}
-            onSkip={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE)}
-          />
-        ) : null}
-        {factoryModalFocus ? (
-          <FactoryUpgradeModal
-            focus={factoryModalFocus}
-            tierIndex={factoryModalTierIndex}
-            onClose={() => setFactoryModalFocus(null)}
-          />
+          factoryActionThisTurn ? (
+            <FactoryActionReservation
+              action={factoryActionThisTurn}
+              onCancel={clearFactoryAction}
+            />
+          ) : (
+            <FactoryUpgradePicker
+              capital={currentCapital}
+              costReduction={playerState.costReduction ?? 0}
+              costReductionFailStreak={costReductionFailStreak}
+              currentCost={playerState.unitCost ?? 0}
+              currentQuality={playerState.maxQuality ?? playerState.quality ?? 0}
+              factoryFailStreak={factoryFailStreak}
+              isMaxCostReduction={isMaxCostReduction}
+              isMaxQuality={isMaxQuality}
+              onReserve={(type, tierIndex) => {
+                setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
+                setFactoryAction({ type, tierIndex, result: null });
+              }}
+              onSkip={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE)}
+            />
+          )
         ) : null}
         {strategy.operationOptionId === OPERATION_STRATEGY_IDS.BANKING ? (
           <>
@@ -528,7 +527,7 @@ function FactoryUpgradePicker({
   factoryFailStreak,
   isMaxCostReduction,
   isMaxQuality,
-  onOpenModal,
+  onReserve,
   onSkip,
 }) {
   return (
@@ -544,7 +543,7 @@ function FactoryUpgradePicker({
         failStreak={factoryFailStreak}
         focus={FACTORY_UPGRADE_FOCUS.QUALITY}
         limitMessage="최대 품질 달성"
-        onOpenModal={onOpenModal}
+        onReserve={onReserve}
         sectionTitle={TEXT.qualityUpgrade}
         tiers={QUALITY_UPGRADE_TIERS}
         type="quality"
@@ -559,13 +558,34 @@ function FactoryUpgradePicker({
         failStreak={costReductionFailStreak}
         focus={FACTORY_UPGRADE_FOCUS.COST}
         limitMessage="최대 원가 절감 달성"
-        onOpenModal={onOpenModal}
+        onReserve={onReserve}
         sectionTitle={TEXT.costCut}
         tiers={COST_REDUCTION_TIERS}
         type="cost"
         userCapital={capital}
       />
     </div>
+  );
+}
+
+function FactoryActionReservation({ action, onCancel }) {
+  const isQuality = action.type === 'quality';
+  const tier = isQuality
+    ? QUALITY_UPGRADE_TIERS[action.tierIndex] ?? QUALITY_UPGRADE_TIERS[0]
+    : COST_REDUCTION_TIERS[action.tierIndex] ?? COST_REDUCTION_TIERS[0];
+
+  return (
+    <section className="cr2-factory-reservation-card">
+      <strong>이번 달 공장 작업 예약됨</strong>
+      <span>{isQuality ? TEXT.qualityUpgrade : TEXT.costCut} · {formatWon(tier.cost)}</span>
+      <span>
+        {isQuality
+          ? `예상 상승: +${tier.minGain} ~ +${tier.maxGain}`
+          : `예상 절감: -${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}
+      </span>
+      <span>성공 확률: {Math.round(tier.baseSuccessRate * 100)}%</span>
+      <button type="button" onClick={onCancel}>취소</button>
+    </section>
   );
 }
 
@@ -577,7 +597,7 @@ function FactoryUpgradeSection({
   failStreak,
   focus,
   limitMessage,
-  onOpenModal,
+  onReserve,
   sectionTitle,
   tiers,
   type,
@@ -609,7 +629,7 @@ function FactoryUpgradeSection({
               disabled={disabled}
               key={`${focus}-${tier.cost}`}
               type="button"
-              onClick={() => onOpenModal(focus, index)}
+              onClick={() => onReserve(type, index)}
             >
               <strong>{formatWon(tier.cost)}</strong>
               <span>{type === 'quality' ? `예상 상승: +${tier.minGain} ~ +${tier.maxGain}` : `예상 절감: -${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}</span>

@@ -130,6 +130,8 @@ export default function SettlementScreen() {
             <LedgerItem label={TEXT.nextReward} value={getRewardStatus(gameState.floor)} compact />
           </div>
 
+          <FactoryResultCard result={settlement.factoryResult} />
+
           <AdvisorReport report={report} advisor={advisor} advisorId={gameState.selectedAdvisorId} />
 
           <p className="cr2-hint-line">{result.hint}</p>
@@ -300,6 +302,41 @@ function LedgerItem({ label, value, danger = false, wide = false, compact = fals
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+function FactoryResultCard({ result }) {
+  if (!result) {
+    return null;
+  }
+
+  const isQuality = result.type === 'quality';
+  const title = isQuality ? '품질 강화' : '원가 절감';
+
+  return (
+    <section className="cr2-factory-result-card">
+      <h2>공장 작업 결과</h2>
+      <strong className={result.success ? 'cr2-profit-text' : 'cr2-loss-text'}>
+        {title} {result.success ? '성공' : '실패'}
+      </strong>
+      {result.success && isQuality ? (
+        <p>
+          {Math.round(result.beforeQuality)} → <span>{Math.round(result.afterQuality)}</span>
+          {' '}(+{Math.round(result.afterQuality - result.beforeQuality)})
+        </p>
+      ) : null}
+      {result.success && !isQuality ? (
+        <>
+          <p>
+            {formatWon(result.beforeCost)} → <span>{formatWon(result.afterCost)}</span>
+            {' '}(-{Math.round((result.afterCostReduction - result.beforeCostReduction) * 100)}%)
+          </p>
+          <p>누적 절감: {Math.round(result.afterCostReduction * 100)}% / 40%</p>
+        </>
+      ) : null}
+      {!result.success ? <p>다음 시도 성공 확률 +10%</p> : null}
+      <p className="cr2-factory-result-cost">비용: {formatWon(result.cost)} 차감</p>
+    </section>
   );
 }
 

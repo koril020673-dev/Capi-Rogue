@@ -124,6 +124,7 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
     creditScore: 70,
     factoryFailStreak: 0,
     costReductionFailStreak: 0,
+    factoryActionThisTurn: null,
     loans: Object.freeze([]),
     loanMaturityNotice: null,
     runOutcome: null,
@@ -165,6 +166,7 @@ const baseState = Object.freeze({
   creditScore: 70,
   factoryFailStreak: 0,
   costReductionFailStreak: 0,
+  factoryActionThisTurn: null,
   loans: Object.freeze([]),
   loanMaturityNotice: null,
   completedTutorials: Object.freeze([]),
@@ -356,6 +358,25 @@ export const useGameStore = create((set, get) => ({
     }));
 
     return result;
+  },
+
+  setFactoryAction(action) {
+    if (!action) {
+      set({ factoryActionThisTurn: null });
+      return;
+    }
+
+    set({
+      factoryActionThisTurn: Object.freeze({
+        type: action.type === 'cost' ? 'cost' : 'quality',
+        tierIndex: Math.max(0, Math.round(Number(action.tierIndex) || 0)),
+        result: action.result ?? null,
+      }),
+    });
+  },
+
+  clearFactoryAction() {
+    set({ factoryActionThisTurn: null });
   },
 
   repayMaturedLoan(loanId) {
@@ -821,6 +842,12 @@ function settleCurrentMonth(set, get, internalOutcome) {
     creditScore: Math.max(0, Math.min(100, (state.creditScore ?? 70) + (settlement.creditScoreDelta ?? 0))),
     factoryFailStreak: settlement.factoryFailStreak ?? state.factoryFailStreak,
     costReductionFailStreak: settlement.costReductionFailStreak ?? state.costReductionFailStreak,
+    factoryActionThisTurn: settlement.factoryResult
+      ? Object.freeze({
+          ...(state.factoryActionThisTurn ?? {}),
+          result: settlement.factoryResult,
+        })
+      : state.factoryActionThisTurn,
     currentSettlement: settlement,
     currentResult: result,
     currentInternalEvent: null,
@@ -901,6 +928,7 @@ function advanceToNextFloor(set, get) {
     player: recoveredPlayer,
     rivals: activatedRivals,
     strategy: nextState.strategy,
+    factoryActionThisTurn: null,
     ...prepareFloor(nextState),
   });
 }

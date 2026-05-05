@@ -1363,6 +1363,49 @@ button:disabled {
   font-size: var(--cr2-ui-font-xs);
 }
 
+.cr2-factory-reservation-card,
+.cr2-factory-result-card {
+  display: grid;
+  gap: 7px;
+  border: 1px solid rgba(0, 170, 0, 0.72);
+  border-radius: 4px;
+  background: #0A0A0A;
+  color: var(--cr2-text);
+  font-size: var(--cr2-ui-font-xs);
+  line-height: 1.45;
+  padding: 10px;
+}
+
+.cr2-factory-reservation-card strong,
+.cr2-factory-result-card h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 400;
+}
+
+.cr2-factory-reservation-card button {
+  justify-self: start;
+  border: 1px solid var(--cr2-danger);
+  background: #070713;
+  color: var(--cr2-danger);
+  font-family: inherit;
+  font-size: var(--cr2-ui-font-xs);
+  padding: 6px 10px;
+}
+
+.cr2-factory-result-card p {
+  margin: 0;
+}
+
+.cr2-factory-result-card p span {
+  color: var(--cr2-accent);
+}
+
+.cr2-factory-result-cost {
+  color: var(--cr2-danger);
+}
+
 .cr2-rate-high {
   color: var(--cr2-accent);
 }

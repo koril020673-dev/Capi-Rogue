@@ -126,7 +126,7 @@ export function buildMarketPreview(state, randomValue = 0.5) {
 
 export function buildOperationalMarketPreview(state, randomValue = 0.5) {
   const strategy = constrainStrategyByCapital(state, state.strategy);
-  const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue);
+  const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue, false);
   const preview = buildMarketPreview(
     Object.freeze({ ...state, player: operationResult.player, strategy }),
     randomValue,
@@ -153,7 +153,7 @@ export function getMarketingLimit(capital, marketingLimitMode = 'ratio') {
 
 export function calculateSettlement(state, internalOutcome = null, randomValue = Math.random()) {
   const strategy = constrainStrategyByCapital(state, state.strategy);
-  const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue);
+  const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue, true);
   const interestResult = processInterest(Object.freeze({
     ...state,
     player: operationResult.player,
@@ -214,6 +214,7 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     debtService,
     operationExpense: operationResult.expense,
     operationNote: operationResult.note,
+    factoryResult: operationResult.factoryResult ?? null,
     internalOutcome,
     profit,
     nextRivals: rivalWar.rivals,
@@ -232,43 +233,22 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
   });
 }
 
-function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
+function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5, processFactoryAction = false) {
   const player = applyAwarenessDecay(state.player);
 
+  if (processFactoryAction && state.factoryActionThisTurn) {
+    return applyReservedFactoryAction(state, player, randomValue);
+  }
+
   if (strategy.operationOptionId === OPERATION_STRATEGY_IDS.FACTORY_UPGRADE) {
-    const focus = strategy.factoryUpgradeFocus ?? FACTORY_UPGRADE_FOCUS.NONE;
-
-    if (focus === FACTORY_UPGRADE_FOCUS.NONE) {
-      return Object.freeze({
-        player,
-        loans: state.loans ?? [],
-        expense: 0,
-        note: '\uACF5\uC7A5 \uC791\uC5C5 \uC5C6\uC74C',
-        factoryFailStreak: state.factoryFailStreak ?? 0,
-        costReductionFailStreak: state.costReductionFailStreak ?? 0,
-      });
-    }
-
-    const upgrade = focus === FACTORY_UPGRADE_FOCUS.QUALITY
-      ? rollQualityUpgrade(player, strategy.factoryUpgradeTierIndex ?? 0, state.factoryFailStreak ?? 0, randomValue)
-      : rollCostReduction(player, strategy.costReductionTierIndex ?? 0, state.costReductionFailStreak ?? 0, randomValue);
-
     return Object.freeze({
-      player: upgrade.player,
-      expense: upgrade.cost,
+      player,
       loans: state.loans ?? [],
-      note:
-        focus === FACTORY_UPGRADE_FOCUS.QUALITY
-          ? `품질 강화 ${upgrade.success ? '성공' : '실패'}`
-          : `원가 절감 ${upgrade.success ? '성공' : '실패'}`,
-      factoryFailStreak:
-        focus === FACTORY_UPGRADE_FOCUS.QUALITY
-          ? upgrade.nextFailStreak
-          : state.factoryFailStreak ?? 0,
-      costReductionFailStreak:
-        focus === FACTORY_UPGRADE_FOCUS.COST
-          ? upgrade.nextFailStreak
-          : state.costReductionFailStreak ?? 0,
+      expense: 0,
+      note: state.factoryActionThisTurn ? '공장 작업 예약됨' : '\uACF5\uC7A5 \uC791\uC5C5 \uC5C6\uC74C',
+      factoryFailStreak: state.factoryFailStreak ?? 0,
+      costReductionFailStreak: state.costReductionFailStreak ?? 0,
+      factoryResult: null,
     });
   }
 
@@ -356,6 +336,41 @@ function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
     note: '\uC6B4\uC601 \uBCC0\uACBD \uC5C6\uC74C',
     factoryFailStreak: state.factoryFailStreak ?? 0,
     costReductionFailStreak: state.costReductionFailStreak ?? 0,
+  });
+}
+
+function applyReservedFactoryAction(state, player, randomValue) {
+  const action = state.factoryActionThisTurn;
+  const isQuality = action.type === 'quality';
+  const upgrade = isQuality
+    ? rollQualityUpgrade(player, action.tierIndex ?? 0, state.factoryFailStreak ?? 0, randomValue)
+    : rollCostReduction(player, action.tierIndex ?? 0, state.costReductionFailStreak ?? 0, randomValue);
+  const factoryResult = Object.freeze({
+    type: isQuality ? 'quality' : 'cost',
+    tierIndex: action.tierIndex ?? 0,
+    success: upgrade.success,
+    cost: upgrade.cost,
+    gain: upgrade.gain,
+    beforeQuality: player.maxQuality ?? player.quality ?? 0,
+    afterQuality: upgrade.player.maxQuality ?? upgrade.player.quality ?? player.maxQuality ?? player.quality ?? 0,
+    beforeCost: player.unitCost ?? 0,
+    afterCost: upgrade.player.unitCost ?? player.unitCost ?? 0,
+    beforeCostReduction: player.costReduction ?? 0,
+    afterCostReduction: upgrade.player.costReduction ?? player.costReduction ?? 0,
+    successRate: upgrade.successRate,
+    nextFailStreak: upgrade.nextFailStreak,
+  });
+
+  return Object.freeze({
+    player: upgrade.player,
+    loans: state.loans ?? [],
+    expense: upgrade.cost,
+    note: isQuality
+      ? `품질 강화 ${upgrade.success ? '성공' : '실패'}`
+      : `원가 절감 ${upgrade.success ? '성공' : '실패'}`,
+    factoryFailStreak: isQuality ? upgrade.nextFailStreak : state.factoryFailStreak ?? 0,
+    costReductionFailStreak: isQuality ? state.costReductionFailStreak ?? 0 : upgrade.nextFailStreak,
+    factoryResult,
   });
 }
 
