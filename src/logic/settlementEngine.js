@@ -80,7 +80,9 @@ export function buildPlayerParticipant(player, strategy, advisor, marketModifier
     awareness: player.awareness * marketModifiers.awarenessMultiplier,
     efficiency: player.efficiency,
     resistance: player.resistance,
+    capital: player.capital,
     unitCost: effectiveUnitCost,
+    orderCap: player.orderCap,
     attractionMultiplier: getAdvisorAttractionMultiplier(advisor.id),
   });
 }
@@ -168,13 +170,16 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     preview.player.demand *
       Math.max(0, 1 - (preview.marketModifiers.playerDemandPenalty ?? 0)),
   );
-  const plannedProduction = Math.floor(
-    getPlannedProductionCount(strategy, preview.totalDemand) *
+  const effectiveOrderCap = Math.floor(
+    (workingPlayer.orderCap ?? 1000) *
       getAdvisorOrderCapMultiplier(state.selectedAdvisorId) *
       preview.marketModifiers.orderCapMultiplier,
   );
-  const maxAffordableProduction = Math.floor(
-    Math.max(0, state.player.capital ?? 0) / Math.max(1, preview.player.unitCost ?? workingPlayer.unitCost ?? 1),
+  const plannedProduction = Math.floor(getPlannedProductionCount(strategy, preview.totalDemand));
+  const maxAffordableProduction = getMaxOrderAmount(
+    state.player.capital,
+    preview.player.unitCost ?? workingPlayer.unitCost,
+    effectiveOrderCap,
   );
   const validPlannedProduction = Math.min(plannedProduction, maxAffordableProduction);
   const unitsSold = Math.min(validPlannedProduction, playerDemand);
@@ -418,6 +423,34 @@ export function getPlannedProductionCount(strategy, totalDemand) {
   );
 
   return Math.ceil(totalDemand * (selectedOption?.ratio ?? 0.55));
+}
+
+export function getMaxOrderAmount(capital, cost, orderCap) {
+  let safeCost = Number(cost);
+  let safeOrderCap = Number(orderCap);
+  const safeCapital = Number(capital);
+
+  if (!safeCost || safeCost <= 0) {
+    console.warn('원가(cost)가 0 이하입니다. 기본값 3000 사용');
+    safeCost = 3000;
+  }
+
+  if (!safeCapital || safeCapital <= 0) {
+    return 0;
+  }
+
+  if (!safeOrderCap || safeOrderCap <= 0) {
+    safeOrderCap = 1000;
+  }
+
+  const capitalBased = Math.floor(safeCapital / safeCost);
+  const result = Math.min(capitalBased, safeOrderCap);
+
+  if (safeCapital >= safeCost && result <= 0) {
+    return 1;
+  }
+
+  return Math.max(result, 0);
 }
 
 export function getQualityCostMultiplier(strategy) {

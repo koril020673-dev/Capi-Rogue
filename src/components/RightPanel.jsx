@@ -13,7 +13,7 @@ import {
   STRATEGY_TABS,
 } from '../constants/strategies';
 import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getActualSuccessRate } from '../logic/factoryEngine';
-import { getMarketingLimit, getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
+import { getMarketingLimit, getMaxOrderAmount, getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
@@ -68,6 +68,7 @@ const TEXT = Object.freeze({
   maxOrder: '\uCD5C\uB300 \uBC1C\uC8FC \uAC00\uB2A5',
   capitalBased: '\uBCF4\uC720 \uC790\uBCF8 \uAE30\uC900',
   maxMarketing: '\uCD5C\uB300 \uB9C8\uCF00\uD305 \uD22C\uC790',
+  costDataError: '\uC6D0\uAC00 \uB370\uC774\uD130 \uC624\uB958 - \uC124\uC815\uC744 \uD655\uC778\uD558\uC138\uC694.',
   marketingLimitTitle: '\uB9C8\uCF00\uD305 \uD22C\uC790 \uD55C\uB3C4',
   marketingLimitMode: '\uD604\uC7AC \uBC29\uC2DD',
   marketingLimitCurrent: '\uD604\uC7AC \uD55C\uB3C4',
@@ -200,6 +201,7 @@ export default function RightPanel({ preview }) {
             <span className="cr2-panel-label">
               {TEXT.maxOrder}: {maxOrderAmount.toLocaleString()}개 ({TEXT.capitalBased})
             </span>
+            {maxOrderAmount === 0 && currentCapital > 0 ? <strong className="cr2-loss-text">{TEXT.costDataError}</strong> : null}
             {isOrderOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
           </>
         ) : null}
@@ -209,6 +211,7 @@ export default function RightPanel({ preview }) {
             <span className="cr2-panel-label">
               {TEXT.maxOrder}: {maxOrderAmount.toLocaleString()}개 ({TEXT.capitalBased})
             </span>
+            {maxOrderAmount === 0 && currentCapital > 0 ? <strong className="cr2-loss-text">{TEXT.costDataError}</strong> : null}
             {isOrderOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
           </>
         ) : null}
@@ -717,10 +720,11 @@ function getQualityOptionUnitCost(preview, strategy, qualityOptionId) {
 }
 
 function getMaxAffordableOrder(preview) {
-  const capital = Math.max(0, preview.player.capital ?? 0);
-  const unitCost = Math.max(1, preview.player.unitCost ?? preview.playerAfterOperation?.unitCost ?? 1);
+  const capital = preview.player.capital ?? 0;
+  const unitCost = preview.player.unitCost ?? preview.playerAfterOperation?.unitCost ?? 3000;
+  const orderCap = preview.player.orderCap ?? preview.playerAfterOperation?.orderCap ?? 1000;
 
-  return Math.floor(capital / unitCost);
+  return getMaxOrderAmount(capital, unitCost, orderCap);
 }
 
 function clampNumber(value, min, max) {
