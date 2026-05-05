@@ -22,8 +22,8 @@ import { calculateDemandSplit } from './marketEngine';
 import { getMomentumDemandModifier } from './momentumEngine';
 import { checkLoanMaturity, processInterest, takeLoan, tickLoans } from './loanEngine';
 import {
-  COST_REDUCTION_TIERS,
-  QUALITY_UPGRADE_TIERS,
+  COST_REDUCTION,
+  QUALITY_UPGRADE,
   rollCostReduction,
   rollQualityUpgrade,
 } from './factoryEngine';
@@ -230,6 +230,8 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     creditScoreDelta: interestResult.creditScoreDelta,
     factoryFailStreak: operationResult.factoryFailStreak,
     costReductionFailStreak: operationResult.costReductionFailStreak,
+    qualityUpgradeCount: operationResult.qualityUpgradeCount,
+    costReductionCount: operationResult.costReductionCount,
     marketModifiers: preview.marketModifiers,
   });
 }
@@ -358,11 +360,11 @@ function applyReservedFactoryAction(state, player, randomValue) {
   const action = state.factoryActionThisTurn;
   const isQuality = action.type === 'quality';
   const upgrade = isQuality
-    ? rollQualityUpgrade(player, action.tierIndex ?? 0, state.factoryFailStreak ?? 0, randomValue)
-    : rollCostReduction(player, action.tierIndex ?? 0, state.costReductionFailStreak ?? 0, randomValue);
+    ? rollQualityUpgrade(player, state.factoryFailStreak ?? 0, state.qualityUpgradeCount ?? 0, randomValue)
+    : rollCostReduction(player, state.costReductionFailStreak ?? 0, state.costReductionCount ?? 0, randomValue);
   const factoryResult = Object.freeze({
     type: isQuality ? 'quality' : 'cost',
-    tierIndex: action.tierIndex ?? 0,
+    tierIndex: 0,
     success: upgrade.success,
     cost: upgrade.cost,
     gain: upgrade.gain,
@@ -374,6 +376,7 @@ function applyReservedFactoryAction(state, player, randomValue) {
     afterCostReduction: upgrade.player.costReduction ?? player.costReduction ?? 0,
     successRate: upgrade.successRate,
     nextFailStreak: upgrade.nextFailStreak,
+    nextUpgradeCount: upgrade.nextUpgradeCount,
   });
 
   return Object.freeze({
@@ -385,6 +388,8 @@ function applyReservedFactoryAction(state, player, randomValue) {
       : `원가 절감 ${upgrade.success ? '성공' : '실패'}`,
     factoryFailStreak: isQuality ? upgrade.nextFailStreak : state.factoryFailStreak ?? 0,
     costReductionFailStreak: isQuality ? state.costReductionFailStreak ?? 0 : upgrade.nextFailStreak,
+    qualityUpgradeCount: isQuality ? upgrade.nextUpgradeCount : state.qualityUpgradeCount ?? 0,
+    costReductionCount: isQuality ? state.costReductionCount ?? 0 : upgrade.nextUpgradeCount,
     factoryResult,
   });
 }
@@ -413,11 +418,11 @@ function constrainStrategyByCapital(state, strategy) {
 
 function getFactoryUpgradeCost(focus, strategy) {
   if (focus === FACTORY_UPGRADE_FOCUS.QUALITY) {
-    return QUALITY_UPGRADE_TIERS[strategy.factoryUpgradeTierIndex ?? 0]?.cost ?? QUALITY_UPGRADE_TIERS[0].cost;
+    return QUALITY_UPGRADE.cost;
   }
 
   if (focus === FACTORY_UPGRADE_FOCUS.COST) {
-    return COST_REDUCTION_TIERS[strategy.costReductionTierIndex ?? 0]?.cost ?? COST_REDUCTION_TIERS[0].cost;
+    return COST_REDUCTION.cost;
   }
 
   return 0;

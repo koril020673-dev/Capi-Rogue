@@ -123,6 +123,8 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
     playtime: 0,
     championUnlocked: false,
     creditScore: 70,
+    qualityUpgradeCount: 0,
+    costReductionCount: 0,
     factoryFailStreak: 0,
     costReductionFailStreak: 0,
     factoryActionThisTurn: null,
@@ -165,6 +167,8 @@ const baseState = Object.freeze({
   playtime: 0,
   championUnlocked: false,
   creditScore: 70,
+  qualityUpgradeCount: 0,
+  costReductionCount: 0,
   factoryFailStreak: 0,
   costReductionFailStreak: 0,
   factoryActionThisTurn: null,
@@ -329,8 +333,8 @@ export const useGameStore = create((set, get) => ({
     const randomValue = Math.random();
     const isQuality = focus === 'quality';
     const upgrade = isQuality
-      ? rollQualityUpgrade(player, tierIndex, state.factoryFailStreak ?? 0, randomValue)
-      : rollCostReduction(player, tierIndex, state.costReductionFailStreak ?? 0, randomValue);
+      ? rollQualityUpgrade(player, state.factoryFailStreak ?? 0, state.qualityUpgradeCount ?? 0, randomValue)
+      : rollCostReduction(player, state.costReductionFailStreak ?? 0, state.costReductionCount ?? 0, randomValue);
     const nextPlayer = Object.freeze({
       ...upgrade.player,
       capital: Math.max(0, player.capital - upgrade.cost),
@@ -352,6 +356,8 @@ export const useGameStore = create((set, get) => ({
       player: nextPlayer,
       factoryFailStreak: isQuality ? upgrade.nextFailStreak : current.factoryFailStreak,
       costReductionFailStreak: isQuality ? current.costReductionFailStreak : upgrade.nextFailStreak,
+      qualityUpgradeCount: isQuality ? upgrade.nextUpgradeCount : current.qualityUpgradeCount,
+      costReductionCount: isQuality ? current.costReductionCount : upgrade.nextUpgradeCount,
       strategy: Object.freeze({
         ...current.strategy,
         factoryUpgradeFocus: 'none',
@@ -868,6 +874,8 @@ function settleCurrentMonth(set, get, internalOutcome) {
     creditScore: Math.max(0, Math.min(100, (state.creditScore ?? 70) + (settlement.creditScoreDelta ?? 0))),
     factoryFailStreak: settlement.factoryFailStreak ?? state.factoryFailStreak,
     costReductionFailStreak: settlement.costReductionFailStreak ?? state.costReductionFailStreak,
+    qualityUpgradeCount: settlement.qualityUpgradeCount ?? state.qualityUpgradeCount,
+    costReductionCount: settlement.costReductionCount ?? state.costReductionCount,
     factoryActionThisTurn: settlement.factoryResult
       ? Object.freeze({
           ...(state.factoryActionThisTurn ?? {}),

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FACTORY_UPGRADE_FOCUS } from '../constants/strategies';
-import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getActualSuccessRate } from '../logic/factoryEngine';
+import { BASE_SUCCESS_RATE, COST_REDUCTION, QUALITY_UPGRADE, getSuccessRate } from '../logic/factoryEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 import successSfx from '../assets/sfx/sfx_click.wav';
@@ -26,18 +26,19 @@ const TEXT = Object.freeze({
   nextBonus: '다음 시도 성공 확률 +10%',
 });
 
-export default function FactoryUpgradeModal({ focus, tierIndex = 0, onClose }) {
+export default function FactoryUpgradeModal({ focus, onClose }) {
   const player = useGameStore((state) => state.player);
   const factoryFailStreak = useGameStore((state) => state.factoryFailStreak);
   const costReductionFailStreak = useGameStore((state) => state.costReductionFailStreak);
+  const qualityUpgradeCount = useGameStore((state) => state.qualityUpgradeCount ?? 0);
+  const costReductionCount = useGameStore((state) => state.costReductionCount ?? 0);
   const attemptFactoryUpgrade = useGameStore((state) => state.attemptFactoryUpgrade);
   const [result, setResult] = useState(null);
   const isQuality = focus === FACTORY_UPGRADE_FOCUS.QUALITY;
-  const tier = isQuality
-    ? QUALITY_UPGRADE_TIERS[tierIndex] ?? QUALITY_UPGRADE_TIERS[0]
-    : COST_REDUCTION_TIERS[tierIndex] ?? COST_REDUCTION_TIERS[0];
+  const option = isQuality ? QUALITY_UPGRADE : COST_REDUCTION;
   const failStreak = isQuality ? factoryFailStreak : costReductionFailStreak;
-  const successRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
+  const upgradeCount = isQuality ? qualityUpgradeCount : costReductionCount;
+  const successRate = getSuccessRate(BASE_SUCCESS_RATE, upgradeCount, failStreak);
   const modalClass = [
     'cr2-factory-modal',
     result?.success ? 'cr2-factory-modal--success' : '',
@@ -53,7 +54,7 @@ export default function FactoryUpgradeModal({ focus, tierIndex = 0, onClose }) {
   );
 
   function attempt() {
-    const nextResult = attemptFactoryUpgrade(focus, tierIndex);
+    const nextResult = attemptFactoryUpgrade(isQuality ? 'quality' : 'cost');
 
     setResult(nextResult);
     playAudio(nextResult.success ? audio.success : audio.fail);
@@ -72,11 +73,11 @@ export default function FactoryUpgradeModal({ focus, tierIndex = 0, onClose }) {
                 label={isQuality ? TEXT.currentQuality : TEXT.currentCost}
                 value={isQuality ? Math.round(player.maxQuality ?? player.quality ?? 0) : `${formatWon(player.unitCost)}/개`}
               />
-              <FactoryRow label={TEXT.investment} value={formatWon(tier.cost)} />
-              <FactoryRow label={TEXT.successRate} value={formatRateChange(tier.baseSuccessRate, successRate, failStreak)} />
+              <FactoryRow label={TEXT.investment} value={formatWon(option.cost)} />
+              <FactoryRow label={TEXT.successRate} value={`${Math.round(successRate * 100)}%`} />
               <FactoryRow
                 label={isQuality ? TEXT.expectedGain : TEXT.expectedCut}
-                value={isQuality ? `+${tier.minGain} ~ +${tier.maxGain}` : `-${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}
+                value={isQuality ? `+${option.minGain} ~ +${option.maxGain}` : `-${Math.round(option.minGain * 100)}% ~ -${Math.round(option.maxGain * 100)}%`}
               />
             </div>
             <footer>
@@ -125,17 +126,6 @@ function FactoryRow({ label, value }) {
       <strong>{value}</strong>
     </div>
   );
-}
-
-function formatRateChange(baseRate, currentRate, failStreak) {
-  const basePercent = Math.round(baseRate * 100);
-  const currentPercent = Math.round(currentRate * 100);
-
-  if (failStreak <= 0 || basePercent === currentPercent) {
-    return `${basePercent}%`;
-  }
-
-  return `${basePercent}% → 현재 ${currentPercent}%`;
 }
 
 function createAudio(src) {

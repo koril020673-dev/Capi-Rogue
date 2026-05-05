@@ -12,7 +12,7 @@ import {
   SALES_QUANTITY_OPTIONS,
   STRATEGY_TABS,
 } from '../constants/strategies';
-import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getActualSuccessRate } from '../logic/factoryEngine';
+import { BASE_SUCCESS_RATE, COST_REDUCTION, QUALITY_UPGRADE, getSuccessRate } from '../logic/factoryEngine';
 import { getMarketingLimit, getMaxOrderAmount, getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
@@ -102,6 +102,8 @@ export default function RightPanel({ preview }) {
   const currentDebt = Math.max(0, playerState.debt ?? 0);
   const factoryFailStreak = useGameStore((state) => state.factoryFailStreak);
   const costReductionFailStreak = useGameStore((state) => state.costReductionFailStreak);
+  const qualityUpgradeCount = useGameStore((state) => state.qualityUpgradeCount ?? 0);
+  const costReductionCount = useGameStore((state) => state.costReductionCount ?? 0);
   const maxOrderAmount = getMaxAffordableOrder(preview);
   const currentPlannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const isOrderOverCapital = currentPlannedProduction > maxOrderAmount;
@@ -270,14 +272,16 @@ export default function RightPanel({ preview }) {
               capital={currentCapital}
               costReduction={playerState.costReduction ?? 0}
               costReductionFailStreak={costReductionFailStreak}
+              costReductionCount={costReductionCount}
               currentCost={playerState.unitCost ?? 0}
               currentQuality={playerState.maxQuality ?? playerState.quality ?? 0}
               factoryFailStreak={factoryFailStreak}
               isMaxCostReduction={isMaxCostReduction}
               isMaxQuality={isMaxQuality}
-              onReserve={(type, tierIndex) => {
+              qualityUpgradeCount={qualityUpgradeCount}
+              onReserve={(type) => {
                 setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
-                setFactoryAction({ type, tierIndex, result: null });
+                setFactoryAction({ type, tierIndex: 0, result: null });
               }}
               onSkip={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE)}
             />
@@ -514,149 +518,117 @@ function MarketingLimitReadout({ capital, limit }) {
 function FactoryUpgradePicker({
   capital,
   costReduction,
+  costReductionCount,
   costReductionFailStreak,
   currentCost,
   currentQuality,
   factoryFailStreak,
   isMaxCostReduction,
   isMaxQuality,
+  qualityUpgradeCount,
   onReserve,
   onSkip,
 }) {
+  const qualityRate = getSuccessRate(BASE_SUCCESS_RATE, qualityUpgradeCount, factoryFailStreak);
+  const costRate = getSuccessRate(BASE_SUCCESS_RATE, costReductionCount, costReductionFailStreak);
+
   return (
     <div className="cr2-factory-upgrade-picker">
+      <section className="cr2-factory-upgrade-section">
+        <header>
+          <strong>공장 관리</strong>
+          <span>현재 품질: {Math.round(currentQuality)} / 100</span>
+          <span>현재 원가: {formatWon(currentCost)}/개</span>
+          <span>누적 원가 절감: {Math.round(costReduction * 100)}% / 40%</span>
+        </header>
+        <div className="cr2-factory-tier-grid cr2-factory-tier-grid--single">
+          <FactorySingleButton
+            disabled={isMaxQuality || QUALITY_UPGRADE.cost > capital}
+            failStreak={factoryFailStreak}
+            limitMessage={isMaxQuality ? '최대 품질 달성' : TEXT.capitalShort}
+            option={QUALITY_UPGRADE}
+            rate={qualityRate}
+            title={TEXT.qualityUpgrade}
+            type="quality"
+            onReserve={onReserve}
+          />
+          <FactorySingleButton
+            disabled={isMaxCostReduction || COST_REDUCTION.cost > capital}
+            failStreak={costReductionFailStreak}
+            limitMessage={isMaxCostReduction ? '최대 원가 절감 달성' : TEXT.capitalShort}
+            option={COST_REDUCTION}
+            rate={costRate}
+            title={TEXT.costCut}
+            type="cost"
+            onReserve={onReserve}
+          />
+        </div>
+      </section>
       <button className="cr2-factory-skip-button" type="button" onClick={onSkip}>
         {TEXT.skip}
       </button>
-
-      <FactoryUpgradeSection
-        currentLabel="현재 품질"
-        currentValue={`${Math.round(currentQuality)}`}
-        disabledAll={isMaxQuality}
-        failStreak={factoryFailStreak}
-        focus={FACTORY_UPGRADE_FOCUS.QUALITY}
-        limitMessage="최대 품질 달성"
-        onReserve={onReserve}
-        sectionTitle={TEXT.qualityUpgrade}
-        tiers={QUALITY_UPGRADE_TIERS}
-        type="quality"
-        userCapital={capital}
-      />
-
-      <FactoryUpgradeSection
-        currentLabel="현재 원가"
-        currentValue={`${formatWon(currentCost)}/개`}
-        disabledAll={isMaxCostReduction}
-        extraLine={`누적 절감: ${Math.round(costReduction * 100)}% (최대 40%)`}
-        failStreak={costReductionFailStreak}
-        focus={FACTORY_UPGRADE_FOCUS.COST}
-        limitMessage="최대 원가 절감 달성"
-        onReserve={onReserve}
-        sectionTitle={TEXT.costCut}
-        tiers={COST_REDUCTION_TIERS}
-        type="cost"
-        userCapital={capital}
-      />
     </div>
   );
 }
 
 function FactoryActionReservation({ action, onCancel }) {
   const isQuality = action.type === 'quality';
-  const tier = isQuality
-    ? QUALITY_UPGRADE_TIERS[action.tierIndex] ?? QUALITY_UPGRADE_TIERS[0]
-    : COST_REDUCTION_TIERS[action.tierIndex] ?? COST_REDUCTION_TIERS[0];
+  const option = isQuality ? QUALITY_UPGRADE : COST_REDUCTION;
 
   return (
     <section className="cr2-factory-reservation-card">
       <strong>이번 달 공장 작업 예약됨</strong>
-      <span>{isQuality ? TEXT.qualityUpgrade : TEXT.costCut} · {formatWon(tier.cost)}</span>
+      <span>{isQuality ? TEXT.qualityUpgrade : TEXT.costCut} · {formatWon(option.cost)}</span>
       <span>
         {isQuality
-          ? `예상 상승: +${tier.minGain} ~ +${tier.maxGain}`
-          : `예상 절감: -${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}
+          ? `예상 상승: +${option.minGain} ~ +${option.maxGain}`
+          : `예상 절감: -${Math.round(option.minGain * 100)}% ~ -${Math.round(option.maxGain * 100)}%`}
       </span>
-      <span>성공 확률: {Math.round(tier.baseSuccessRate * 100)}%</span>
       <button type="button" onClick={onCancel}>취소</button>
     </section>
   );
 }
 
-function FactoryUpgradeSection({
-  currentLabel,
-  currentValue,
-  disabledAll,
-  extraLine = null,
+function FactorySingleButton({
+  disabled,
   failStreak,
-  focus,
   limitMessage,
+  option,
   onReserve,
-  sectionTitle,
-  tiers,
+  rate,
+  title,
   type,
-  userCapital,
 }) {
   const failBonus = failStreak * 10;
 
   return (
-    <section className="cr2-factory-upgrade-section">
-      <header>
-        <strong>{sectionTitle}</strong>
-        <span>{currentLabel}: {currentValue}</span>
-        {extraLine ? <span>{extraLine}</span> : null}
-        <span>
-          연속 실패: <b className={failStreak > 0 ? 'cr2-loss-text' : undefined}>{failStreak}회</b>
-          {failStreak > 0 ? ` (다음 시도 +${failBonus}%)` : ''}
-        </span>
-        {disabledAll ? <em>{limitMessage}</em> : null}
-      </header>
-      <div className="cr2-factory-tier-grid">
-        {tiers.map((tier, index) => {
-          const currentRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
-          const lacksCapital = tier.cost > userCapital;
-          const disabled = disabledAll || lacksCapital;
-
-          return (
-            <button
-              className="cr2-factory-tier-button"
-              disabled={disabled}
-              key={`${focus}-${tier.cost}`}
-              type="button"
-              onClick={() => onReserve(type, index)}
-            >
-              <strong>{formatWon(tier.cost)}</strong>
-              <span>{type === 'quality' ? `예상 상승: +${tier.minGain} ~ +${tier.maxGain}` : `예상 절감: -${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}</span>
-              <span className={getRateClassName(currentRate)}>
-                성공 확률: {formatRateText(tier.baseSuccessRate, currentRate, failStreak)}
-              </span>
-              {currentRate >= 0.95 ? <small className="cr2-profit-text">최대 확률 도달</small> : null}
-              {lacksCapital ? <small className="cr2-loss-text">{TEXT.capitalShort}</small> : null}
-              {disabledAll ? <small className="cr2-profit-text">{limitMessage}</small> : null}
-            </button>
-          );
-        })}
-      </div>
-    </section>
+    <button
+      className="cr2-factory-tier-button"
+      disabled={disabled}
+      type="button"
+      onClick={() => onReserve(type)}
+    >
+      <strong>{title}</strong>
+      <span>비용: {formatWon(option.cost)}</span>
+      <span>
+        {type === 'quality'
+          ? `예상: +${option.minGain} ~ +${option.maxGain}`
+          : `예상: -${Math.round(option.minGain * 100)}% ~ -${Math.round(option.maxGain * 100)}%`}
+      </span>
+      <span className={getRateClassName(rate)}>성공 확률: {Math.round(rate * 100)}%</span>
+      {failStreak > 0 ? <small className="cr2-profit-text">연속 실패 {failStreak}회 +{failBonus}% 보정</small> : null}
+      {rate >= 0.95 ? <small className="cr2-profit-text">최대 확률 도달</small> : null}
+      {disabled ? <small className="cr2-loss-text">{limitMessage}</small> : null}
+    </button>
   );
 }
 
-function formatRateText(baseRate, currentRate, failStreak) {
-  const basePercent = Math.round(baseRate * 100);
-  const currentPercent = Math.round(currentRate * 100);
-
-  if (failStreak <= 0 || basePercent === currentPercent) {
-    return `${basePercent}%`;
-  }
-
-  return `${basePercent}% → 현재 ${currentPercent}%`;
-}
-
 function getRateClassName(rate) {
-  if (rate >= 0.8) {
+  if (rate >= 0.7) {
     return 'cr2-rate-high';
   }
 
-  if (rate >= 0.5) {
+  if (rate >= 0.4) {
     return 'cr2-rate-mid';
   }
 
