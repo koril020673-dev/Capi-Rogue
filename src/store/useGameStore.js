@@ -228,6 +228,18 @@ export const useGameStore = create((set, get) => ({
     set({ playerId: id ?? null });
   },
 
+  setAuthenticatedSession(user) {
+    set({
+      playerId: user?.id ?? null,
+      session: Object.freeze({ mode: user?.id ? 'account' : 'guest', userId: user?.username ?? '' }),
+      screen: user?.id ? SCREEN_IDS.TITLE : SCREEN_IDS.LOGIN,
+    });
+  },
+
+  setCurrentScreen(screen) {
+    set({ screen });
+  },
+
   setCurrentSlot(slotNumber) {
     const parsedSlotNumber = Math.round(Number(slotNumber) || 1);
 

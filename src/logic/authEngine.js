@@ -1,6 +1,6 @@
 import { supabase, supabaseConfigError } from '../lib/supabase';
 
-const SESSION_KEY = 'capirogue-player-session-v1';
+const AUTH_KEY = 'cr2_auth';
 const ACCOUNTS_TABLE = 'player_accounts';
 
 function createError(message, code) {
@@ -36,34 +36,54 @@ function toPublicUser(row) {
   };
 }
 
-function saveSession(user) {
-  if (typeof window === 'undefined' || !user) {
+export function saveAuthToken(username, userId) {
+  if (typeof window === 'undefined' || !username || !userId) {
     return;
   }
 
-  window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  try {
+    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 7;
+
+    window.localStorage.setItem(AUTH_KEY, JSON.stringify({
+      username,
+      userId,
+      expiresAt,
+    }));
+  } catch {
+    console.error('자동 로그인 토큰 저장 실패');
+  }
 }
 
-function loadSession() {
+export function loadAuthToken() {
   if (typeof window === 'undefined') {
     return null;
   }
 
   try {
-    const rawSession = window.localStorage.getItem(SESSION_KEY);
+    const rawSession = window.localStorage.getItem(AUTH_KEY);
+    const parsed = rawSession ? JSON.parse(rawSession) : null;
 
-    return rawSession ? JSON.parse(rawSession) : null;
+    if (!parsed) {
+      return null;
+    }
+
+    if (Date.now() > parsed.expiresAt) {
+      clearAuthToken();
+      return null;
+    }
+
+    return parsed;
   } catch {
     return null;
   }
 }
 
-function clearSession() {
+export function clearAuthToken() {
   if (typeof window === 'undefined') {
     return;
   }
 
-  window.localStorage.removeItem(SESSION_KEY);
+  window.localStorage.removeItem(AUTH_KEY);
 }
 
 async function hashPassword(username, password) {
@@ -134,8 +154,6 @@ export async function signUp(username, password) {
     }
 
     const user = toPublicUser(data);
-    saveSession(user);
-    await hydratePlayerSession(user);
 
     return {
       user,
@@ -149,7 +167,7 @@ export async function signUp(username, password) {
   }
 }
 
-export async function signIn(username, password) {
+export async function signIn(username, password, options = {}) {
   if (!supabase) {
     return missingClientResult();
   }
@@ -194,7 +212,11 @@ export async function signIn(username, password) {
     }
 
     const user = toPublicUser(data);
-    saveSession(user);
+
+    if (options.remember !== false) {
+      saveAuthToken(user.username, user.id);
+    }
+
     await hydratePlayerSession(user);
 
     return {
@@ -210,14 +232,55 @@ export async function signIn(username, password) {
 }
 
 export async function signOut() {
-  clearSession();
+  clearAuthToken();
   await clearPlayerSession();
 
   return { error: null };
 }
 
 export async function getUser() {
-  return loadSession();
+  const token = loadAuthToken();
+
+  if (!token) {
+    return null;
+  }
+
+  return {
+    id: token.userId,
+    username: token.username,
+    displayName: token.username,
+  };
+}
+
+export async function tryAutoLogin() {
+  const token = loadAuthToken();
+
+  if (!token || !supabase) {
+    if (!supabase) {
+      clearAuthToken();
+    }
+
+    return false;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from(ACCOUNTS_TABLE)
+      .select('id, username, display_name')
+      .eq('id', token.userId)
+      .single();
+
+    if (error || !data) {
+      clearAuthToken();
+      return false;
+    }
+
+    await hydratePlayerSession(toPublicUser(data));
+    return true;
+  } catch {
+    clearAuthToken();
+    return false;
+  }
 }
 
 async function hydratePlayerSession(user) {
@@ -225,6 +288,7 @@ async function hydratePlayerSession(user) {
     const { useGameStore } = await import('../store/useGameStore');
 
     useGameStore.getState().setPlayerId(user?.id ?? null);
+    useGameStore.getState().setAuthenticatedSession?.(user);
 
     if (user?.id) {
       const { getAllSlots } = await import('./saveEngine');

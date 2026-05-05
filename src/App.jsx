@@ -17,6 +17,8 @@ import TitleScreen from './screens/TitleScreen';
 import { SCREEN_IDS, useGameStore } from './store/useGameStore';
 import { getAdvisorThemeColor } from './logic/advisorEngine';
 import { getGameSettings } from './logic/audioEngine';
+import { tryAutoLogin } from './logic/authEngine';
+import { loadSettings } from './logic/settingsEngine';
 import { installViewportGuard } from './logic/viewportGuard';
 
 export default function App() {
@@ -26,6 +28,8 @@ export default function App() {
   const setPaused = useGameStore((state) => state.setPaused);
   const incrementPlaytime = useGameStore((state) => state.incrementPlaytime);
   const setTutorialEnabled = useGameStore((state) => state.setTutorialEnabled);
+  const setStoreSettings = useGameStore((state) => state.setSettings);
+  const setCurrentScreen = useGameStore((state) => state.setCurrentScreen);
   const [settings, setSettings] = useState(() => getGameSettings());
   const themeColor = getAdvisorThemeColor(selectedAdvisorId);
   const pauseEnabled = isPauseEnabled(screen);
@@ -33,6 +37,18 @@ export default function App() {
   useEffect(() => {
     return installViewportGuard();
   }, []);
+
+  useEffect(() => {
+    const initialSettings = loadSettings();
+
+    setSettings(initialSettings);
+    setStoreSettings(initialSettings);
+    setTutorialEnabled(initialSettings.tutorialEnabled);
+
+    tryAutoLogin().then((success) => {
+      setCurrentScreen(success ? SCREEN_IDS.TITLE : SCREEN_IDS.LOGIN);
+    });
+  }, [setCurrentScreen, setStoreSettings, setTutorialEnabled]);
 
   useEffect(() => {
     function handleKeyDown(event) {

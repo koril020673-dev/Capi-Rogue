@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { signIn, signUp } from '../logic/authEngine';
-import { useGameStore } from '../store/useGameStore';
+import { useEffect, useState } from 'react';
+import { signIn, signUp, tryAutoLogin } from '../logic/authEngine';
+import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import logoImage from '../assets/optimized/logo/logo_image.png';
 
 const TEXT = Object.freeze({
@@ -19,6 +19,8 @@ const TEXT = Object.freeze({
   tooManyRequests: '\uB85C\uADF8\uC778 \uC2DC\uB3C4\uAC00 \uB108\uBB34 \uB9CE\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.',
   existingAccount: '\uC774\uBBF8\uC788\uB294 \uC544\uC774\uB514\uC785\uB2C8\uB2E4',
   signupSuccess: '\uC131\uACF5\uC801\uC73C\uB85C \uC544\uC774\uB514 \uC0DD\uC131\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4',
+  rememberLogin: '\uC790\uB3D9 \uB85C\uADF8\uC778',
+  checkingLogin: '\uB85C\uADF8\uC778 \uC815\uBCF4 \uD655\uC778 \uC911...',
   weakPassword: '\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
   authNotReady: 'Supabase \uC124\uC815\uC774 \uC5C6\uC5B4 \uACC4\uC815 \uAE30\uB2A5\uC744 \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.',
   invalidSupabaseUrl: 'Supabase URL\uC740 https://\uD504\uB85C\uC81D\uD2B8.supabase.co \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574\uC57C \uD569\uB2C8\uB2E4.',
@@ -129,12 +131,40 @@ export default function LoginScreen() {
   const setLoginField = useGameStore((state) => state.setLoginField);
   const submitLogin = useGameStore((state) => state.submitLogin);
   const enterGuestMode = useGameStore((state) => state.enterGuestMode);
+  const setCurrentScreen = useGameStore((state) => state.setCurrentScreen);
   const [message, setMessage] = useState('');
   const [signupOpen, setSignupOpen] = useState(false);
   const [signupId, setSignupId] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupError, setSignupError] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const [rememberLogin, setRememberLogin] = useState(true);
+  const [isCheckingAutoLogin, setIsCheckingAutoLogin] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function checkAutoLogin() {
+      const success = await tryAutoLogin();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (success) {
+        setCurrentScreen(SCREEN_IDS.TITLE);
+        return;
+      }
+
+      setIsCheckingAutoLogin(false);
+    }
+
+    checkAutoLogin();
+
+    return () => {
+      mounted = false;
+    };
+  }, [setCurrentScreen]);
 
   async function handleLogin() {
     setMessage('');
@@ -145,7 +175,7 @@ export default function LoginScreen() {
     }
 
     setIsBusy(true);
-    const { user, error } = await signIn(loginForm.userId, loginForm.password);
+    const { user, error } = await signIn(loginForm.userId, loginForm.password, { remember: rememberLogin });
     setIsBusy(false);
 
     if (error || !user) {
@@ -221,15 +251,24 @@ export default function LoginScreen() {
           />
           <small className="cr2-field-help">{TEXT.passwordHelp}</small>
         </label>
+        {isCheckingAutoLogin ? <p className="cr2-login-message">{TEXT.checkingLogin}</p> : null}
+        <label className="cr2-login-remember">
+          <input
+            checked={rememberLogin}
+            type="checkbox"
+            onChange={(event) => setRememberLogin(event.target.checked)}
+          />
+          <span>{TEXT.rememberLogin}</span>
+        </label>
         {message ? <p className="cr2-login-message">{message}</p> : null}
         <div className="cr2-button-row cr2-login-actions">
-          <button className="cr2-primary-button" type="button" onClick={handleLogin} disabled={isBusy}>
+          <button className="cr2-primary-button" type="button" onClick={handleLogin} disabled={isBusy || isCheckingAutoLogin}>
             {TEXT.login}
           </button>
-          <button className="cr2-secondary-button" type="button" onClick={enterGuestMode} disabled={isBusy}>
+          <button className="cr2-secondary-button" type="button" onClick={enterGuestMode} disabled={isBusy || isCheckingAutoLogin}>
             {TEXT.guest}
           </button>
-          <button className="cr2-secondary-button" type="button" onClick={openSignup} disabled={isBusy}>
+          <button className="cr2-secondary-button" type="button" onClick={openSignup} disabled={isBusy || isCheckingAutoLogin}>
             {TEXT.signup}
           </button>
         </div>
