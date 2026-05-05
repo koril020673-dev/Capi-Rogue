@@ -598,7 +598,7 @@ export const useGameStore = create((set, get) => ({
     set((state) => ({
       strategy: Object.freeze({
         ...state.strategy,
-        [field]: Number(value),
+        [field]: value === '' ? '' : value,
       }),
     }));
   },

@@ -345,11 +345,12 @@ export default function RightPanel({ preview }) {
               min="0"
               type="number"
               value={strategy.marketingSpend}
-              onChange={(event) => {
+              onBlur={(event) => {
                 const nextValue = clampNumber(event.target.value, 0, maxMarketingSpend);
 
                 setOperationAmount('marketingSpend', nextValue);
               }}
+              onChange={(event) => setOperationAmount('marketingSpend', event.target.value)}
             />
             <span className="cr2-panel-label">
               {TEXT.maxMarketing}: {formatWon(maxMarketingSpend)} ({TEXT.capitalBased})
