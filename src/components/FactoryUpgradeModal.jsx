@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FACTORY_UPGRADE_FOCUS } from '../constants/strategies';
-import {
-  COST_REDUCTION_TIERS,
-  QUALITY_UPGRADE_TIERS,
-  getActualSuccessRate,
-  getFactoryFailBonus,
-} from '../logic/factoryEngine';
+import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getActualSuccessRate } from '../logic/factoryEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 import successSfx from '../assets/sfx/sfx_click.wav';
@@ -31,15 +26,16 @@ const TEXT = Object.freeze({
   nextBonus: '다음 시도 성공 확률 +10%',
 });
 
-export default function FactoryUpgradeModal({ focus, onClose }) {
+export default function FactoryUpgradeModal({ focus, tierIndex = 0, onClose }) {
   const player = useGameStore((state) => state.player);
   const factoryFailStreak = useGameStore((state) => state.factoryFailStreak);
   const costReductionFailStreak = useGameStore((state) => state.costReductionFailStreak);
   const attemptFactoryUpgrade = useGameStore((state) => state.attemptFactoryUpgrade);
   const [result, setResult] = useState(null);
   const isQuality = focus === FACTORY_UPGRADE_FOCUS.QUALITY;
-  const tierIndex = 0;
-  const tier = isQuality ? QUALITY_UPGRADE_TIERS[tierIndex] : COST_REDUCTION_TIERS[tierIndex];
+  const tier = isQuality
+    ? QUALITY_UPGRADE_TIERS[tierIndex] ?? QUALITY_UPGRADE_TIERS[0]
+    : COST_REDUCTION_TIERS[tierIndex] ?? COST_REDUCTION_TIERS[0];
   const failStreak = isQuality ? factoryFailStreak : costReductionFailStreak;
   const successRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
   const modalClass = [
@@ -72,12 +68,15 @@ export default function FactoryUpgradeModal({ focus, onClose }) {
               <h2>{title}</h2>
             </header>
             <div className="cr2-factory-readout-list">
-              <FactoryRow label={isQuality ? TEXT.currentQuality : TEXT.currentCost} value={isQuality ? Math.round(player.maxQuality ?? player.quality ?? 0) : formatWon(player.unitCost)} />
+              <FactoryRow
+                label={isQuality ? TEXT.currentQuality : TEXT.currentCost}
+                value={isQuality ? Math.round(player.maxQuality ?? player.quality ?? 0) : `${formatWon(player.unitCost)}/개`}
+              />
               <FactoryRow label={TEXT.investment} value={formatWon(tier.cost)} />
-              <FactoryRow label={TEXT.successRate} value={`${Math.round(successRate * 100)}% (+${Math.round(getFactoryFailBonus(failStreak) * 100)}% 연속실패)`} />
+              <FactoryRow label={TEXT.successRate} value={formatRateChange(tier.baseSuccessRate, successRate, failStreak)} />
               <FactoryRow
                 label={isQuality ? TEXT.expectedGain : TEXT.expectedCut}
-                value={isQuality ? `+${tier.minGain} ~ +${tier.maxGain}` : `${Math.round(tier.minGain * 100)}% ~ ${Math.round(tier.maxGain * 100)}%`}
+                value={isQuality ? `+${tier.minGain} ~ +${tier.maxGain}` : `-${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}
               />
             </div>
             <footer>
@@ -126,6 +125,17 @@ function FactoryRow({ label, value }) {
       <strong>{value}</strong>
     </div>
   );
+}
+
+function formatRateChange(baseRate, currentRate, failStreak) {
+  const basePercent = Math.round(baseRate * 100);
+  const currentPercent = Math.round(currentRate * 100);
+
+  if (failStreak <= 0 || basePercent === currentPercent) {
+    return `${basePercent}%`;
+  }
+
+  return `${basePercent}% → 현재 ${currentPercent}%`;
 }
 
 function createAudio(src) {

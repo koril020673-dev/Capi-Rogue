@@ -1262,6 +1262,102 @@ button:disabled {
   font-size: var(--cr2-ui-font-xs);
 }
 
+.cr2-factory-upgrade-picker {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.cr2-factory-skip-button {
+  justify-self: start;
+  border: 1px solid rgba(0, 170, 0, 0.62);
+  background: #070713;
+  color: var(--cr2-text);
+  font-family: inherit;
+  font-size: var(--cr2-ui-font-xs);
+  padding: 6px 10px;
+}
+
+.cr2-factory-upgrade-section {
+  display: grid;
+  gap: 7px;
+  border: 1px solid rgba(0, 170, 0, 0.55);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.26);
+  padding: 8px;
+}
+
+.cr2-factory-upgrade-section header {
+  display: grid;
+  gap: 4px;
+  color: var(--cr2-text);
+  font-size: var(--cr2-ui-font-xs);
+  line-height: 1.45;
+}
+
+.cr2-factory-upgrade-section header strong {
+  color: var(--cr2-accent);
+  font-weight: 400;
+}
+
+.cr2-factory-upgrade-section header em {
+  color: var(--cr2-accent);
+  font-style: normal;
+}
+
+.cr2-factory-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cr2-factory-tier-button {
+  display: grid;
+  gap: 4px;
+  min-height: 86px;
+  border: 1px solid rgba(0, 170, 0, 0.62);
+  background: #070713;
+  color: var(--cr2-text);
+  font-family: inherit;
+  font-size: var(--cr2-ui-font-xs);
+  line-height: 1.35;
+  padding: 7px;
+  text-align: left;
+}
+
+.cr2-factory-tier-button:hover:not(:disabled),
+.cr2-factory-tier-button:focus-visible {
+  border-color: var(--cr2-accent);
+  outline: none;
+}
+
+.cr2-factory-tier-button:disabled {
+  border-color: rgba(220, 20, 60, 0.62);
+  color: rgba(0, 170, 0, 0.58);
+}
+
+.cr2-factory-tier-button strong {
+  color: var(--cr2-accent);
+  font-weight: 400;
+}
+
+.cr2-factory-tier-button small {
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-xs);
+}
+
+.cr2-rate-high {
+  color: var(--cr2-accent);
+}
+
+.cr2-rate-mid {
+  color: #FFD700;
+}
+
+.cr2-rate-low {
+  color: var(--cr2-danger);
+}
+
 .cr2-rival-info-card {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

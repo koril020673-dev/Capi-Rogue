@@ -81,6 +81,7 @@ const TEXT = Object.freeze({
 
 export default function RightPanel({ preview }) {
   const [factoryModalFocus, setFactoryModalFocus] = useState(null);
+  const [factoryModalTierIndex, setFactoryModalTierIndex] = useState(0);
   const strategy = useGameStore((state) => state.strategy);
   const selectPriceOption = useGameStore((state) => state.selectPriceOption);
   const setSalesControl = useGameStore((state) => state.setSalesControl);
@@ -111,10 +112,8 @@ export default function RightPanel({ preview }) {
   const isMarketingOverCapital = (Number(strategy.marketingSpend) || 0) > maxMarketingSpend;
   const isRepayOverCapital = (Number(strategy.bankRepayAmount) || 0) > currentCapital;
   const canRepayDebt = currentDebt > 0 && currentCapital > 0;
-  const qualityUpgradeCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.QUALITY, strategy);
-  const costReductionCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.COST, strategy);
-  const canQualityUpgrade = qualityUpgradeCost <= currentCapital;
-  const canCostReduction = costReductionCost <= currentCapital;
+  const isMaxQuality = (playerState.maxQuality ?? playerState.quality ?? 0) >= 100;
+  const isMaxCostReduction = (playerState.costReduction ?? 0) >= 0.4;
 
   useEffect(() => {
     const currentMarketingSpend = Number(strategy.marketingSpend) || 0;
@@ -267,43 +266,27 @@ export default function RightPanel({ preview }) {
           ))}
         </div>
         {strategy.operationOptionId === OPERATION_STRATEGY_IDS.FACTORY_UPGRADE ? (
-          <div className="cr2-segmented cr2-segmented--three">
-            <button
-              className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.NONE ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
-              type="button"
-              onClick={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE)}
-            >
-              {TEXT.skip}
-            </button>
-            <button
-              className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.QUALITY ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
-              disabled={!canQualityUpgrade}
-              type="button"
-              onClick={() => {
-                setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
-                setFactoryModalFocus(FACTORY_UPGRADE_FOCUS.QUALITY);
-              }}
-            >
-              <span>{canQualityUpgrade ? TEXT.qualityUpgrade : TEXT.capitalShort}</span>
-              <small>{getFactoryOptionText(FACTORY_UPGRADE_FOCUS.QUALITY, strategy, factoryFailStreak)}</small>
-            </button>
-            <button
-              className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.COST ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
-              disabled={!canCostReduction}
-              type="button"
-              onClick={() => {
-                setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
-                setFactoryModalFocus(FACTORY_UPGRADE_FOCUS.COST);
-              }}
-            >
-              <span>{canCostReduction ? TEXT.costCut : TEXT.capitalShort}</span>
-              <small>{getFactoryOptionText(FACTORY_UPGRADE_FOCUS.COST, strategy, costReductionFailStreak)}</small>
-            </button>
-          </div>
+          <FactoryUpgradePicker
+            capital={currentCapital}
+            costReduction={playerState.costReduction ?? 0}
+            costReductionFailStreak={costReductionFailStreak}
+            currentCost={playerState.unitCost ?? 0}
+            currentQuality={playerState.maxQuality ?? playerState.quality ?? 0}
+            factoryFailStreak={factoryFailStreak}
+            isMaxCostReduction={isMaxCostReduction}
+            isMaxQuality={isMaxQuality}
+            onOpenModal={(focus, tierIndex) => {
+              setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
+              setFactoryModalFocus(focus);
+              setFactoryModalTierIndex(tierIndex);
+            }}
+            onSkip={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE)}
+          />
         ) : null}
         {factoryModalFocus ? (
           <FactoryUpgradeModal
             focus={factoryModalFocus}
+            tierIndex={factoryModalTierIndex}
             onClose={() => setFactoryModalFocus(null)}
           />
         ) : null}
@@ -536,6 +519,137 @@ function MarketingLimitReadout({ capital, limit, mode }) {
   );
 }
 
+function FactoryUpgradePicker({
+  capital,
+  costReduction,
+  costReductionFailStreak,
+  currentCost,
+  currentQuality,
+  factoryFailStreak,
+  isMaxCostReduction,
+  isMaxQuality,
+  onOpenModal,
+  onSkip,
+}) {
+  return (
+    <div className="cr2-factory-upgrade-picker">
+      <button className="cr2-factory-skip-button" type="button" onClick={onSkip}>
+        {TEXT.skip}
+      </button>
+
+      <FactoryUpgradeSection
+        currentLabel="현재 품질"
+        currentValue={`${Math.round(currentQuality)}`}
+        disabledAll={isMaxQuality}
+        failStreak={factoryFailStreak}
+        focus={FACTORY_UPGRADE_FOCUS.QUALITY}
+        limitMessage="최대 품질 달성"
+        onOpenModal={onOpenModal}
+        sectionTitle={TEXT.qualityUpgrade}
+        tiers={QUALITY_UPGRADE_TIERS}
+        type="quality"
+        userCapital={capital}
+      />
+
+      <FactoryUpgradeSection
+        currentLabel="현재 원가"
+        currentValue={`${formatWon(currentCost)}/개`}
+        disabledAll={isMaxCostReduction}
+        extraLine={`누적 절감: ${Math.round(costReduction * 100)}% (최대 40%)`}
+        failStreak={costReductionFailStreak}
+        focus={FACTORY_UPGRADE_FOCUS.COST}
+        limitMessage="최대 원가 절감 달성"
+        onOpenModal={onOpenModal}
+        sectionTitle={TEXT.costCut}
+        tiers={COST_REDUCTION_TIERS}
+        type="cost"
+        userCapital={capital}
+      />
+    </div>
+  );
+}
+
+function FactoryUpgradeSection({
+  currentLabel,
+  currentValue,
+  disabledAll,
+  extraLine = null,
+  failStreak,
+  focus,
+  limitMessage,
+  onOpenModal,
+  sectionTitle,
+  tiers,
+  type,
+  userCapital,
+}) {
+  const failBonus = failStreak * 10;
+
+  return (
+    <section className="cr2-factory-upgrade-section">
+      <header>
+        <strong>{sectionTitle}</strong>
+        <span>{currentLabel}: {currentValue}</span>
+        {extraLine ? <span>{extraLine}</span> : null}
+        <span>
+          연속 실패: <b className={failStreak > 0 ? 'cr2-loss-text' : undefined}>{failStreak}회</b>
+          {failStreak > 0 ? ` (다음 시도 +${failBonus}%)` : ''}
+        </span>
+        {disabledAll ? <em>{limitMessage}</em> : null}
+      </header>
+      <div className="cr2-factory-tier-grid">
+        {tiers.map((tier, index) => {
+          const currentRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
+          const lacksCapital = tier.cost > userCapital;
+          const disabled = disabledAll || lacksCapital;
+
+          return (
+            <button
+              className="cr2-factory-tier-button"
+              disabled={disabled}
+              key={`${focus}-${tier.cost}`}
+              type="button"
+              onClick={() => onOpenModal(focus, index)}
+            >
+              <strong>{formatWon(tier.cost)}</strong>
+              <span>{type === 'quality' ? `예상 상승: +${tier.minGain} ~ +${tier.maxGain}` : `예상 절감: -${Math.round(tier.minGain * 100)}% ~ -${Math.round(tier.maxGain * 100)}%`}</span>
+              <span className={getRateClassName(currentRate)}>
+                성공 확률: {formatRateText(tier.baseSuccessRate, currentRate, failStreak)}
+              </span>
+              {currentRate >= 0.95 ? <small className="cr2-profit-text">최대 확률 도달</small> : null}
+              {lacksCapital ? <small className="cr2-loss-text">{TEXT.capitalShort}</small> : null}
+              {disabledAll ? <small className="cr2-profit-text">{limitMessage}</small> : null}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function formatRateText(baseRate, currentRate, failStreak) {
+  const basePercent = Math.round(baseRate * 100);
+  const currentPercent = Math.round(currentRate * 100);
+
+  if (failStreak <= 0 || basePercent === currentPercent) {
+    return `${basePercent}%`;
+  }
+
+  return `${basePercent}% → 현재 ${currentPercent}%`;
+}
+
+function getRateClassName(rate) {
+  if (rate >= 0.8) {
+    return 'cr2-rate-high';
+  }
+
+  if (rate >= 0.5) {
+    return 'cr2-rate-mid';
+  }
+
+  return 'cr2-rate-low';
+}
+
 function buildTurnEstimate(preview, strategy) {
   const plannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const unitsSold = Math.min(plannedProduction, preview.player.demand);
@@ -587,28 +701,6 @@ function getMaxAffordableOrder(preview) {
   const unitCost = Math.max(1, preview.player.unitCost ?? preview.playerAfterOperation?.unitCost ?? 1);
 
   return Math.floor(capital / unitCost);
-}
-
-function getFactoryUpgradeCost(focus, strategy) {
-  if (focus === FACTORY_UPGRADE_FOCUS.QUALITY) {
-    return QUALITY_UPGRADE_TIERS[strategy.factoryUpgradeTierIndex ?? 0]?.cost ?? QUALITY_UPGRADE_TIERS[0].cost;
-  }
-
-  if (focus === FACTORY_UPGRADE_FOCUS.COST) {
-    return COST_REDUCTION_TIERS[strategy.costReductionTierIndex ?? 0]?.cost ?? COST_REDUCTION_TIERS[0].cost;
-  }
-
-  return 0;
-}
-
-function getFactoryOptionText(focus, strategy, failStreak) {
-  const tier =
-    focus === FACTORY_UPGRADE_FOCUS.QUALITY
-      ? QUALITY_UPGRADE_TIERS[strategy.factoryUpgradeTierIndex ?? 0] ?? QUALITY_UPGRADE_TIERS[0]
-      : COST_REDUCTION_TIERS[strategy.costReductionTierIndex ?? 0] ?? COST_REDUCTION_TIERS[0];
-  const successRate = getActualSuccessRate(tier.baseSuccessRate, failStreak);
-
-  return `연속 실패 ${failStreak}회 → 성공률 ${Math.round(successRate * 100)}%`;
 }
 
 function clampNumber(value, min, max) {
