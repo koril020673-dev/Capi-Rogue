@@ -1,3 +1,4 @@
+import Tooltip from '../components/Tooltip';
 import { useGameStore } from '../store/useGameStore';
 
 const TYPE_LABELS = Object.freeze({
@@ -5,6 +6,13 @@ const TYPE_LABELS = Object.freeze({
   NORMAL: '일반',
   GAMBLE: '도박',
   ABSURD: '광기',
+});
+
+const TYPE_TOOLTIPS = Object.freeze({
+  SAFE: 'event_safe',
+  NORMAL: 'event_normal',
+  GAMBLE: 'event_gamble',
+  ABSURD: 'event_absurd',
 });
 
 export default function EventScreen() {
@@ -38,17 +46,27 @@ export default function EventScreen() {
           </section>
         ) : (
           <div className="cr2-event-choice-list">
-            {event.choices.map((choice, index) => (
-              <button
-                className={`cr2-event-choice cr2-event-choice--${choice.type.toLowerCase()}`}
-                key={choice.id}
-                type="button"
-                onClick={() => chooseInternalEventOption(choice.id)}
-              >
-                <span>{String.fromCharCode(65 + index)}. {choice.label}</span>
-                <small>{TYPE_LABELS[choice.type]} 선택지 · {getProbabilityHint(choice)}</small>
-              </button>
-            ))}
+            {event.choices.map((choice, index) => {
+              const typeClass = `cr2-choice-${choice.type.toLowerCase()}`;
+
+              return (
+                <button
+                  className={`cr2-event-choice cr2-event-choice--${choice.type.toLowerCase()} ${typeClass}`}
+                  key={choice.id}
+                  type="button"
+                  onClick={() => chooseInternalEventOption(choice.id)}
+                >
+                  <span>
+                    {String.fromCharCode(65 + index)}. {choice.label}
+                  </span>
+                  <small>
+                    <Tooltip tooltipId={TYPE_TOOLTIPS[choice.type]}>
+                      {TYPE_LABELS[choice.type]} 선택지 · {getProbabilityHint(choice)}
+                    </Tooltip>
+                  </small>
+                </button>
+              );
+            })}
           </div>
         )}
       </article>

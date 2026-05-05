@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AudioController from './components/AudioController';
 import BackgroundScene from './components/BackgroundScene';
 import PauseMenu from './components/PauseMenu';
+import Tutorial from './components/Tutorial';
 import AdvisorSelectScreen from './screens/AdvisorSelectScreen';
 import CharacterCreateScreen from './screens/CharacterCreateScreen';
 import EventScreen from './screens/EventScreen';
@@ -23,6 +24,7 @@ export default function App() {
   const isPaused = useGameStore((state) => state.isPaused);
   const setPaused = useGameStore((state) => state.setPaused);
   const incrementPlaytime = useGameStore((state) => state.incrementPlaytime);
+  const setTutorialEnabled = useGameStore((state) => state.setTutorialEnabled);
   const [settings, setSettings] = useState(() => getGameSettings());
   const themeColor = getAdvisorThemeColor(selectedAdvisorId);
   const pauseEnabled = isPauseEnabled(screen);
@@ -58,7 +60,10 @@ export default function App() {
 
   useEffect(() => {
     function handleSettingsChange() {
-      setSettings(getGameSettings());
+      const nextSettings = getGameSettings();
+
+      setSettings(nextSettings);
+      setTutorialEnabled(nextSettings.tutorialEnabled);
     }
 
     window.addEventListener('storage', handleSettingsChange);
@@ -68,7 +73,11 @@ export default function App() {
       window.removeEventListener('storage', handleSettingsChange);
       window.removeEventListener('cr2-settings-change', handleSettingsChange);
     };
-  }, []);
+  }, [setTutorialEnabled]);
+
+  useEffect(() => {
+    setTutorialEnabled(settings.tutorialEnabled);
+  }, [setTutorialEnabled, settings.tutorialEnabled]);
 
   return (
     <div
@@ -87,6 +96,7 @@ export default function App() {
       ) : null}
       <BackgroundScene screen={screen}>{renderScreen(screen)}</BackgroundScene>
       {pauseEnabled ? <PauseMenu /> : null}
+      <Tutorial />
       <AudioController />
     </div>
   );

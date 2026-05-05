@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getGameSettings, saveGameSettings } from '../../logic/audioEngine';
+import { useGameStore } from '../../store/useGameStore';
 
 const TABS = Object.freeze([
   Object.freeze({ id: 'general', label: '일반' }),
@@ -11,6 +12,8 @@ export default function GameSettings({ onBack }) {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [selectedRow, setSelectedRow] = useState(0);
   const [settings, setSettings] = useState(() => getGameSettings());
+  const setTutorialEnabled = useGameStore((state) => state.setTutorialEnabled);
+  const resetTutorials = useGameStore((state) => state.resetTutorials);
   const rows = useMemo(() => getRows(activeTab), [activeTab]);
 
   useEffect(() => {
@@ -26,6 +29,10 @@ export default function GameSettings({ onBack }) {
       ...current,
       [key]: value,
     }));
+
+    if (key === 'tutorialEnabled') {
+      setTutorialEnabled(value);
+    }
   }
 
   function activateRow(row) {
@@ -35,6 +42,10 @@ export default function GameSettings({ onBack }) {
 
     if (row.type === 'language') {
       updateSetting(row.key, settings[row.key] === 'ko' ? 'en' : 'ko');
+    }
+
+    if (row.type === 'resetTutorials') {
+      resetTutorials();
     }
   }
 
@@ -102,11 +113,7 @@ export default function GameSettings({ onBack }) {
             onKeyDown={(event) => handleRowKeyDown(event, row)}
           >
             <span className="cr2-settings-name">{row.label}</span>
-            <SettingValue
-              row={row}
-              settings={settings}
-              onUpdate={updateSetting}
-            />
+            <SettingValue row={row} settings={settings} onUpdate={updateSetting} />
           </article>
         ))}
       </section>
@@ -129,6 +136,10 @@ function SettingValue({ row, settings, onUpdate }) {
 
   if (row.type === 'toggle') {
     return <strong className="cr2-settings-current">{settings[row.key] ? 'ON' : 'OFF'}</strong>;
+  }
+
+  if (row.type === 'resetTutorials') {
+    return <strong className="cr2-settings-current">RESET</strong>;
   }
 
   if (row.type === 'volume') {
@@ -178,6 +189,7 @@ function getRows(tabId) {
   return [
     { key: 'language', label: '언어', type: 'language' },
     { key: 'tutorialEnabled', label: '튜토리얼', type: 'toggle' },
+    { key: 'resetTutorials', label: '튜토리얼 초기화', type: 'resetTutorials' },
     { key: 'autosaveNoticeEnabled', label: '자동저장 알림', type: 'toggle' },
     { key: 'economyTermHintsEnabled', label: '경제 용어 힌트', type: 'toggle' },
     { key: 'strategyWarningsEnabled', label: '전략 경고 메시지', type: 'toggle' },

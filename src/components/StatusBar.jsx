@@ -2,6 +2,7 @@ import { ECONOMIC_PHASE_LABELS } from '../constants/economy';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { getMomentumLabel } from '../logic/momentumEngine';
 import { useGameStore } from '../store/useGameStore';
+import Tooltip from './Tooltip';
 
 const TEXT = Object.freeze({
   floor: '층수',
@@ -28,8 +29,10 @@ export default function StatusBar() {
     <header className="cr2-status-bar cr2-status-bar--simple">
       <StatusBlock label={TEXT.floor} value={`${floor}/120`} />
       <StatusBlock label={TEXT.phase} value={ECONOMIC_PHASE_LABELS[phase]} />
-      <div className="cr2-status-block cr2-status-block--wide">
-        <span className="cr2-status-label">{TEXT.health}</span>
+      <div className="cr2-status-block cr2-status-block--wide cr2-health-bar">
+        <span className="cr2-status-label">
+          <Tooltip tooltipId="health_bar">{TEXT.health}</Tooltip>
+        </span>
         <div className="cr2-health-slots" aria-label={`${TEXT.health} ${player.health}`}>
           {Array.from({ length: maxHealth }, (_, index) => (
             <span
@@ -41,7 +44,7 @@ export default function StatusBar() {
           ))}
         </div>
       </div>
-      <StatusBlock label={TEXT.momentum} value={getMomentumLabel(momentumHistory)} />
+      <StatusBlock className="cr2-momentum" label={TEXT.momentum} tooltipId="momentum" value={getMomentumLabel(momentumHistory)} />
       <StatusBlock
         label={TEXT.reward}
         value={nextRewardIn === 0 ? TEXT.thisMonth : `${nextRewardIn}${TEXT.monthsLater}`}
@@ -56,10 +59,12 @@ export default function StatusBar() {
   );
 }
 
-function StatusBlock({ label, value }) {
+function StatusBlock({ className = '', label, tooltipId = null, value }) {
   return (
-    <div className="cr2-status-block">
-      <span className="cr2-status-label">{label}</span>
+    <div className={['cr2-status-block', className].filter(Boolean).join(' ')}>
+      <span className="cr2-status-label">
+        {tooltipId ? <Tooltip tooltipId={tooltipId}>{label}</Tooltip> : label}
+      </span>
       <strong className="cr2-status-value">{value}</strong>
     </div>
   );

@@ -1,0 +1,139 @@
+.cr2-tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+}
+
+.cr2-tutorial-popup {
+  display: grid;
+  gap: 16px;
+  width: min(520px, calc(var(--cr2-stage-w) - 36px));
+  border: 2px solid var(--cr2-warning);
+  border-radius: 8px;
+  background: #1A1A2E;
+  box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.18);
+  padding: clamp(16px, 2vw, 24px);
+}
+
+.cr2-tutorial-head h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-lg);
+  line-height: 1.45;
+}
+
+.cr2-tutorial-content {
+  min-height: 84px;
+  display: grid;
+  align-items: center;
+  border-top: 1px solid rgba(0, 170, 0, 0.42);
+  border-bottom: 1px solid rgba(0, 170, 0, 0.42);
+  padding: 14px 0;
+}
+
+.cr2-tutorial-content p {
+  margin: 0;
+  color: var(--cr2-text);
+  font-size: var(--cr2-ui-font-md);
+  font-weight: 800;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.cr2-tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cr2-tutorial-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--cr2-grid);
+  border-radius: 999px;
+  background: transparent;
+}
+
+.cr2-tutorial-dot--active {
+  border-color: var(--cr2-accent);
+  background: var(--cr2-accent);
+}
+
+.cr2-tutorial-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.cr2-tutorial-button,
+.cr2-tutorial-skip {
+  min-height: 38px;
+  border: 2px solid var(--cr2-accent);
+  border-radius: 4px;
+  background: var(--cr2-accent);
+  color: #000000;
+  padding: 8px 10px;
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.cr2-tutorial-button--secondary {
+  border-color: var(--cr2-grid);
+  background: #000000;
+  color: var(--cr2-text);
+}
+
+.cr2-tutorial-skip {
+  border-color: var(--cr2-grid);
+  background: transparent;
+  color: var(--cr2-grid);
+  font-size: var(--cr2-ui-font-xs);
+}
+
+.cr2-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cr2-tooltip-button {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1px solid var(--cr2-grid);
+  border-radius: 50%;
+  background: #000000;
+  color: var(--cr2-accent);
+  padding: 0;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cr2-tooltip-box {
+  position: fixed;
+  z-index: 50;
+  display: block;
+  width: 260px;
+  border: 2px solid var(--cr2-grid);
+  border-radius: 6px;
+  background: #1A1A2E;
+  color: var(--cr2-accent);
+  padding: 10px;
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 800;
+  line-height: 1.55;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.35);
+}

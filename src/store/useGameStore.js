@@ -100,6 +100,7 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
       companyName: playerProfile.companyName ?? advisorPlayer.companyName,
     }),
     strategy: { ...DEFAULT_STRATEGY_SELECTION },
+    hasClickedStrategyTab: false,
     rivals: createInitialRivals(),
     marketEffects: Object.freeze([]),
     currentExternalEvent: null,
@@ -139,6 +140,7 @@ const baseState = Object.freeze({
   phase: ECONOMIC_PHASES.STABLE,
   player: INITIAL_PLAYER,
   strategy: { ...DEFAULT_STRATEGY_SELECTION },
+  hasClickedStrategyTab: false,
   rivals: createInitialRivals(0.5),
   marketEffects: Object.freeze([]),
   currentExternalEvent: null,
@@ -160,6 +162,8 @@ const baseState = Object.freeze({
   costReductionFailStreak: 0,
   loans: Object.freeze([]),
   loanMaturityNotice: null,
+  completedTutorials: Object.freeze([]),
+  isTutorialEnabled: true,
   runOutcome: null,
 });
 
@@ -250,6 +254,43 @@ export const useGameStore = create((set, get) => ({
     set((state) => ({
       playtime: state.isPaused ? state.playtime : state.playtime + Math.max(0, Number(seconds) || 0),
     }));
+  },
+
+  addCompletedTutorial(id) {
+    if (!id) {
+      return;
+    }
+
+    set((state) => {
+      if (state.completedTutorials.includes(id)) {
+        return {};
+      }
+
+      const completedTutorials = Object.freeze([...state.completedTutorials, id]);
+
+      return { completedTutorials };
+    });
+
+    persistTutorialProgress(get);
+  },
+
+  completeAllTutorials(ids = []) {
+    set((state) => {
+      const completedTutorials = Object.freeze([...new Set([...state.completedTutorials, ...ids])]);
+
+      return { completedTutorials };
+    });
+
+    persistTutorialProgress(get);
+  },
+
+  resetTutorials() {
+    set({ completedTutorials: Object.freeze([]) });
+    persistTutorialProgress(get);
+  },
+
+  setTutorialEnabled(isTutorialEnabled) {
+    set({ isTutorialEnabled: Boolean(isTutorialEnabled) });
   },
 
   async saveCurrentGame(slotNumberOverride) {
@@ -353,6 +394,9 @@ export const useGameStore = create((set, get) => ({
       playerProfile: state.playerProfile,
       unlockedAdvisorOrder: state.unlockedAdvisorOrder,
       legacyCards: state.legacyCards,
+      completedTutorials: state.completedTutorials,
+      isTutorialEnabled: state.isTutorialEnabled,
+      hasClickedStrategyTab: nextRunState.hasClickedStrategyTab,
       ...preparedFloor,
     }));
   },
@@ -367,6 +411,7 @@ export const useGameStore = create((set, get) => ({
         ...state.strategy,
         activeTab: tabId,
       }),
+      hasClickedStrategyTab: true,
     }));
   },
 
@@ -861,4 +906,11 @@ function getEconomicsHint(settlement) {
   }
 
   return '\uC190\uC2E4\uC740 \uD604\uAE08\uBFD0 \uC544\uB2C8\uB77C \uC2E0\uB8B0\uC640 \uC120\uD0DD\uC9C0\uB97C \uC904\uC785\uB2C8\uB2E4.';
+}
+
+function persistTutorialProgress(get) {
+  const state = get();
+  const snapshot = createSaveSnapshot(state);
+
+  void saveGame(snapshot, state.currentSlot ?? 1);
 }

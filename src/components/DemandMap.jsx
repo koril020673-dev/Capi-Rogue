@@ -17,6 +17,7 @@ import rivalJunseoImage from '../assets/rival_image/rival_senior_junseo.png';
 import rivalSeoyeonImage from '../assets/rival_image/rival_senior_seoyeon.png';
 import rivalTaejunImage from '../assets/rival_image/rival_senior_taejun.png';
 import { useGameStore } from '../store/useGameStore';
+import Tooltip from './Tooltip';
 
 const ADVISOR_IMAGES = Object.freeze({
   analyst: analystImage,
@@ -59,10 +60,12 @@ export default function DemandMap({ totalDemand, participants, revealDemand = fa
   return (
     <section className="cr2-demand-map" aria-label={TEXT.aria}>
       <div className="cr2-demand-left">
-        <div className="cr2-demand-core">
-          <span className="cr2-demand-label">{TEXT.demand}</span>
-          <strong>{totalDemand.toLocaleString()}</strong>
-        </div>
+        <Tooltip as="div" tooltipId="demand_bubble">
+          <div className="cr2-demand-core cr2-demand-bubble">
+            <span className="cr2-demand-label">{TEXT.demand}</span>
+            <strong>{totalDemand.toLocaleString()}</strong>
+          </div>
+        </Tooltip>
         {player ? <DemandNode participant={player} isPlayer revealDemand={revealDemand} /> : null}
       </div>
       <div className="cr2-demand-routes">
