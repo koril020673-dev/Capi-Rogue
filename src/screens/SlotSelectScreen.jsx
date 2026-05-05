@@ -5,7 +5,18 @@ import {
 } from '../logic/saveEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
+import femaleAProfile from '../assets/optimized/player/player_female_a_profile.png';
+import femaleBProfile from '../assets/optimized/player/player_female_b_profile.png';
+import maleAProfile from '../assets/optimized/player/player_male_a_profile.png';
+import maleBProfile from '../assets/optimized/player/player_male_b_profile.png';
 import '../styles/slotSelect.css';
+
+const PLAYER_PROFILE_IMAGES = Object.freeze({
+  female_a: femaleAProfile,
+  female_b: femaleBProfile,
+  male_a: maleAProfile,
+  male_b: maleBProfile,
+});
 
 const TEXT = Object.freeze({
   title: '저장 슬롯을 선택하세요',
@@ -75,6 +86,7 @@ export default function SlotSelectScreen() {
               onClick={() => selectSlot(slot)}
             >
               <span className="cr2-slot-card-index">SLOT {slot.slotNumber}</span>
+              <SlotPortrait snapshot={slot.snapshot} />
               <SlotSummary snapshot={slot.snapshot} updatedAt={slot.updatedAt} />
             </button>
           ))}
@@ -106,6 +118,23 @@ export default function SlotSelectScreen() {
         </section>
       ) : null}
     </main>
+  );
+}
+
+function SlotPortrait({ snapshot }) {
+  const image =
+    PLAYER_PROFILE_IMAGES[snapshot?.playerProfile?.profileId] ??
+    snapshot?.playerProfile?.profileImage ??
+    snapshot?.playerProfile?.fullImage;
+
+  if (!image) {
+    return <span className="cr2-slot-portrait cr2-slot-portrait--empty" />;
+  }
+
+  return (
+    <span className="cr2-slot-portrait">
+      <img src={image} alt="" decoding="async" loading="lazy" />
+    </span>
   );
 }
 
