@@ -157,6 +157,35 @@ export async function saveGame(gameState, slotNumber = 1) {
   }
 }
 
+export async function saveOnFloorEnter(gameState) {
+  const slotNumber = gameState?.currentSlot ?? 1;
+
+  if (!isValidSlotNumber(slotNumber)) {
+    console.error('saveOnFloorEnter failed: slotNumber must be between 1 and 5.');
+    return false;
+  }
+
+  const snapshot = createSaveSnapshot({
+    ...gameState,
+    currentInternalEvent: null,
+    currentInternalOutcome: null,
+    currentSettlement: null,
+    currentResult: null,
+    rewardOptions: Object.freeze([]),
+    screen: 'main',
+  });
+
+  saveGameSlotToLocalStorage(slotNumber, snapshot);
+
+  const saved = await saveGame(snapshot, slotNumber);
+
+  if (saved === false) {
+    console.error('saveOnFloorEnter failed: remote save failed.');
+  }
+
+  return saved;
+}
+
 export async function loadGame(slotNumber = 1) {
   if (!isValidSlotNumber(slotNumber)) {
     console.error('loadGame failed: slotNumber must be between 1 and 5.');
@@ -336,6 +365,7 @@ export async function loadRecords() {
 
 export function createSaveSnapshot(state) {
   return Object.freeze({
+    screen: state.screen,
     currentSlot: state.currentSlot,
     session: state.session,
     playerProfile: state.playerProfile,

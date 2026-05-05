@@ -12,6 +12,7 @@ import MainScreen from './screens/MainScreen';
 import RecordScreen from './screens/RecordScreen';
 import RewardScreen from './screens/RewardScreen';
 import SettlementScreen from './screens/SettlementScreen';
+import SlotSelectScreen from './screens/SlotSelectScreen';
 import TitleScreen from './screens/TitleScreen';
 import { SCREEN_IDS, useGameStore } from './store/useGameStore';
 import { getAdvisorThemeColor } from './logic/advisorEngine';
@@ -127,6 +128,10 @@ function renderScreen(screen) {
 
   if (screen === SCREEN_IDS.CHARACTER_CREATE) {
     return <CharacterCreateScreen />;
+  }
+
+  if (screen === SCREEN_IDS.SLOT_SELECT) {
+    return <SlotSelectScreen />;
   }
 
   if (screen === SCREEN_IDS.ADVISOR_SELECT) {

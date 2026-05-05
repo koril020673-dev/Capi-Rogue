@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import StatusBar from '../components/StatusBar';
 import { REWARD_GRADE_LABELS } from '../constants/rewards';
 import { useGameStore } from '../store/useGameStore';
@@ -6,6 +7,7 @@ export default function RewardScreen() {
   const rewardOptions = useGameStore((state) => state.rewardOptions);
   const chooseReward = useGameStore((state) => state.chooseReward);
   const floor = useGameStore((state) => state.floor);
+  const [savingRewardId, setSavingRewardId] = useState(null);
 
   return (
     <main className="cr2-reward-screen">
@@ -20,13 +22,22 @@ export default function RewardScreen() {
           {rewardOptions.map((reward) => (
             <button
               className={`cr2-reward-card cr2-reward-card--${reward.grade}`}
+              disabled={Boolean(savingRewardId)}
               key={reward.id}
               type="button"
-              onClick={() => chooseReward(reward.id)}
+              onClick={async () => {
+                setSavingRewardId(reward.id);
+
+                try {
+                  await chooseReward(reward.id);
+                } finally {
+                  setSavingRewardId(null);
+                }
+              }}
             >
               <span>{REWARD_GRADE_LABELS[reward.grade]}</span>
               <strong>{reward.title}</strong>
-              <small>{reward.description}</small>
+              <small>{savingRewardId === reward.id ? '저장 중...' : reward.description}</small>
             </button>
           ))}
         </div>

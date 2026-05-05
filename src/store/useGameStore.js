@@ -35,6 +35,7 @@ import {
   loadGameFromLocalStorage,
   saveGame,
   saveGameSlotToLocalStorage,
+  saveOnFloorEnter,
   saveGameToLocalStorage,
 } from '../logic/saveEngine';
 
@@ -43,6 +44,7 @@ export const SCREEN_IDS = Object.freeze({
   TITLE: 'title',
   RECORD: 'record',
   CHARACTER_CREATE: 'character-create',
+  SLOT_SELECT: 'slot-select',
   ADVISOR_SELECT: 'advisor-select',
   MAIN: 'main',
   EVENT: 'event',
@@ -580,7 +582,7 @@ export const useGameStore = create((set, get) => ({
     set({ screen: SCREEN_IDS.SETTLEMENT });
   },
 
-  continueFromResult() {
+  async continueFromResult() {
     const state = get();
 
     if (state.currentResult?.gameOver) {
@@ -606,12 +608,11 @@ export const useGameStore = create((set, get) => ({
       return;
     }
 
-    get().saveCurrentGame();
-
     advanceToNextFloor(set, get);
+    await saveOnFloorEnter(get());
   },
 
-  chooseReward(rewardId) {
+  async chooseReward(rewardId) {
     const state = get();
     const reward = state.rewardOptions.find((item) => item.id === rewardId);
 
@@ -647,6 +648,7 @@ export const useGameStore = create((set, get) => ({
     });
 
     advanceToNextFloor(set, get);
+    await saveOnFloorEnter(get());
   },
 
   restartToTitle() {

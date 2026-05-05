@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import StatusBar from '../components/StatusBar';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { generateReport } from '../logic/reportEngine';
@@ -52,6 +52,7 @@ const SHARE_COLORS = Object.freeze(['#00FF41', '#DC143C', '#FFD700', '#42A5FF', 
 export default function SettlementScreen() {
   const gameState = useGameStore((state) => state);
   const continueFromResult = useGameStore((state) => state.continueFromResult);
+  const [saving, setSaving] = useState(false);
   const { currentSettlement: settlement, currentResult: result } = gameState;
   const playerShare =
     settlement?.demandSplit.find((participant) => participant.id === 'player')?.marketShare ?? 0;
@@ -132,8 +133,21 @@ export default function SettlementScreen() {
           <AdvisorReport report={report} advisor={advisor} advisorId={gameState.selectedAdvisorId} />
 
           <p className="cr2-hint-line">{result.hint}</p>
-          <button className="cr2-primary-button cr2-primary-button--large cr2-settlement-next" type="button" onClick={continueFromResult}>
-            {getNextStepLabel(result, gameState.floor)}
+          <button
+            className="cr2-primary-button cr2-primary-button--large cr2-settlement-next"
+            disabled={saving}
+            type="button"
+            onClick={async () => {
+              setSaving(true);
+
+              try {
+                await continueFromResult();
+              } finally {
+                setSaving(false);
+              }
+            }}
+          >
+            {saving ? '저장 중...' : getNextStepLabel(result, gameState.floor)}
           </button>
         </aside>
       </section>

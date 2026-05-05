@@ -125,7 +125,9 @@ export default function TitleScreen() {
     }
 
     if (item.id === 'new-game') {
-      useGameStore.setState({ screen: SCREEN_IDS.CHARACTER_CREATE });
+      useGameStore.setState({
+        screen: session.mode === 'guest' ? SCREEN_IDS.CHARACTER_CREATE : SCREEN_IDS.SLOT_SELECT,
+      });
       return;
     }
 
@@ -160,7 +162,7 @@ export default function TitleScreen() {
         currentSlot: slot.slotNumber,
         playerProfile: profile,
         isPaused: false,
-        screen: savedGame.screen === SCREEN_IDS.REWARD ? SCREEN_IDS.REWARD : SCREEN_IDS.MAIN,
+        screen: SCREEN_IDS.MAIN,
       }));
     } else {
       useGameStore.setState({
