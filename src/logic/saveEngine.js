@@ -297,6 +297,14 @@ export async function deleteSlot(slotNumber) {
 }
 
 export async function saveRecord(recordData) {
+  const nextRecord = Object.freeze({
+    result_type: recordData?.result_type ?? 'CLEAR',
+    clear_grade: recordData?.clear_grade ?? null,
+    ...recordData,
+  });
+
+  saveRecordToLocalStorage(nextRecord);
+
   if (!supabase) {
     return false;
   }
@@ -311,7 +319,7 @@ export async function saveRecord(recordData) {
     const { error } = await supabase
       .from('records')
       .insert({
-        ...recordData,
+        ...nextRecord,
         user_id: userId,
       });
 
@@ -327,9 +335,13 @@ export async function saveRecord(recordData) {
   }
 }
 
-export async function loadAllRecords() {
+export async function loadAllRecords(resultType = null) {
   if (!supabase) {
-    return [];
+    const localRecords = loadRecordsFromLocalStorage();
+
+    return resultType
+      ? localRecords.filter((record) => record.result_type === resultType)
+      : localRecords;
   }
 
   try {
@@ -339,11 +351,17 @@ export async function loadAllRecords() {
       return [];
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('records')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
+
+    if (resultType) {
+      query = query.eq('result_type', resultType);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('loadAllRecords failed:', error);

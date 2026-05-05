@@ -55,6 +55,7 @@ export const SCREEN_IDS = Object.freeze({
   RESULT: 'result',
   REWARD: 'reward',
   GAME_OVER: 'game-over',
+  ENDING: 'ending',
 });
 
 const INITIAL_PLAYER = Object.freeze({
@@ -987,7 +988,7 @@ function finishRun(set, get, outcome) {
     runOutcome: outcome,
     unlockedAdvisorOrder,
     legacyCards: nextLegacyCards,
-    screen: SCREEN_IDS.GAME_OVER,
+    screen: outcome === 'clear' ? SCREEN_IDS.ENDING : SCREEN_IDS.GAME_OVER,
   });
 
   if (state.session.mode !== 'guest') {

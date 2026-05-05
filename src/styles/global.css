@@ -261,6 +261,7 @@ button:disabled {
 .cr2-result-screen,
 .cr2-reward-screen,
 .cr2-gameover-screen,
+.cr2-ending-screen,
 .cr2-main-screen,
 .cr2-character-create-screen,
 .cr2-record-screen {
@@ -2134,6 +2135,7 @@ button:disabled {
 .cr2-result-screen,
 .cr2-reward-screen,
 .cr2-gameover-screen,
+.cr2-ending-screen,
 .cr2-main-screen,
 .cr2-character-create-screen,
 .cr2-record-screen {

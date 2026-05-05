@@ -6,6 +6,7 @@ import Tutorial from './components/Tutorial';
 import AdvisorSelectScreen from './screens/AdvisorSelectScreen';
 import CharacterCreateScreen from './screens/CharacterCreateScreen';
 import EventScreen from './screens/EventScreen';
+import EndingScreen from './screens/EndingScreen';
 import GameOverScreen from './screens/GameOverScreen';
 import LoginScreen from './screens/LoginScreen';
 import MainScreen from './screens/MainScreen';
@@ -168,6 +169,10 @@ function renderScreen(screen) {
 
   if (screen === SCREEN_IDS.REWARD) {
     return <RewardScreen />;
+  }
+
+  if (screen === SCREEN_IDS.ENDING) {
+    return <EndingScreen />;
   }
 
   return <GameOverScreen />;

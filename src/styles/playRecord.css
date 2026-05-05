@@ -1,0 +1,105 @@
+.cr2-play-record {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  color: var(--cr2-text);
+}
+
+.cr2-play-record-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cr2-play-record h2,
+.cr2-record-page h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-lg);
+  line-height: 1.45;
+}
+
+.cr2-record-back-button {
+  border: 2px solid var(--cr2-accent);
+  background: #0a0a0a;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-xs);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.cr2-record-slot-list {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+  scrollbar-color: var(--cr2-grid) #0a0a0a;
+}
+
+.cr2-record-slot,
+.cr2-record-empty-slot {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  border: 2px solid var(--cr2-grid);
+  background: rgba(0, 0, 0, 0.56);
+  color: var(--cr2-text);
+  padding: 12px;
+  text-align: left;
+}
+
+.cr2-record-slot {
+  cursor: pointer;
+}
+
+.cr2-record-slot:hover {
+  border-color: var(--cr2-accent);
+}
+
+.cr2-record-slot--clear {
+  border-color: #00ff41;
+}
+
+.cr2-record-slot--bankrupt {
+  border-color: #dc143c;
+}
+
+.cr2-record-slot strong {
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-sm);
+  line-height: 1.45;
+}
+
+.cr2-record-slot--bankrupt strong {
+  color: #dc143c;
+}
+
+.cr2-record-slot span,
+.cr2-record-slot small,
+.cr2-record-empty-slot {
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-sm);
+  line-height: 1.45;
+}
+
+.cr2-record-detail {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 0;
+}
+
+.cr2-record-page {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
