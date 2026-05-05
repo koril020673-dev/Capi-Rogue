@@ -11,21 +11,23 @@ const TABS = Object.freeze([
 export default function GameSettings({ onBack }) {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [selectedRow, setSelectedRow] = useState(0);
-  const [settings, setSettings] = useState(() => getGameSettings());
+  const [settings, setLocalSettings] = useState(() => getGameSettings());
   const setTutorialEnabled = useGameStore((state) => state.setTutorialEnabled);
   const resetTutorials = useGameStore((state) => state.resetTutorials);
+  const setStoreSettings = useGameStore((state) => state.setSettings);
   const rows = useMemo(() => getRows(activeTab), [activeTab]);
 
   useEffect(() => {
     saveGameSettings(settings);
-  }, [settings]);
+    setStoreSettings(settings);
+  }, [settings, setStoreSettings]);
 
   useEffect(() => {
     setSelectedRow(0);
   }, [activeTab]);
 
   function updateSetting(key, value) {
-    setSettings((current) => ({
+    setLocalSettings((current) => ({
       ...current,
       [key]: value,
     }));
@@ -38,10 +40,17 @@ export default function GameSettings({ onBack }) {
   function activateRow(row) {
     if (row.type === 'toggle') {
       updateSetting(row.key, !settings[row.key]);
+      return;
     }
 
     if (row.type === 'language') {
       updateSetting(row.key, settings[row.key] === 'ko' ? 'en' : 'ko');
+      return;
+    }
+
+    if (row.type === 'marketingLimitMode') {
+      updateSetting(row.key, settings[row.key] === 'ratio' ? 'fixed' : 'ratio');
+      return;
     }
 
     if (row.type === 'resetTutorials') {
@@ -138,6 +147,31 @@ function SettingValue({ row, settings, onUpdate }) {
     return <strong className="cr2-settings-current">{settings[row.key] ? 'ON' : 'OFF'}</strong>;
   }
 
+  if (row.type === 'marketingLimitMode') {
+    const mode = settings[row.key] === 'fixed' ? 'fixed' : 'ratio';
+
+    return (
+      <div className="cr2-settings-choice-group" onClick={(event) => event.stopPropagation()}>
+        <button
+          className={mode === 'ratio' ? 'cr2-settings-choice cr2-settings-choice--active' : 'cr2-settings-choice'}
+          type="button"
+          onClick={() => onUpdate(row.key, 'ratio')}
+        >
+          자본 비율형
+          <small>자본 x 0.3</small>
+        </button>
+        <button
+          className={mode === 'fixed' ? 'cr2-settings-choice cr2-settings-choice--active' : 'cr2-settings-choice'}
+          type="button"
+          onClick={() => onUpdate(row.key, 'fixed')}
+        >
+          고정 상한형
+          <small>MIN(자본 x 0.2, 500만원)</small>
+        </button>
+      </div>
+    );
+  }
+
   if (row.type === 'resetTutorials') {
     return <strong className="cr2-settings-current">RESET</strong>;
   }
@@ -193,6 +227,7 @@ function getRows(tabId) {
     { key: 'autosaveNoticeEnabled', label: '자동저장 알림', type: 'toggle' },
     { key: 'economyTermHintsEnabled', label: '경제 용어 힌트', type: 'toggle' },
     { key: 'strategyWarningsEnabled', label: '전략 경고 메시지', type: 'toggle' },
+    { key: 'marketingLimitMode', label: '마케팅 한도 방식', type: 'marketingLimitMode' },
   ];
 }
 

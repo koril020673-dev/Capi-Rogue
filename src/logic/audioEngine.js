@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   sfxEnabled: true,
   backgroundEnabled: true,
   screenShakeEnabled: true,
+  marketingLimitMode: 'ratio',
 });
 
 export function getGameSettings() {
@@ -75,6 +76,7 @@ function normalizeSettings(settings = {}) {
     sfxEnabled: settings.sfxEnabled !== false,
     backgroundEnabled: settings.backgroundEnabled !== false,
     screenShakeEnabled: settings.screenShakeEnabled !== false,
+    marketingLimitMode: settings.marketingLimitMode === 'fixed' ? 'fixed' : 'ratio',
   });
 }
 

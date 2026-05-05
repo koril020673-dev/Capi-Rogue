@@ -40,6 +40,7 @@ import {
   saveOnFloorEnter,
   saveGameToLocalStorage,
 } from '../logic/saveEngine';
+import { getGameSettings } from '../logic/audioEngine';
 
 export const SCREEN_IDS = Object.freeze({
   LOGIN: 'login',
@@ -168,6 +169,7 @@ const baseState = Object.freeze({
   loanMaturityNotice: null,
   completedTutorials: Object.freeze([]),
   isTutorialEnabled: true,
+  settings: getGameSettings(),
   runOutcome: null,
 });
 
@@ -295,6 +297,15 @@ export const useGameStore = create((set, get) => ({
 
   setTutorialEnabled(isTutorialEnabled) {
     set({ isTutorialEnabled: Boolean(isTutorialEnabled) });
+  },
+
+  setSettings(settings) {
+    set((state) => ({
+      settings: Object.freeze({
+        ...state.settings,
+        ...settings,
+      }),
+    }));
   },
 
   attemptFactoryUpgrade(focus, tierIndex = 0) {

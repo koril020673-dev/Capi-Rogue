@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BANK_ACTION_IDS,
   FACTORY_UPGRADE_FOCUS,
@@ -13,11 +13,12 @@ import {
   STRATEGY_TABS,
 } from '../constants/strategies';
 import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS, getActualSuccessRate } from '../logic/factoryEngine';
-import { getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
+import { getMarketingLimit, getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 import FactoryUpgradeModal from './FactoryUpgradeModal';
+import Tooltip from './Tooltip';
 
 const REVEAL_DEMAND_FORECAST = false;
 
@@ -68,6 +69,11 @@ const TEXT = Object.freeze({
   maxOrder: '\uCD5C\uB300 \uBC1C\uC8FC \uAC00\uB2A5',
   capitalBased: '\uBCF4\uC720 \uC790\uBCF8 \uAE30\uC900',
   maxMarketing: '\uCD5C\uB300 \uB9C8\uCF00\uD305 \uD22C\uC790',
+  marketingLimitTitle: '\uB9C8\uCF00\uD305 \uD22C\uC790 \uD55C\uB3C4',
+  marketingLimitMode: '\uD604\uC7AC \uBC29\uC2DD',
+  marketingLimitCurrent: '\uD604\uC7AC \uD55C\uB3C4',
+  marketingLimitRatio: '\uC790\uBCF8 \uBE44\uC728\uD615',
+  marketingLimitFixed: '\uACE0\uC815 \uC0C1\uD55C\uD615',
   insufficientCapital: '\uBCF4\uC720 \uC790\uBCF8\uC774 \uBD80\uC871\uD569\uB2C8\uB2E4.',
   capitalShort: '\uC790\uBCF8 \uBD80\uC871',
   noDebt: '\uBD80\uCC44 \uC5C6\uC74C',
@@ -89,6 +95,7 @@ export default function RightPanel({ preview }) {
   const proceedAfterStrategy = useGameStore((state) => state.proceedAfterStrategy);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
   const playerState = useGameStore((state) => state.player);
+  const settings = useGameStore((state) => state.settings);
   const selectedAdvisor = getAdvisorById(selectedAdvisorId);
   const revealExtraRivalInfo = Boolean(selectedAdvisor.passive.revealExtraRivalInfo);
   const estimate = buildTurnEstimate(preview, strategy);
@@ -99,7 +106,8 @@ export default function RightPanel({ preview }) {
   const maxOrderAmount = getMaxAffordableOrder(preview);
   const currentPlannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const isOrderOverCapital = currentPlannedProduction > maxOrderAmount;
-  const maxMarketingSpend = getMaxMarketingSpend(currentCapital);
+  const marketingLimitMode = settings?.marketingLimitMode === 'fixed' ? 'fixed' : 'ratio';
+  const maxMarketingSpend = getMarketingLimit(currentCapital, marketingLimitMode);
   const isMarketingOverCapital = (Number(strategy.marketingSpend) || 0) > maxMarketingSpend;
   const isRepayOverCapital = (Number(strategy.bankRepayAmount) || 0) > currentCapital;
   const canRepayDebt = currentDebt > 0 && currentCapital > 0;
@@ -107,6 +115,14 @@ export default function RightPanel({ preview }) {
   const costReductionCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.COST, strategy);
   const canQualityUpgrade = qualityUpgradeCost <= currentCapital;
   const canCostReduction = costReductionCost <= currentCapital;
+
+  useEffect(() => {
+    const currentMarketingSpend = Number(strategy.marketingSpend) || 0;
+
+    if (currentMarketingSpend > maxMarketingSpend) {
+      setOperationAmount('marketingSpend', maxMarketingSpend);
+    }
+  }, [maxMarketingSpend, setOperationAmount, strategy.marketingSpend]);
 
   if (strategy.activeTab === STRATEGY_TABS.PRICE) {
     return (
@@ -233,6 +249,11 @@ export default function RightPanel({ preview }) {
           <span>{TEXT.expectedCost} {formatWon(preview.player.unitCost)}</span>
           <span>{TEXT.expectedDebt} {formatWon(preview.playerAfterOperation?.debt ?? 0)}</span>
         </div>
+        <MarketingLimitReadout
+          capital={currentCapital}
+          limit={maxMarketingSpend}
+          mode={marketingLimitMode}
+        />
         <div className="cr2-choice-grid">
           {OPERATION_OPTIONS.map((option) => (
             <button
@@ -494,6 +515,27 @@ function QualityCostReadout({ preview }) {
   );
 }
 
+function MarketingLimitReadout({ capital, limit, mode }) {
+  const isRatio = mode === 'ratio';
+  const formula = isRatio
+    ? `(${formatWon(capital)} x 0.3)`
+    : `(MIN(${formatWon(capital)} x 0.2, 500만원))`;
+  const tooltipText = isRatio
+    ? '보유 자본의 30%까지 마케팅에 투자할 수 있습니다. 자본이 많을수록 한도가 늘어납니다. 설정에서 방식을 변경할 수 있습니다.'
+    : '보유 자본의 20% 또는 최대 500만원 중 낮은 금액까지 투자할 수 있습니다. 설정에서 방식을 변경할 수 있습니다.';
+
+  return (
+    <div className="cr2-marketing-limit-card">
+      <Tooltip content={tooltipText}>
+        <span className="cr2-panel-label">{TEXT.marketingLimitTitle}</span>
+      </Tooltip>
+      <strong>{TEXT.marketingLimitMode}: {isRatio ? TEXT.marketingLimitRatio : TEXT.marketingLimitFixed}</strong>
+      <span>{TEXT.marketingLimitCurrent}: {formatWon(limit)}</span>
+      <small>{formula}</small>
+    </div>
+  );
+}
+
 function buildTurnEstimate(preview, strategy) {
   const plannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const unitsSold = Math.min(plannedProduction, preview.player.demand);
@@ -545,10 +587,6 @@ function getMaxAffordableOrder(preview) {
   const unitCost = Math.max(1, preview.player.unitCost ?? preview.playerAfterOperation?.unitCost ?? 1);
 
   return Math.floor(capital / unitCost);
-}
-
-function getMaxMarketingSpend(capital) {
-  return Math.floor(Math.max(0, capital) * 0.3);
 }
 
 function getFactoryUpgradeCost(focus, strategy) {

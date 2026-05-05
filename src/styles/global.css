@@ -1197,6 +1197,7 @@ button:disabled {
 .cr2-rival-metric-list,
 .cr2-summary-list,
 .cr2-factory-readout,
+.cr2-marketing-limit-card,
 .cr2-event-effect-list {
   display: grid;
   gap: 6px;
@@ -1240,6 +1241,25 @@ button:disabled {
 
 .cr2-summary-list strong {
   line-height: 1.7;
+}
+
+.cr2-marketing-limit-card {
+  border: 1px solid rgba(0, 170, 0, 0.55);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.26);
+  padding: 8px;
+  color: var(--cr2-text);
+}
+
+.cr2-marketing-limit-card strong {
+  color: var(--cr2-accent);
+  font-weight: 400;
+}
+
+.cr2-marketing-limit-card small {
+  color: rgba(0, 255, 65, 0.7);
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-xs);
 }
 
 .cr2-rival-info-card {
@@ -1998,6 +2018,7 @@ button:disabled {
 .cr2-factory-readout,
 .cr2-event-effect-list,
 .cr2-quality-cost-readout,
+.cr2-marketing-limit-card,
 .cr2-demand-card span,
 .cr2-demand-card small,
 .cr2-strategy-warning,

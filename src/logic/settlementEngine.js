@@ -141,6 +141,16 @@ export function buildOperationalMarketPreview(state, randomValue = 0.5) {
   });
 }
 
+export function getMarketingLimit(capital, marketingLimitMode = 'ratio') {
+  const safeCapital = Math.max(0, Number(capital) || 0);
+
+  if (marketingLimitMode === 'ratio') {
+    return Math.floor(safeCapital * 0.3);
+  }
+
+  return Math.min(Math.floor(safeCapital * 0.2), 5000000);
+}
+
 export function calculateSettlement(state, internalOutcome = null, randomValue = Math.random()) {
   const strategy = constrainStrategyByCapital(state, state.strategy);
   const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue);
@@ -323,8 +333,9 @@ function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
   }
 
   if (strategy.operationOptionId === OPERATION_STRATEGY_IDS.MARKETING) {
+    const marketingLimit = getMarketingLimit(player.capital, state.settings?.marketingLimitMode);
     const spend = Math.min(
-      Math.floor(player.capital * 0.3),
+      marketingLimit,
       Math.max(0, Number(strategy.marketingSpend) || 0),
     );
 
@@ -350,7 +361,7 @@ function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
 
 function constrainStrategyByCapital(state, strategy) {
   const capital = Math.max(0, state.player?.capital ?? 0);
-  const maxMarketingSpend = Math.floor(capital * 0.3);
+  const maxMarketingSpend = getMarketingLimit(capital, state.settings?.marketingLimitMode);
   const factoryFocus = strategy.factoryUpgradeFocus ?? FACTORY_UPGRADE_FOCUS.NONE;
   const factoryCost = getFactoryUpgradeCost(factoryFocus, strategy);
   const shouldSkipFactory =
