@@ -1,7 +1,7 @@
 export const INITIAL_QUALITY = 8;
 export const INITIAL_COST = 3000;
 export const INITIAL_ORDER_CAP = 1000;
-export const MAX_COST_REDUCTION = 0.3;
+export const MAX_COST_REDUCTION = 0.4;
 
 export const QUALITY_UPGRADE_TIERS = Object.freeze([
   Object.freeze({ cost: 500000, minGain: 3, maxGain: 8, baseRate: 0.72 }),
