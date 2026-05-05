@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   BANK_ACTION_IDS,
   FACTORY_UPGRADE_FOCUS,
@@ -16,6 +17,7 @@ import { getPlannedProductionCount, getQualityCostMultiplier } from '../logic/se
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
+import FactoryUpgradeModal from './FactoryUpgradeModal';
 
 const REVEAL_DEMAND_FORECAST = false;
 
@@ -71,6 +73,7 @@ const TEXT = Object.freeze({
 });
 
 export default function RightPanel({ preview }) {
+  const [factoryModalFocus, setFactoryModalFocus] = useState(null);
   const strategy = useGameStore((state) => state.strategy);
   const selectPriceOption = useGameStore((state) => state.selectPriceOption);
   const setSalesControl = useGameStore((state) => state.setSalesControl);
@@ -249,7 +252,10 @@ export default function RightPanel({ preview }) {
               className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.QUALITY ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
               disabled={!canQualityUpgrade}
               type="button"
-              onClick={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.QUALITY)}
+              onClick={() => {
+                setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
+                setFactoryModalFocus(FACTORY_UPGRADE_FOCUS.QUALITY);
+              }}
             >
               {canQualityUpgrade ? TEXT.qualityUpgrade : TEXT.capitalShort}
             </button>
@@ -257,11 +263,20 @@ export default function RightPanel({ preview }) {
               className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.COST ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
               disabled={!canCostReduction}
               type="button"
-              onClick={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.COST)}
+              onClick={() => {
+                setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
+                setFactoryModalFocus(FACTORY_UPGRADE_FOCUS.COST);
+              }}
             >
               {canCostReduction ? TEXT.costCut : TEXT.capitalShort}
             </button>
           </div>
+        ) : null}
+        {factoryModalFocus ? (
+          <FactoryUpgradeModal
+            focus={factoryModalFocus}
+            onClose={() => setFactoryModalFocus(null)}
+          />
         ) : null}
         {strategy.operationOptionId === OPERATION_STRATEGY_IDS.BANKING ? (
           <>

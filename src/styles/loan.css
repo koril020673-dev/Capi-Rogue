@@ -1,0 +1,114 @@
+@keyframes cr2-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.cr2-blink {
+  animation: cr2-blink 0.8s ease infinite;
+}
+
+.cr2-status-shell {
+  display: grid;
+  gap: 6px;
+}
+
+.cr2-loan-warning-list {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+}
+
+.cr2-loan-warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(220, 20, 60, 0.48);
+  border-radius: 4px;
+  background: rgba(220, 20, 60, 0.15);
+  color: var(--cr2-warning);
+  padding: 5px 8px;
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-xs);
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.cr2-loan-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.cr2-loan-modal {
+  width: min(460px, calc(100vw - 40px));
+  display: grid;
+  gap: 14px;
+  border: 2px solid var(--cr2-warning);
+  border-radius: 8px;
+  background: #1A1A2E;
+  color: var(--cr2-text);
+  padding: 18px;
+  font-family: var(--cr2-font-readable);
+}
+
+.cr2-loan-modal h2 {
+  margin: 0;
+  color: var(--cr2-warning);
+  font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-md);
+  line-height: 1.5;
+}
+
+.cr2-loan-matured-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(0, 170, 0, 0.38);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.34);
+  padding: 12px;
+}
+
+.cr2-loan-matured-card strong,
+.cr2-loan-matured-card p {
+  margin: 0;
+  font-size: var(--cr2-ui-font-sm);
+  line-height: 1.45;
+}
+
+.cr2-loan-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cr2-loan-actions button,
+.cr2-loan-later-button {
+  min-height: 38px;
+  border: 2px solid var(--cr2-accent);
+  border-radius: 4px;
+  background: var(--cr2-accent);
+  color: #000000;
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 900;
+}
+
+.cr2-loan-actions button:nth-child(2) {
+  border-color: var(--cr2-grid);
+  background: #000000;
+  color: var(--cr2-grid);
+}
+
+.cr2-loan-actions button:disabled {
+  opacity: 0.48;
+}
+
+.cr2-loan-later-button {
+  border-color: var(--cr2-warning);
+  background: transparent;
+  color: var(--cr2-warning);
+}

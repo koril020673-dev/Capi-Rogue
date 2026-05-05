@@ -1,0 +1,107 @@
+@keyframes cr2-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.cr2-shake {
+  animation: cr2-shake 0.4s ease;
+}
+
+.cr2-factory-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.cr2-factory-modal {
+  width: min(420px, calc(100% - 32px));
+  display: grid;
+  gap: 14px;
+  border: 2px solid var(--cr2-grid);
+  border-radius: 8px;
+  background: #1A1A2E;
+  padding: 18px;
+  color: var(--cr2-text);
+  font-family: var(--cr2-font-readable);
+}
+
+.cr2-factory-modal--success {
+  border-color: var(--cr2-accent);
+}
+
+.cr2-factory-modal--fail {
+  border-color: var(--cr2-warning);
+}
+
+.cr2-factory-modal h2 {
+  margin: 0;
+  color: var(--cr2-accent);
+  font-family: var(--cr2-font-pixel);
+  font-size: var(--cr2-ui-font-md);
+  line-height: 1.5;
+}
+
+.cr2-factory-readout-list,
+.cr2-factory-result {
+  display: grid;
+  gap: 10px;
+}
+
+.cr2-factory-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0, 170, 0, 0.34);
+  padding-bottom: 7px;
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 800;
+}
+
+.cr2-factory-row strong {
+  color: var(--cr2-accent);
+}
+
+.cr2-factory-result {
+  min-height: 72px;
+  align-content: center;
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+.cr2-factory-up {
+  color: var(--cr2-accent);
+}
+
+.cr2-factory-down {
+  color: var(--cr2-warning);
+}
+
+.cr2-factory-modal footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cr2-factory-modal footer button {
+  min-height: 38px;
+  border: 2px solid var(--cr2-accent);
+  border-radius: 4px;
+  background: var(--cr2-accent);
+  color: #000000;
+  font-family: var(--cr2-font-readable);
+  font-size: var(--cr2-ui-font-sm);
+  font-weight: 900;
+}
+
+.cr2-factory-modal footer button:last-child {
+  border-color: var(--cr2-warning);
+  background: #000000;
+  color: var(--cr2-warning);
+}

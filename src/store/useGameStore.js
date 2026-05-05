@@ -28,6 +28,8 @@ import { updateMomentumHistory, getMomentumScore } from '../logic/momentumEngine
 import { addExternalEventEffect, applyEffectBundleToPlayer, drawInternalEvent, expireMarketEffects, resolveInternalChoice, rollRivalEvent, selectExternalEvent } from '../logic/eventEngine';
 import { applyEconomicPhaseShift, getForcedPhase } from '../logic/econEngine';
 import { calculateSettlement, buildOperationalMarketPreview } from '../logic/settlementEngine';
+import { rollCostReduction, rollQualityUpgrade } from '../logic/factoryEngine';
+import { extendLoan, repayLoan } from '../logic/loanEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
 import { generateRewardOptions, applyRewardToPlayer, isRewardFloor } from '../logic/rewardEngine';
 import {
@@ -293,6 +295,78 @@ export const useGameStore = create((set, get) => ({
 
   setTutorialEnabled(isTutorialEnabled) {
     set({ isTutorialEnabled: Boolean(isTutorialEnabled) });
+  },
+
+  attemptFactoryUpgrade(focus, tierIndex = 0) {
+    const state = get();
+    const player = state.player;
+    const randomValue = Math.random();
+    const isQuality = focus === 'quality';
+    const upgrade = isQuality
+      ? rollQualityUpgrade(player, tierIndex, state.factoryFailStreak ?? 0, randomValue)
+      : rollCostReduction(player, tierIndex, state.costReductionFailStreak ?? 0, randomValue);
+    const nextPlayer = Object.freeze({
+      ...upgrade.player,
+      capital: Math.max(0, player.capital - upgrade.cost),
+    });
+    const result = Object.freeze({
+      type: isQuality ? 'quality' : 'cost',
+      success: upgrade.success,
+      cost: upgrade.cost,
+      gain: upgrade.gain,
+      beforeQuality: player.maxQuality ?? player.quality ?? 0,
+      afterQuality: upgrade.player.maxQuality ?? upgrade.player.quality ?? 0,
+      beforeCost: player.unitCost ?? 0,
+      afterCost: upgrade.player.unitCost ?? player.unitCost ?? 0,
+      successRate: upgrade.successRate,
+      nextFailStreak: upgrade.nextFailStreak,
+    });
+
+    set((current) => ({
+      player: nextPlayer,
+      factoryFailStreak: isQuality ? upgrade.nextFailStreak : current.factoryFailStreak,
+      costReductionFailStreak: isQuality ? current.costReductionFailStreak : upgrade.nextFailStreak,
+      strategy: Object.freeze({
+        ...current.strategy,
+        factoryUpgradeFocus: 'none',
+      }),
+    }));
+
+    return result;
+  },
+
+  repayMaturedLoan(loanId) {
+    const nextState = repayLoan(get(), loanId);
+
+    set({
+      player: nextState.player,
+      loans: nextState.loans,
+      creditScore: nextState.creditScore ?? get().creditScore,
+      loanMaturityNotice: nextState.loans.some((loan) => (loan.remainingTurns ?? 0) <= 0)
+        ? Object.freeze({
+            message: '대출 만기가 도래했습니다. 원금을 상환하거나 연장하세요.',
+            loans: Object.freeze(nextState.loans.filter((loan) => (loan.remainingTurns ?? 0) <= 0)),
+          })
+        : null,
+    });
+  },
+
+  extendMaturedLoan(loanId) {
+    const nextState = extendLoan(get(), loanId);
+
+    set({
+      loans: nextState.loans,
+      loanMaturityNotice: nextState.loans.some((loan) => (loan.remainingTurns ?? 0) <= 0)
+        ? Object.freeze({
+            message: '대출 만기가 도래했습니다. 원금을 상환하거나 연장하세요.',
+            loans: Object.freeze(nextState.loans.filter((loan) => (loan.remainingTurns ?? 0) <= 0)),
+          })
+        : null,
+    });
+  },
+
+  dismissLoanMaturityNotice() {
+    set({ loanMaturityNotice: null });
   },
 
   async saveCurrentGame(slotNumberOverride) {

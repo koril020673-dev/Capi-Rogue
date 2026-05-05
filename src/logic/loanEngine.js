@@ -29,11 +29,12 @@ export function processInterest(gameState) {
   const capital = gameState.player?.capital ?? gameState.capital ?? 0;
   const nextCapital = capital - totalInterest;
   const overdue = totalInterest > capital;
+  const maturedUnresolvedCount = loans.filter((loan) => (loan.remainingTurns ?? 0) <= 0).length;
 
   return Object.freeze({
     interestDue: totalInterest,
     overdue,
-    creditScoreDelta: overdue ? -4 : 0,
+    creditScoreDelta: (overdue ? -4 : 0) + (maturedUnresolvedCount > 0 ? -4 : 0),
     capitalAfter: nextCapital,
     player: Object.freeze({
       ...gameState.player,
@@ -75,8 +76,13 @@ export function repayLoan(gameState, loanId) {
 
   const capital = gameState.player?.capital ?? gameState.capital ?? 0;
 
+  if (loan.principal > capital) {
+    return gameState;
+  }
+
   return Object.freeze({
     ...gameState,
+    creditScore: Math.min(100, (gameState.creditScore ?? 70) + 5),
     capital: gameState.player ? gameState.capital : capital - loan.principal,
     player: gameState.player
       ? Object.freeze({
@@ -114,6 +120,10 @@ export function extendLoan(gameState, loanId) {
 
 export function canExtendLoan(currentGrade, requiredGrade) {
   return (GRADE_ORDER[currentGrade] ?? 0) >= (GRADE_ORDER[requiredGrade] ?? 0);
+}
+
+export function getLoanTypeInfo(typeId) {
+  return getLoanType(typeId);
 }
 
 function getLoanType(typeId) {
