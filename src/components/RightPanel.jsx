@@ -70,6 +70,7 @@ const TEXT = Object.freeze({
   maxMarketing: '\uCD5C\uB300 \uB9C8\uCF00\uD305 \uD22C\uC790',
   insufficientCapital: '\uBCF4\uC720 \uC790\uBCF8\uC774 \uBD80\uC871\uD569\uB2C8\uB2E4.',
   capitalShort: '\uC790\uBCF8 \uBD80\uC871',
+  noDebt: '\uBD80\uCC44 \uC5C6\uC74C',
 });
 
 export default function RightPanel({ preview }) {
@@ -87,16 +88,19 @@ export default function RightPanel({ preview }) {
   const setOperationAmount = useGameStore((state) => state.setOperationAmount);
   const proceedAfterStrategy = useGameStore((state) => state.proceedAfterStrategy);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
+  const playerState = useGameStore((state) => state.player);
   const selectedAdvisor = getAdvisorById(selectedAdvisorId);
   const revealExtraRivalInfo = Boolean(selectedAdvisor.passive.revealExtraRivalInfo);
   const estimate = buildTurnEstimate(preview, strategy);
-  const currentCapital = Math.max(0, preview.player.capital ?? 0);
+  const currentCapital = Math.max(0, playerState.capital ?? 0);
+  const currentDebt = Math.max(0, playerState.debt ?? 0);
   const maxOrderAmount = getMaxAffordableOrder(preview);
   const currentPlannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
   const isOrderOverCapital = currentPlannedProduction > maxOrderAmount;
   const maxMarketingSpend = getMaxMarketingSpend(currentCapital);
   const isMarketingOverCapital = (Number(strategy.marketingSpend) || 0) > maxMarketingSpend;
   const isRepayOverCapital = (Number(strategy.bankRepayAmount) || 0) > currentCapital;
+  const canRepayDebt = currentDebt > 0 && currentCapital > 0;
   const qualityUpgradeCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.QUALITY, strategy);
   const costReductionCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.COST, strategy);
   const canQualityUpgrade = qualityUpgradeCost <= currentCapital;
@@ -297,11 +301,11 @@ export default function RightPanel({ preview }) {
               </button>
               <button
                 className={strategy.bankActionId === BANK_ACTION_IDS.REPAY ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
-                disabled={isRepayOverCapital}
+                disabled={!canRepayDebt}
                 type="button"
                 onClick={() => setBankAction(BANK_ACTION_IDS.REPAY)}
               >
-                {isRepayOverCapital ? TEXT.capitalShort : TEXT.repay}
+                {canRepayDebt ? TEXT.repay : currentDebt <= 0 ? TEXT.noDebt : TEXT.capitalShort}
               </button>
             </div>
             {strategy.bankActionId === BANK_ACTION_IDS.BORROW ? (
@@ -314,17 +318,21 @@ export default function RightPanel({ preview }) {
               />
             ) : null}
             {strategy.bankActionId === BANK_ACTION_IDS.REPAY ? (
-              <input
-                className="cr2-input"
-                min="0"
-                type="number"
-                value={strategy.bankRepayAmount}
-                onChange={(event) => {
-                  const nextValue = clampNumber(event.target.value, 0, currentCapital);
+              <>
+                <input
+                  className="cr2-input"
+                  max={Math.min(currentCapital, currentDebt)}
+                  min="0"
+                  type="number"
+                  value={strategy.bankRepayAmount}
+                  onChange={(event) => {
+                    const nextValue = clampNumber(event.target.value, 0, Math.min(currentCapital, currentDebt));
 
-                  setOperationAmount('bankRepayAmount', nextValue);
-                }}
-              />
+                    setOperationAmount('bankRepayAmount', nextValue);
+                  }}
+                />
+                {isRepayOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
+              </>
             ) : null}
           </>
         ) : null}
