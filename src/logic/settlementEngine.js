@@ -21,7 +21,12 @@ import { getActiveMarketModifiers } from './eventEngine';
 import { calculateDemandSplit } from './marketEngine';
 import { getMomentumDemandModifier } from './momentumEngine';
 import { checkLoanMaturity, createLoan, processInterest, tickLoans } from './loanEngine';
-import { rollCostReduction, rollQualityUpgrade } from './factoryEngine';
+import {
+  COST_REDUCTION_TIERS,
+  QUALITY_UPGRADE_TIERS,
+  rollCostReduction,
+  rollQualityUpgrade,
+} from './factoryEngine';
 import { buildRivalParticipants, resolveRivalWar } from './rivalEngine';
 
 const QUALITY_COST_MULTIPLIERS = Object.freeze({
@@ -120,9 +125,10 @@ export function buildMarketPreview(state, randomValue = 0.5) {
 }
 
 export function buildOperationalMarketPreview(state, randomValue = 0.5) {
-  const operationResult = applyOperationBeforeSettlement(state, state.strategy, randomValue);
+  const strategy = constrainStrategyByCapital(state, state.strategy);
+  const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue);
   const preview = buildMarketPreview(
-    Object.freeze({ ...state, player: operationResult.player }),
+    Object.freeze({ ...state, player: operationResult.player, strategy }),
     randomValue,
   );
 
@@ -136,7 +142,8 @@ export function buildOperationalMarketPreview(state, randomValue = 0.5) {
 }
 
 export function calculateSettlement(state, internalOutcome = null, randomValue = Math.random()) {
-  const operationResult = applyOperationBeforeSettlement(state, state.strategy, randomValue);
+  const strategy = constrainStrategyByCapital(state, state.strategy);
+  const operationResult = applyOperationBeforeSettlement(state, strategy, randomValue);
   const interestResult = processInterest(Object.freeze({
     ...state,
     player: operationResult.player,
@@ -144,7 +151,7 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
   }));
   const workingPlayer = operationResult.player;
   const preview = buildMarketPreview(
-    Object.freeze({ ...state, player: workingPlayer }),
+    Object.freeze({ ...state, player: workingPlayer, strategy }),
     randomValue,
   );
   const playerDemand = Math.round(
@@ -152,13 +159,17 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
       Math.max(0, 1 - (preview.marketModifiers.playerDemandPenalty ?? 0)),
   );
   const plannedProduction = Math.floor(
-    getPlannedProductionCount(state.strategy, preview.totalDemand) *
+    getPlannedProductionCount(strategy, preview.totalDemand) *
       getAdvisorOrderCapMultiplier(state.selectedAdvisorId) *
       preview.marketModifiers.orderCapMultiplier,
   );
-  const unitsSold = Math.min(plannedProduction, playerDemand);
-  const unsoldUnits = Math.max(0, plannedProduction - unitsSold);
-  const productionCost = plannedProduction * preview.player.unitCost;
+  const maxAffordableProduction = Math.floor(
+    Math.max(0, state.player.capital ?? 0) / Math.max(1, preview.player.unitCost ?? workingPlayer.unitCost ?? 1),
+  );
+  const validPlannedProduction = Math.min(plannedProduction, maxAffordableProduction);
+  const unitsSold = Math.min(validPlannedProduction, playerDemand);
+  const unsoldUnits = Math.max(0, validPlannedProduction - unitsSold);
+  const productionCost = validPlannedProduction * preview.player.unitCost;
   const revenue = unitsSold * preview.player.price;
   const debtService = Math.round((workingPlayer.debt * 0.012) * preview.marketModifiers.debtCostMultiplier) +
     interestResult.interestDue;
@@ -184,7 +195,7 @@ export function calculateSettlement(state, internalOutcome = null, randomValue =
     totalDemand: preview.totalDemand,
     demandSplit: preview.participants,
     playerDemand,
-    plannedProduction,
+    plannedProduction: validPlannedProduction,
     unitsSold,
     unsoldUnits,
     revenue,
@@ -312,7 +323,10 @@ function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
   }
 
   if (strategy.operationOptionId === OPERATION_STRATEGY_IDS.MARKETING) {
-    const spend = Math.min(player.capital, Math.max(0, Number(strategy.marketingSpend) || 0));
+    const spend = Math.min(
+      Math.floor(player.capital * 0.3),
+      Math.max(0, Number(strategy.marketingSpend) || 0),
+    );
 
     return Object.freeze({
       player: applyMarketingInvestment(player, spend),
@@ -332,6 +346,40 @@ function applyOperationBeforeSettlement(state, strategy, randomValue = 0.5) {
     factoryFailStreak: state.factoryFailStreak ?? 0,
     costReductionFailStreak: state.costReductionFailStreak ?? 0,
   });
+}
+
+function constrainStrategyByCapital(state, strategy) {
+  const capital = Math.max(0, state.player?.capital ?? 0);
+  const maxMarketingSpend = Math.floor(capital * 0.3);
+  const factoryFocus = strategy.factoryUpgradeFocus ?? FACTORY_UPGRADE_FOCUS.NONE;
+  const factoryCost = getFactoryUpgradeCost(factoryFocus, strategy);
+  const shouldSkipFactory =
+    strategy.operationOptionId === OPERATION_STRATEGY_IDS.FACTORY_UPGRADE &&
+    factoryFocus !== FACTORY_UPGRADE_FOCUS.NONE &&
+    factoryCost > capital;
+
+  return Object.freeze({
+    ...strategy,
+    customSalesQuantity: Math.min(
+      Math.max(0, Number(strategy.customSalesQuantity) || 0),
+      Math.floor(capital / Math.max(1, state.player?.unitCost ?? 1)),
+    ),
+    marketingSpend: Math.min(Math.max(0, Number(strategy.marketingSpend) || 0), maxMarketingSpend),
+    bankRepayAmount: Math.min(Math.max(0, Number(strategy.bankRepayAmount) || 0), capital),
+    factoryUpgradeFocus: shouldSkipFactory ? FACTORY_UPGRADE_FOCUS.NONE : factoryFocus,
+  });
+}
+
+function getFactoryUpgradeCost(focus, strategy) {
+  if (focus === FACTORY_UPGRADE_FOCUS.QUALITY) {
+    return QUALITY_UPGRADE_TIERS[strategy.factoryUpgradeTierIndex ?? 0]?.cost ?? QUALITY_UPGRADE_TIERS[0].cost;
+  }
+
+  if (focus === FACTORY_UPGRADE_FOCUS.COST) {
+    return COST_REDUCTION_TIERS[strategy.costReductionTierIndex ?? 0]?.cost ?? COST_REDUCTION_TIERS[0].cost;
+  }
+
+  return 0;
 }
 
 export function getPlannedProductionCount(strategy, totalDemand) {

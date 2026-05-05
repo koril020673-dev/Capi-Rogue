@@ -11,6 +11,7 @@ import {
   SALES_QUANTITY_OPTIONS,
   STRATEGY_TABS,
 } from '../constants/strategies';
+import { COST_REDUCTION_TIERS, QUALITY_UPGRADE_TIERS } from '../logic/factoryEngine';
 import { getPlannedProductionCount, getQualityCostMultiplier } from '../logic/settlementEngine';
 import { getAdvisorById } from '../logic/advisorEngine';
 import { useGameStore } from '../store/useGameStore';
@@ -62,6 +63,11 @@ const TEXT = Object.freeze({
   rivalQuality: '\uD488\uC9C8',
   rivalBrand: '\uBE0C\uB79C\uB4DC',
   rivalAwareness: '\uC778\uC9C0\uB3C4',
+  maxOrder: '\uCD5C\uB300 \uBC1C\uC8FC \uAC00\uB2A5',
+  capitalBased: '\uBCF4\uC720 \uC790\uBCF8 \uAE30\uC900',
+  maxMarketing: '\uCD5C\uB300 \uB9C8\uCF00\uD305 \uD22C\uC790',
+  insufficientCapital: '\uBCF4\uC720 \uC790\uBCF8\uC774 \uBD80\uC871\uD569\uB2C8\uB2E4.',
+  capitalShort: '\uC790\uBCF8 \uBD80\uC871',
 });
 
 export default function RightPanel({ preview }) {
@@ -81,6 +87,17 @@ export default function RightPanel({ preview }) {
   const selectedAdvisor = getAdvisorById(selectedAdvisorId);
   const revealExtraRivalInfo = Boolean(selectedAdvisor.passive.revealExtraRivalInfo);
   const estimate = buildTurnEstimate(preview, strategy);
+  const currentCapital = Math.max(0, preview.player.capital ?? 0);
+  const maxOrderAmount = getMaxAffordableOrder(preview);
+  const currentPlannedProduction = getPlannedProductionCount(strategy, preview.totalDemand);
+  const isOrderOverCapital = currentPlannedProduction > maxOrderAmount;
+  const maxMarketingSpend = getMaxMarketingSpend(currentCapital);
+  const isMarketingOverCapital = (Number(strategy.marketingSpend) || 0) > maxMarketingSpend;
+  const isRepayOverCapital = (Number(strategy.bankRepayAmount) || 0) > currentCapital;
+  const qualityUpgradeCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.QUALITY, strategy);
+  const costReductionCost = getFactoryUpgradeCost(FACTORY_UPGRADE_FOCUS.COST, strategy);
+  const canQualityUpgrade = qualityUpgradeCost <= currentCapital;
+  const canCostReduction = costReductionCost <= currentCapital;
 
   if (strategy.activeTab === STRATEGY_TABS.PRICE) {
     return (
@@ -143,13 +160,33 @@ export default function RightPanel({ preview }) {
         ) : null}
         {strategy.salesControlId === SALES_CONTROL_IDS.QUANTITY &&
         strategy.salesQuantityOptionId === SALES_QUANTITY_IDS.CUSTOM ? (
-          <input
-            className="cr2-input"
-            min="0"
-            type="number"
-            value={strategy.customSalesQuantity}
-            onChange={(event) => setCustomSalesQuantity(event.target.value)}
-          />
+          <>
+            <input
+              className="cr2-input"
+              max={maxOrderAmount}
+              min="0"
+              type="number"
+              value={strategy.customSalesQuantity}
+              onChange={(event) => {
+                const nextValue = clampNumber(event.target.value, 0, maxOrderAmount);
+
+                setCustomSalesQuantity(nextValue);
+              }}
+            />
+            <span className="cr2-panel-label">
+              {TEXT.maxOrder}: {maxOrderAmount.toLocaleString()}개 ({TEXT.capitalBased})
+            </span>
+            {isOrderOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
+          </>
+        ) : null}
+        {strategy.salesControlId === SALES_CONTROL_IDS.QUANTITY &&
+        strategy.salesQuantityOptionId !== SALES_QUANTITY_IDS.CUSTOM ? (
+          <>
+            <span className="cr2-panel-label">
+              {TEXT.maxOrder}: {maxOrderAmount.toLocaleString()}개 ({TEXT.capitalBased})
+            </span>
+            {isOrderOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
+          </>
         ) : null}
       </aside>
     );
@@ -210,17 +247,19 @@ export default function RightPanel({ preview }) {
             </button>
             <button
               className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.QUALITY ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
+              disabled={!canQualityUpgrade}
               type="button"
               onClick={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.QUALITY)}
             >
-              {TEXT.qualityUpgrade}
+              {canQualityUpgrade ? TEXT.qualityUpgrade : TEXT.capitalShort}
             </button>
             <button
               className={strategy.factoryUpgradeFocus === FACTORY_UPGRADE_FOCUS.COST ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
+              disabled={!canCostReduction}
               type="button"
               onClick={() => setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.COST)}
             >
-              {TEXT.costCut}
+              {canCostReduction ? TEXT.costCut : TEXT.capitalShort}
             </button>
           </div>
         ) : null}
@@ -243,10 +282,11 @@ export default function RightPanel({ preview }) {
               </button>
               <button
                 className={strategy.bankActionId === BANK_ACTION_IDS.REPAY ? 'cr2-segment cr2-segment--active' : 'cr2-segment'}
+                disabled={isRepayOverCapital}
                 type="button"
                 onClick={() => setBankAction(BANK_ACTION_IDS.REPAY)}
               >
-                {TEXT.repay}
+                {isRepayOverCapital ? TEXT.capitalShort : TEXT.repay}
               </button>
             </div>
             {strategy.bankActionId === BANK_ACTION_IDS.BORROW ? (
@@ -264,7 +304,11 @@ export default function RightPanel({ preview }) {
                 min="0"
                 type="number"
                 value={strategy.bankRepayAmount}
-                onChange={(event) => setOperationAmount('bankRepayAmount', event.target.value)}
+                onChange={(event) => {
+                  const nextValue = clampNumber(event.target.value, 0, currentCapital);
+
+                  setOperationAmount('bankRepayAmount', nextValue);
+                }}
               />
             ) : null}
           </>
@@ -274,11 +318,20 @@ export default function RightPanel({ preview }) {
             <span className="cr2-panel-label">{TEXT.marketingSpend}</span>
             <input
               className="cr2-input"
+              max={maxMarketingSpend}
               min="0"
               type="number"
               value={strategy.marketingSpend}
-              onChange={(event) => setOperationAmount('marketingSpend', event.target.value)}
+              onChange={(event) => {
+                const nextValue = clampNumber(event.target.value, 0, maxMarketingSpend);
+
+                setOperationAmount('marketingSpend', nextValue);
+              }}
             />
+            <span className="cr2-panel-label">
+              {TEXT.maxMarketing}: {formatWon(maxMarketingSpend)} ({TEXT.capitalBased})
+            </span>
+            {isMarketingOverCapital ? <strong className="cr2-loss-text">{TEXT.insufficientCapital}</strong> : null}
             <span className="cr2-panel-label">
               {TEXT.expectedAwareness} {Math.round((preview.playerAfterOperation?.awareness ?? 0) * 100)}%
             </span>
@@ -457,4 +510,37 @@ function getQualityOptionUnitCost(preview, strategy, qualityOptionId) {
     1,
     Math.round(baseUnitCost * marketCostMultiplier * getQualityCostMultiplier(optionStrategy)),
   );
+}
+
+function getMaxAffordableOrder(preview) {
+  const capital = Math.max(0, preview.player.capital ?? 0);
+  const unitCost = Math.max(1, preview.player.unitCost ?? preview.playerAfterOperation?.unitCost ?? 1);
+
+  return Math.floor(capital / unitCost);
+}
+
+function getMaxMarketingSpend(capital) {
+  return Math.floor(Math.max(0, capital) * 0.3);
+}
+
+function getFactoryUpgradeCost(focus, strategy) {
+  if (focus === FACTORY_UPGRADE_FOCUS.QUALITY) {
+    return QUALITY_UPGRADE_TIERS[strategy.factoryUpgradeTierIndex ?? 0]?.cost ?? QUALITY_UPGRADE_TIERS[0].cost;
+  }
+
+  if (focus === FACTORY_UPGRADE_FOCUS.COST) {
+    return COST_REDUCTION_TIERS[strategy.costReductionTierIndex ?? 0]?.cost ?? COST_REDUCTION_TIERS[0].cost;
+  }
+
+  return 0;
+}
+
+function clampNumber(value, min, max) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return min;
+  }
+
+  return Math.min(Math.max(min, Math.round(number)), Math.max(min, max));
 }
