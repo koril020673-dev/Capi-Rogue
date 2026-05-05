@@ -111,7 +111,6 @@ export default function RightPanel({ preview }) {
   const isMarketingOverCapital = (Number(strategy.marketingSpend) || 0) > maxMarketingSpend;
   const isRepayOverCapital = (Number(strategy.bankRepayAmount) || 0) > currentCapital;
   const canRepayDebt = currentDebt > 0 && currentCapital > 0;
-  const isMaxQuality = (playerState.maxQuality ?? playerState.quality ?? 0) >= 100;
   const isMaxCostReduction = (playerState.costReduction ?? 0) >= 0.4;
 
   useEffect(() => {
@@ -277,7 +276,6 @@ export default function RightPanel({ preview }) {
               currentQuality={playerState.maxQuality ?? playerState.quality ?? 0}
               factoryFailStreak={factoryFailStreak}
               isMaxCostReduction={isMaxCostReduction}
-              isMaxQuality={isMaxQuality}
               qualityUpgradeCount={qualityUpgradeCount}
               onReserve={(type) => {
                 setFactoryUpgradeFocus(FACTORY_UPGRADE_FOCUS.NONE);
@@ -524,7 +522,6 @@ function FactoryUpgradePicker({
   currentQuality,
   factoryFailStreak,
   isMaxCostReduction,
-  isMaxQuality,
   qualityUpgradeCount,
   onReserve,
   onSkip,
@@ -537,15 +534,15 @@ function FactoryUpgradePicker({
       <section className="cr2-factory-upgrade-section">
         <header>
           <strong>공장 관리</strong>
-          <span>현재 품질: {Math.round(currentQuality)} / 100</span>
+          <span>?? ??: {Math.round(currentQuality)}</span>
           <span>현재 원가: {formatWon(currentCost)}/개</span>
           <span>누적 원가 절감: {Math.round(costReduction * 100)}% / 40%</span>
         </header>
         <div className="cr2-factory-tier-grid cr2-factory-tier-grid--single">
           <FactorySingleButton
-            disabled={isMaxQuality || QUALITY_UPGRADE.cost > capital}
+            disabled={QUALITY_UPGRADE.cost > capital}
             failStreak={factoryFailStreak}
-            limitMessage={isMaxQuality ? '최대 품질 달성' : TEXT.capitalShort}
+            limitMessage={TEXT.capitalShort}
             option={QUALITY_UPGRADE}
             rate={qualityRate}
             title={TEXT.qualityUpgrade}

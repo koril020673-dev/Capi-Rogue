@@ -40,7 +40,7 @@ export function attemptQualityUpgrade(gameState = {}) {
     return Object.freeze({
       success: true,
       qualityGain: gain,
-      newQuality: Math.min(quality + gain, 100),
+      newQuality: quality + gain,
       cost: QUALITY_UPGRADE.cost,
       successRate,
       newFailStreak: 0,
@@ -113,7 +113,7 @@ export function rollQualityUpgrade(player, failStreak = 0, qualityUpgradeCount =
     nextUpgradeCount: result.newUpgradeCount,
     player: Object.freeze({
       ...player,
-      maxQuality: Math.min(100, Math.max(INITIAL_QUALITY, result.newQuality)),
+      maxQuality: Math.max(INITIAL_QUALITY, result.newQuality),
     }),
   });
 }
