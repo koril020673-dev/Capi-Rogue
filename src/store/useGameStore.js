@@ -32,6 +32,7 @@ import { rollCostReduction, rollQualityUpgrade } from '../logic/factoryEngine';
 import { extendLoan, repayLoan, takeLoan } from '../logic/loanEngine';
 import { activateRivalsForFloor, createInitialRivals, processRivalRespawn } from '../logic/rivalEngine';
 import { generateRewardOptions, applyRewardToPlayer, isRewardFloor } from '../logic/rewardEngine';
+import { checkAchievements, saveAchievements, saveStudentProgress } from '../logic/achievementEngine';
 import {
   createSaveSnapshot,
   loadGameFromLocalStorage,
@@ -131,6 +132,9 @@ function createRunState(advisorId, playerProfile = INITIAL_PLAYER_PROFILE) {
     loans: Object.freeze([]),
     loanMaturityNotice: null,
     runOutcome: null,
+    unlockedAchievements: Object.freeze([]),
+    newAchievements: Object.freeze([]),
+    userType: 'general',
   });
 }
 
@@ -178,6 +182,9 @@ const baseState = Object.freeze({
   isTutorialEnabled: true,
   settings: getGameSettings(),
   runOutcome: null,
+  unlockedAchievements: Object.freeze([]),
+  newAchievements: Object.freeze([]),
+  userType: 'general',
 });
 
 export const useGameStore = create((set, get) => ({
@@ -238,6 +245,7 @@ export const useGameStore = create((set, get) => ({
   setAuthenticatedSession(user) {
     set({
       playerId: user?.id ?? null,
+      userType: user?.user_type ?? 'general',
       session: Object.freeze({ mode: user?.id ? 'account' : 'guest', userId: user?.username ?? '' }),
       screen: user?.id ? SCREEN_IDS.TITLE : SCREEN_IDS.LOGIN,
     });
@@ -273,6 +281,27 @@ export const useGameStore = create((set, get) => ({
 
       return { metRivals: Object.freeze([...state.metRivals, rivalId]) };
     });
+  },
+
+  addAchievement(ids) {
+    const nextIds = Array.isArray(ids) ? ids : [ids];
+
+    set((state) => ({
+      unlockedAchievements: Object.freeze([
+        ...new Set([
+          ...state.unlockedAchievements,
+          ...nextIds.filter(Boolean),
+        ]),
+      ]),
+    }));
+  },
+
+  setNewAchievements(ids) {
+    set({ newAchievements: Object.freeze(Array.isArray(ids) ? ids : []) });
+  },
+
+  clearNewAchievements() {
+    set({ newAchievements: Object.freeze([]) });
   },
 
   incrementPlaytime(seconds = 1) {
@@ -547,6 +576,9 @@ export const useGameStore = create((set, get) => ({
       unlockedAdvisorOrder: state.unlockedAdvisorOrder,
       legacyCards: state.legacyCards,
       completedTutorials: state.completedTutorials,
+      unlockedAchievements: state.unlockedAchievements,
+      newAchievements: Object.freeze([]),
+      userType: state.userType,
       isTutorialEnabled: state.isTutorialEnabled,
       hasClickedStrategyTab: nextRunState.hasClickedStrategyTab,
       ...preparedFloor,
@@ -861,6 +893,32 @@ function settleCurrentMonth(set, get, internalOutcome) {
     gameOver: isGameOverHealth(nextHealth),
   });
   const timelineEntry = Object.freeze({ ...nextTimeline.at(-1), healthAfter: nextHealth });
+  const shareAfter = settlement.demandSplit.find((item) => item.id === 'player')?.marketShare ?? 0;
+  const achievementState = Object.freeze({
+    ...state,
+    player: Object.freeze({
+      ...settlement.playerAfterOperation,
+      capital: settlement.capitalAfter,
+      health: nextHealth,
+    }),
+    rivals: settlement.nextRivals,
+    loans: settlement.nextLoans,
+    creditScore: Math.max(0, Math.min(100, (state.creditScore ?? 70) + (settlement.creditScoreDelta ?? 0))),
+    timeline: Object.freeze([...nextTimeline.slice(0, -1), timelineEntry]),
+    currentSettlement: settlement,
+    currentResult: result,
+  });
+  const newlyUnlocked = checkAchievements(
+    achievementState,
+    Object.freeze({
+      ...settlement,
+      isProfit: settlement.profit > 0,
+      shareAfter,
+    }),
+  );
+  const unlockedAchievements = newlyUnlocked.length
+    ? Object.freeze([...new Set([...state.unlockedAchievements, ...newlyUnlocked])])
+    : state.unlockedAchievements;
 
   set({
     player: Object.freeze({
@@ -887,8 +945,24 @@ function settleCurrentMonth(set, get, internalOutcome) {
     currentInternalEvent: null,
     momentumHistory: nextMomentumHistory,
     timeline: Object.freeze([...nextTimeline.slice(0, -1), timelineEntry]),
+    unlockedAchievements,
+    newAchievements: Object.freeze(newlyUnlocked),
     screen: SCREEN_IDS.SETTLEMENT,
   });
+
+  if (newlyUnlocked.length > 0) {
+    void saveAchievements(state.playerId, unlockedAchievements).catch((error) => {
+      console.error('saveAchievements failed:', error);
+    });
+    void saveStudentProgress({
+      ...achievementState,
+      playerId: state.playerId,
+      userType: state.userType,
+      unlockedAchievements,
+    }).catch((error) => {
+      console.error('saveStudentProgress failed:', error);
+    });
+  }
 }
 
 function prepareFloor(state) {

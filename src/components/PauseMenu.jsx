@@ -4,6 +4,7 @@ import {
   saveGameToLocalStorage,
 } from '../logic/saveEngine';
 import { useGameStore } from '../store/useGameStore';
+import AchievementScreen from '../screens/AchievementScreen';
 import AdvisorInfo from './menus/AdvisorInfo';
 import EconomyDictionary from './menus/EconomyDictionary';
 import GameSettings from './menus/GameSettings';
@@ -16,6 +17,7 @@ const MENU_ITEMS = Object.freeze([
   Object.freeze({ id: 'dictionary', label: '경제 용어 사전' }),
   Object.freeze({ id: 'advisor', label: '어드바이저 정보' }),
   Object.freeze({ id: 'rivals', label: '라이벌 도감' }),
+  Object.freeze({ id: 'achievements', label: '업적' }),
 ]);
 
 const CONTENT = Object.freeze({
@@ -24,6 +26,7 @@ const CONTENT = Object.freeze({
   dictionary: EconomyDictionary,
   advisor: AdvisorInfo,
   rivals: RivalDex,
+  achievements: AchievementScreen,
 });
 
 export default function PauseMenu() {
@@ -61,7 +64,7 @@ export default function PauseMenu() {
   return (
     <aside className="cr2-pause-overlay" aria-modal="true" role="dialog">
       <section className="cr2-pause-shell">
-        <nav className="cr2-pause-panel" aria-label="Pause menu">
+        <nav className="cr2-pause-panel" aria-label="일시정지 메뉴">
           <div className="cr2-pause-head">
             <div>
               <strong>CapiRogue</strong>

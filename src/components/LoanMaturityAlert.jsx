@@ -17,6 +17,7 @@ const TEXT = Object.freeze({
   extendCondition: '연장 조건',
   currentGrade: '현재 등급',
   gradeShort: '신용등급 부족',
+  over: '이상',
 });
 
 export default function LoanMaturityAlert() {
@@ -78,7 +79,7 @@ export default function LoanMaturityAlert() {
               return (
                 <div className="cr2-loan-matured-card" key={loan.id}>
                   <strong>[{type.name}] {TEXT.principal} {formatWon(loan.principal)}</strong>
-                  <p>{TEXT.extendCondition}: {type.extensionGrade} 이상</p>
+                  <p>{TEXT.extendCondition}: {type.extensionGrade} {TEXT.over}</p>
                   <p>{TEXT.currentGrade}: {currentGrade}</p>
                   <div className="cr2-loan-actions">
                     <button type="button" onClick={() => repayMaturedLoan(loan.id)}>

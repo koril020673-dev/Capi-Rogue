@@ -33,6 +33,7 @@ function toPublicUser(row) {
     id: row.id,
     username: row.username,
     displayName: row.display_name ?? row.username,
+    user_type: row.user_type ?? 'general',
   };
 }
 
@@ -143,7 +144,7 @@ export async function signUp(username, password) {
         display_name: String(username).trim(),
         password_hash: passwordHash,
       })
-      .select('id, username, display_name')
+      .select('id, username, display_name, user_type')
       .single();
 
     if (error) {
@@ -184,7 +185,7 @@ export async function signIn(username, password, options = {}) {
   try {
     const { data, error } = await supabase
       .from(ACCOUNTS_TABLE)
-      .select('id, username, display_name, password_hash')
+      .select('id, username, display_name, user_type, password_hash')
       .eq('username', normalizedUsername)
       .maybeSingle();
 
@@ -266,7 +267,7 @@ export async function tryAutoLogin() {
   try {
     const { data, error } = await supabase
       .from(ACCOUNTS_TABLE)
-      .select('id, username, display_name')
+      .select('id, username, display_name, user_type')
       .eq('id', token.userId)
       .single();
 

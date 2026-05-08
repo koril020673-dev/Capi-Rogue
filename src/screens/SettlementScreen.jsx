@@ -7,7 +7,7 @@ import { formatWon } from '../utils/formatMoney';
 
 const REPORT_MARKERS = Object.freeze({
   choice: '선택',
-  event: '변수',
+  event: '이벤트',
   down: '하락',
   up: '상승',
   suggestion: '제안',
@@ -17,7 +17,7 @@ const TEXT = Object.freeze({
   title: '월말 정산',
   finalProfit: '이번 달 최종 순이익',
   marketShare: '시장 점유율',
-  totalDemand: '총 수요',
+  totalDemand: '총수요',
   plannedProduction: '생산량',
   unitsSold: '실제 판매',
   unsoldUnits: '재고 처분',
@@ -45,6 +45,7 @@ const TEXT = Object.freeze({
   marketGroup: '시장 / 판매',
   costGroup: '비용 / 자본',
   reportTitle: '결과 리포트',
+  saving: '저장 중...',
 });
 
 const SHARE_COLORS = Object.freeze(['#00FF41', '#DC143C', '#FFD700', '#42A5FF', '#B06CFF']);
@@ -149,7 +150,7 @@ export default function SettlementScreen() {
               }
             }}
           >
-            {saving ? '저장 중...' : getNextStepLabel(result, gameState.floor)}
+            {saving ? TEXT.saving : getNextStepLabel(result, gameState.floor)}
           </button>
         </aside>
       </section>
