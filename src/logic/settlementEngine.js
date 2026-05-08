@@ -24,10 +24,13 @@ import { checkLoanMaturity, processInterest, takeLoan, tickLoans } from './loanE
 import {
   COST_REDUCTION,
   QUALITY_UPGRADE,
+  attemptCostReduction,
+  attemptQualityUpgrade,
   rollCostReduction,
   rollQualityUpgrade,
 } from './factoryEngine';
 import { buildRivalParticipants, resolveRivalWar } from './rivalEngine';
+import { checkAchievements } from './achievementEngine';
 
 const QUALITY_COST_MULTIPLIERS = Object.freeze({
   [QUALITY_STRATEGY_IDS.BEST]: 1.25,
@@ -466,6 +469,143 @@ export function getMaxOrderAmount(capital, cost, orderCap) {
   }
 
   return Math.max(result, 0);
+}
+
+export function settle(gameState) {
+  if (gameState?.player && gameState?.strategy) {
+    return settleCurrentState(gameState);
+  }
+
+  return settleFlatState(gameState ?? {});
+}
+
+function settleCurrentState(gameState) {
+  const settlement = calculateSettlement(gameState);
+  const playerShare = settlement.demandSplit.find((participant) => participant.id === 'player')?.marketShare ?? 0;
+  const isProfit = settlement.profit > 0;
+  const settlementResult = Object.freeze({
+    demand: settlement.totalDemand,
+    actualSales: settlement.unitsSold,
+    revenue: settlement.revenue,
+    totalCost: settlement.productionCost,
+    marketingCost: settlement.operationExpense,
+    interest: settlement.debtService,
+    netProfit: settlement.profit,
+    capitalAfter: settlement.capitalAfter,
+    shareAfter: playerShare,
+    awarenessAfter: settlement.playerAfterOperation.awareness,
+    brandAfter: settlement.playerAfterOperation.brand,
+    healthAfter: settlement.playerAfterOperation.health,
+    creditScoreAfter: gameState.creditScore,
+    phaseAfter: gameState.phase,
+    isProfit,
+    isBankrupt: false,
+    factoryResult: settlement.factoryResult,
+    interestLate: settlement.interestOverdue,
+  });
+  const updatedState = Object.freeze({
+    ...gameState,
+    player: Object.freeze({
+      ...settlement.playerAfterOperation,
+      capital: settlement.capitalAfter,
+    }),
+    rivals: settlement.nextRivals,
+    loans: settlement.nextLoans,
+    currentSettlement: settlement,
+    factoryActionThisTurn: null,
+  });
+
+  return Object.freeze({
+    updatedState,
+    settlementResult: Object.freeze({
+      ...settlementResult,
+      newlyUnlocked: checkAchievements(updatedState, settlementResult),
+    }),
+  });
+}
+
+function settleFlatState(gameState) {
+  let state = { ...gameState };
+  const strategy = state.currentStrategy ?? {};
+  const settlementResult = {};
+
+  if (state.factoryActionThisTurn) {
+    const factoryResult = state.factoryActionThisTurn.type === 'quality'
+      ? attemptQualityUpgrade(state)
+      : attemptCostReduction(state);
+
+    state.capital = (state.capital ?? 0) - factoryResult.cost;
+
+    if (factoryResult.success && state.factoryActionThisTurn.type === 'quality') {
+      state.quality = factoryResult.newQuality;
+      state.qualityUpgradeCount = factoryResult.newUpgradeCount;
+      state.factoryFailStreak = 0;
+    } else if (factoryResult.success) {
+      state.costReductionTotal = factoryResult.newCostReductionTotal;
+      state.costReductionCount = factoryResult.newUpgradeCount;
+      state.costReductionFailStreak = 0;
+    } else if (state.factoryActionThisTurn.type === 'quality') {
+      state.factoryFailStreak = factoryResult.newFailStreak;
+    } else {
+      state.costReductionFailStreak = factoryResult.newFailStreak;
+    }
+
+    settlementResult.factoryResult = factoryResult;
+  }
+
+  const marketingCost = Math.min(
+    Math.max(0, Number(strategy.marketingBudget) || 0),
+    getMarketingLimit(state.capital),
+  );
+  const unitCost = Math.max(1, Math.round((state.cost ?? 3000) * (1 - (state.costReductionTotal ?? 0))));
+  const orderAmount = Math.min(
+    Math.max(0, Number(strategy.orderAmount) || 0),
+    getMaxOrderAmount((state.capital ?? 0) - marketingCost, unitCost, state.orderCap ?? 1000),
+  );
+  const demand = calculateTotalDemand({
+    floor: state.floor ?? 1,
+    phase: state.econPhase ?? state.phase ?? 'stable',
+    randomValue: Math.random(),
+  });
+  const actualSales = Math.min(orderAmount, demand);
+  const price = Math.max(1, Number(strategy.price) || unitCost * 2);
+  const revenue = actualSales * price;
+  const totalCost = orderAmount * unitCost;
+  const interestResult = processInterest(state);
+  const interest = interestResult.interestDue ?? 0;
+  const netProfit = revenue - totalCost - marketingCost - interest;
+
+  state.capital = (state.capital ?? 0) + netProfit;
+  state.factoryActionThisTurn = null;
+
+  const result = Object.freeze({
+    ...settlementResult,
+    demand,
+    actualSales,
+    revenue,
+    totalCost,
+    marketingCost,
+    interest,
+    netProfit,
+    capitalAfter: state.capital,
+    shareAfter: 0,
+    awarenessAfter: state.awareness,
+    brandAfter: state.brand,
+    healthAfter: state.health,
+    creditScoreAfter: state.creditScore,
+    phaseAfter: state.econPhase ?? state.phase ?? 'stable',
+    isProfit: netProfit > 0,
+    isBankrupt: state.capital < 0 && (state.bankruptcyTurns ?? 0) >= 3,
+    interestLate: interestResult.overdue,
+  });
+
+  return Object.freeze({
+    updatedState: Object.freeze(state),
+    settlementResult: Object.freeze({
+      ...result,
+      newlyUnlocked: checkAchievements(state, result),
+    }),
+  });
 }
 
 export function getQualityCostMultiplier(strategy) {

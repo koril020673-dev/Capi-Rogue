@@ -7,6 +7,7 @@ import {
   getCriticalReview,
   getRecordRows,
 } from '../logic/recordEngine';
+import { stopBGM } from '../logic/audioEngine';
 import { saveRecord } from '../logic/saveEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import '../styles/gameOver.css';
@@ -26,6 +27,10 @@ export default function GameOverScreen() {
   const reason = record.final_capital < 0
     ? '자본이 연속으로 음수 상태에 머물렀습니다.'
     : '경영 체력이 0이 됐습니다.';
+
+  useEffect(() => {
+    stopBGM();
+  }, []);
 
   useEffect(() => {
     if (savedRef.current) {

@@ -1,7 +1,8 @@
-import { supabase, supabaseConfigError } from '../lib/supabase';
+﻿import { supabase, supabaseConfigError } from '../lib/supabase';
 
 const AUTH_KEY = 'cr2_auth';
 const ACCOUNTS_TABLE = 'player_accounts';
+const USER_TYPES = new Set(['student', 'teacher', 'general']);
 
 function createError(message, code) {
   const error = new Error(message);
@@ -24,6 +25,10 @@ function normalizeUsername(username) {
   return String(username ?? '').trim().toLowerCase();
 }
 
+function normalizeUserType(userType) {
+  return USER_TYPES.has(userType) ? userType : 'general';
+}
+
 function toPublicUser(row) {
   if (!row) {
     return null;
@@ -33,7 +38,7 @@ function toPublicUser(row) {
     id: row.id,
     username: row.username,
     displayName: row.display_name ?? row.username,
-    user_type: row.user_type ?? 'general',
+    user_type: normalizeUserType(row.user_type),
   };
 }
 
@@ -121,12 +126,13 @@ function normalizeDbError(error) {
   return error;
 }
 
-export async function signUp(username, password) {
+export async function signUp(username, password, userType = 'general') {
   if (!supabase) {
     return missingClientResult();
   }
 
   const normalizedUsername = normalizeUsername(username);
+  const safeUserType = normalizeUserType(userType);
 
   if (!normalizedUsername || !password) {
     return {
@@ -143,6 +149,7 @@ export async function signUp(username, password) {
         username: normalizedUsername,
         display_name: String(username).trim(),
         password_hash: passwordHash,
+        user_type: safeUserType,
       })
       .select('id, username, display_name, user_type')
       .single();
@@ -154,10 +161,8 @@ export async function signUp(username, password) {
       };
     }
 
-    const user = toPublicUser(data);
-
     return {
-      user,
+      user: toPublicUser(data),
       error: null,
     };
   } catch (error) {
@@ -289,6 +294,7 @@ async function hydratePlayerSession(user) {
     const { useGameStore } = await import('../store/useGameStore');
 
     useGameStore.getState().setPlayerId(user?.id ?? null);
+    useGameStore.getState().setUserType?.(user?.user_type ?? 'general');
     useGameStore.getState().setAuthenticatedSession?.(user);
 
     if (user?.id) {
@@ -306,7 +312,9 @@ async function clearPlayerSession() {
     const { useGameStore } = await import('../store/useGameStore');
 
     useGameStore.getState().setPlayerId(null);
+    useGameStore.getState().setUserType?.('general');
   } catch (error) {
     console.error('Failed to clear player session:', error);
   }
 }
+

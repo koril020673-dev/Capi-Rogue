@@ -5,14 +5,20 @@ import { useGameStore } from '../store/useGameStore';
 import '../styles/achievement.css';
 
 const TABS = Object.freeze([
-  Object.freeze({ id: 'all', label: '전체' }),
-  Object.freeze({ id: 'economy', label: '경제교육' }),
-  Object.freeze({ id: 'game', label: '게임' }),
+  Object.freeze({ id: 'all', label: '\uC804\uCCB4' }),
+  Object.freeze({ id: 'economy', label: '\uACBD\uC81C\uAD50\uC721' }),
+  Object.freeze({ id: 'game', label: '\uAC8C\uC784' }),
 ]);
+
+const TEXT = Object.freeze({
+  title: '\uC5C5\uC801',
+  economyProgress: '\uACBD\uC81C \uAD50\uC721 \uB2EC\uC131',
+  gameProgress: '\uAC8C\uC784 \uB2EC\uC131',
+  locked: '\uBBF8\uB2EC\uC131 \uC5C5\uC801',
+});
 
 export default function AchievementScreen() {
   const unlockedAchievements = useGameStore((state) => state.unlockedAchievements ?? []);
-  const newAchievements = useGameStore((state) => state.newAchievements ?? []);
   const [tab, setTab] = useState('all');
   const progress = useMemo(() => getEducationProgress(unlockedAchievements), [unlockedAchievements]);
   const gameTotal = ACHIEVEMENTS.filter((achievement) => achievement.category === 'GAME').length;
@@ -30,14 +36,11 @@ export default function AchievementScreen() {
 
     return true;
   });
-  const latestAchievement = newAchievements
-    .map((id) => ACHIEVEMENTS.find((achievement) => achievement.id === id))
-    .find(Boolean);
 
   return (
     <section className="cr2-achievement-screen">
       <header className="cr2-achievement-head">
-        <h2>업적</h2>
+        <h2>{TEXT.title}</h2>
         <div className="cr2-achievement-tabs">
           {TABS.map((item) => (
             <button
@@ -53,8 +56,8 @@ export default function AchievementScreen() {
       </header>
 
       <div className="cr2-achievement-summary">
-        <ProgressLine label="경제 교육 달성" value={progress.unlocked} total={progress.total} />
-        <ProgressLine label="게임 달성" value={gameUnlocked} total={gameTotal} />
+        <ProgressLine label={TEXT.economyProgress} value={progress.unlocked} total={progress.total} />
+        <ProgressLine label={TEXT.gameProgress} value={gameUnlocked} total={gameTotal} />
       </div>
 
       <div className="cr2-achievement-list">
@@ -70,7 +73,7 @@ export default function AchievementScreen() {
                 {getBadgeLabel(achievement)}
               </span>
               <div>
-                <strong>{unlocked ? achievement.name : '미달성 업적'}</strong>
+                <strong>{unlocked ? achievement.name : TEXT.locked}</strong>
                 <p>{unlocked ? achievement.description : achievement.name}</p>
                 {achievement.educationLink ? <small>{achievement.educationLink}</small> : null}
               </div>
@@ -78,14 +81,6 @@ export default function AchievementScreen() {
           );
         })}
       </div>
-
-      {latestAchievement ? (
-        <aside className="cr2-achievement-toast">
-          <span>업적 달성</span>
-          <strong>{latestAchievement.name}</strong>
-          <p>{latestAchievement.description}</p>
-        </aside>
-      ) : null}
     </section>
   );
 }

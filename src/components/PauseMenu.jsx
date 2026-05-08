@@ -12,21 +12,21 @@ import PlayRecord from './menus/PlayRecord';
 import RivalDex from './menus/RivalDex';
 
 const MENU_ITEMS = Object.freeze([
-  Object.freeze({ id: 'settings', label: '게임 설정' }),
-  Object.freeze({ id: 'record', label: '플레이 기록' }),
-  Object.freeze({ id: 'dictionary', label: '경제 용어 사전' }),
-  Object.freeze({ id: 'advisor', label: '어드바이저 정보' }),
-  Object.freeze({ id: 'rivals', label: '라이벌 도감' }),
-  Object.freeze({ id: 'achievements', label: '업적' }),
+  Object.freeze({ id: 'settings', label: '\uAC8C\uC784 \uC124\uC815' }),
+  Object.freeze({ id: 'record', label: '\uD50C\uB808\uC774 \uAE30\uB85D' }),
+  Object.freeze({ id: 'achievements', label: '\uC5C5\uC801' }),
+  Object.freeze({ id: 'dictionary', label: '\uACBD\uC81C \uC6A9\uC5B4 \uC0AC\uC804' }),
+  Object.freeze({ id: 'advisor', label: '\uC5B4\uB4DC\uBC14\uC774\uC800 \uC815\uBCF4' }),
+  Object.freeze({ id: 'rivals', label: '\uB77C\uC774\uBC8C \uB3C4\uAC10' }),
 ]);
 
 const CONTENT = Object.freeze({
   settings: GameSettings,
   record: PlayRecord,
+  achievements: AchievementScreen,
   dictionary: EconomyDictionary,
   advisor: AdvisorInfo,
   rivals: RivalDex,
-  achievements: AchievementScreen,
 });
 
 export default function PauseMenu() {
@@ -64,7 +64,7 @@ export default function PauseMenu() {
   return (
     <aside className="cr2-pause-overlay" aria-modal="true" role="dialog">
       <section className="cr2-pause-shell">
-        <nav className="cr2-pause-panel" aria-label="일시정지 메뉴">
+        <nav className="cr2-pause-panel" aria-label="\uC77C\uC2DC\uC815\uC9C0 \uBA54\uB274">
           <div className="cr2-pause-head">
             <div>
               <strong>CapiRogue</strong>
@@ -91,14 +91,14 @@ export default function PauseMenu() {
 
           <div className="cr2-pause-danger-list">
             <button disabled={isSaving} type="button" onClick={handleSaveAndExit}>
-              {isSaving ? '저장 중...' : `슬롯 ${currentSlot}에 저장 후 나가기`}
+              {isSaving ? '\uC800\uC7A5 \uC911...' : `\uC2AC\uB86F ${currentSlot}\uC5D0 \uC800\uC7A5 \uD6C4 \uB098\uAC00\uAE30`}
             </button>
-            <button type="button" onClick={handleLogout}>로그아웃</button>
+            <button type="button" onClick={handleLogout}>\uB85C\uADF8\uC544\uC6C3</button>
           </div>
         </nav>
 
         <section className="cr2-pause-content">
-          <ActivePanel onBack={() => setActiveMenuId('record')} />
+          <ActivePanel onBack={() => setActiveMenuId('settings')} />
         </section>
       </section>
     </aside>

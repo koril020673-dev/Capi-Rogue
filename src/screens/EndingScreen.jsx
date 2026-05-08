@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import analystImage from '../assets/optimized/advisor_profile/advisor_analyst_profile.png';
 import gamblerImage from '../assets/optimized/advisor_profile/advisor_gambler_profile.png';
 import guardianImage from '../assets/optimized/advisor_profile/advisor_guardian_profile.png';
@@ -10,6 +10,7 @@ import {
   formatNumberWon,
   getRecordRows,
 } from '../logic/recordEngine';
+import { playBGM } from '../logic/audioEngine';
 import { saveRecord } from '../logic/saveEngine';
 import { useGameStore } from '../store/useGameStore';
 import '../styles/ending.css';
@@ -30,6 +31,12 @@ export default function EndingScreen() {
   const [saveStatus, setSaveStatus] = useState('idle');
   const record = useMemo(() => buildRunRecord(state, RECORD_RESULT_TYPES.CLEAR), [state]);
   const gradeColor = CLEAR_GRADE_COLORS[record.clear_grade] ?? '#00FF41';
+
+  useEffect(() => {
+    if (page === 0) {
+      playBGM('main');
+    }
+  }, [page]);
 
   async function handleSave() {
     setSaveStatus('saving');

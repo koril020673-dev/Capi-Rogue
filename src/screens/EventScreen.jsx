@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import Tooltip from '../components/Tooltip';
+import { playBGM } from '../logic/audioEngine';
 import { useGameStore } from '../store/useGameStore';
 
 const TYPE_LABELS = Object.freeze({
@@ -20,6 +22,10 @@ export default function EventScreen() {
   const outcome = useGameStore((state) => state.currentInternalOutcome);
   const chooseInternalEventOption = useGameStore((state) => state.chooseInternalEventOption);
   const confirmInternalEventOutcome = useGameStore((state) => state.confirmInternalEventOutcome);
+
+  useEffect(() => {
+    playBGM('strategy');
+  }, []);
 
   if (!event) {
     return null;

@@ -1,4 +1,6 @@
 import { REWARD_CARDS, REWARD_GRADES } from '../constants/rewards';
+import { getRewardGradeProbabilities } from './momentumEngine';
+import { rewardHealthRecovery } from './healthEngine';
 
 export function isRewardFloor(floor) {
   return floor > 0 && floor % 5 === 0;
@@ -20,7 +22,7 @@ export function getRewardGradeWeights(momentumScore, floor, advisorLuck = 0) {
 
 export function rollRewardGrade(weights, randomValue = Math.random()) {
   const entries = Object.entries(weights);
-  const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
+  const total = entries.reduce((sum, [, weight]) => sum + weight, 0) || 1;
   let cursor = 0;
 
   for (const [grade, weight] of entries) {
@@ -31,7 +33,7 @@ export function rollRewardGrade(weights, randomValue = Math.random()) {
     }
   }
 
-  return REWARD_GRADES.NORMAL;
+  return entries[0]?.[0] ?? REWARD_GRADES.NORMAL;
 }
 
 export function generateRewardOptions({
@@ -46,9 +48,7 @@ export function generateRewardOptions({
   return Object.freeze(
     randomValues.map((randomValue, index) => {
       const grade = rollRewardGrade(weights, randomValue);
-      const pool = REWARD_CARDS.filter(
-        (card) => card.grade === grade && !selectedIds.has(card.id),
-      );
+      const pool = REWARD_CARDS.filter((card) => card.grade === grade && !selectedIds.has(card.id));
       const fallbackPool = REWARD_CARDS.filter((card) => !selectedIds.has(card.id));
       const source = pool.length > 0 ? pool : fallbackPool;
       const selected = source[Math.floor((randomValue + index * 0.19) * source.length) % source.length];
@@ -146,96 +146,179 @@ export function applyRewardToPlayer(player, reward) {
 }
 
 export function getRewardGrade(momentum, momentumHistory = [], randomValue = Math.random()) {
-  const isFiveTurnProfit = momentumHistory.slice(-5).length >= 5 && momentumHistory.slice(-5).every(Boolean);
-  const weights = isFiveTurnProfit
-    ? { normal: 0.15, rare: 0.35, epic: 0.35, legend: 0.15 }
-    : momentum > 0
-      ? { normal: 0.3, rare: 0.4, epic: 0.22, legend: 0.08 }
-      : momentum < 0
-        ? { normal: 0.7, rare: 0.25, epic: 0.04, legend: 0.01 }
-        : { normal: 0.5, rare: 0.35, epic: 0.12, legend: 0.03 };
+  const probabilities = getRewardGradeProbabilities(momentum, momentumHistory);
+  let cumulative = 0;
 
-  return rollRewardGrade(weights, randomValue);
+  for (const [grade, probability] of Object.entries(probabilities)) {
+    cumulative += probability;
+
+    if (randomValue < cumulative) {
+      return grade;
+    }
+  }
+
+  return 'NORMAL';
 }
 
-export function getRewardOptions(grade) {
+export function getRewardOptions(grade, gameState = {}) {
+  const normalizedGrade = normalizeRewardGrade(grade);
   const optionsByGrade = {
-    [REWARD_GRADES.NORMAL]: [
-      { type: 'health', label: '체력 +1', effect: { type: 'health', amount: 1 } },
-      { type: 'nextTurnCost', label: '다음턴 원가 -10%', effect: { type: 'unitCostMultiplier', multiplier: 0.9 } },
-      { type: 'awareness', label: '인지도 +15', effect: { type: 'awareness', amount: 0.15 } },
+    NORMAL: [
+      createRewardOption('health_1', '체력 +1', '경영 체력을 1 회복합니다.', { type: 'HEALTH', amount: 1 }, 'health'),
+      createRewardOption('cost_down', '다음 턴 원가 -10%', '다음 턴 원가가 10% 감소합니다.', { type: 'TEMP_COST_DOWN', amount: 0.1, duration: 1 }, 'nextTurnCost'),
+      createRewardOption('awareness_up', '인지도 +15%', '시장 인지도가 15% 상승합니다.', { type: 'AWARENESS', amount: 15 }, 'awareness'),
     ],
-    [REWARD_GRADES.RARE]: [
-      { type: 'health', label: '체력 +2', effect: { type: 'health', amount: 2 } },
-      { type: 'brand', label: '브랜드 +2', effect: { type: 'brand', amount: 2 } },
-      { type: 'creditScore', label: '신용점수 +10', effect: { type: 'creditScore', amount: 10 } },
+    RARE: [
+      createRewardOption('health_2', '체력 +2', '경영 체력을 2 회복합니다.', { type: 'HEALTH', amount: 2 }, 'health'),
+      createRewardOption('brand_up', '브랜드 +2', '브랜드 가치가 2 상승합니다.', { type: 'BRAND', amount: 2 }, 'brand'),
+      createRewardOption('credit_up', '신용점수 +10', '신용점수가 10점 상승합니다.', { type: 'CREDIT', amount: 10 }, 'creditScore'),
     ],
-    [REWARD_GRADES.EPIC]: [
-      { type: 'health', label: '체력 +3', effect: { type: 'health', amount: 3 } },
-      { type: 'quality', label: '품질 +10', effect: { type: 'quality', amount: 10 } },
-      { type: 'capital', label: '자본 +200만', effect: { type: 'capital', amount: 2000000 } },
+    EPIC: [
+      createRewardOption('health_3', '체력 +3', '경영 체력을 3 회복합니다.', { type: 'HEALTH', amount: 3 }, 'health'),
+      createRewardOption('quality_up', '품질 +10', '제품 품질이 10 상승합니다.', { type: 'QUALITY', amount: 10 }, 'quality'),
+      createRewardOption('capital_up', '자본 +2,000,000원', '보유 자본이 200만원 증가합니다.', { type: 'CAPITAL', amount: 2000000 }, 'capital'),
     ],
-    [REWARD_GRADES.LEGEND]: [
-      { type: 'healthFull', label: '체력 전체 회복', effect: { type: 'healthFull' } },
-      { type: 'quality', label: '품질 +20', effect: { type: 'quality', amount: 20 } },
-      { type: 'capital', label: '자본 +500만', effect: { type: 'capital', amount: 5000000 } },
+    LEGEND: [
+      createRewardOption('health_full', '체력 전체 회복', '경영 체력이 최대치로 회복됩니다.', { type: 'HEALTH_FULL' }, 'healthFull'),
+      createRewardOption('quality_up_20', '품질 +20', '제품 품질이 20 상승합니다.', { type: 'QUALITY', amount: 20 }, 'quality'),
+      createRewardOption('capital_up_big', '자본 +5,000,000원', '보유 자본이 500만원 증가합니다.', { type: 'CAPITAL', amount: 5000000 }, 'capital'),
     ],
   };
 
-  return Object.freeze((optionsByGrade[grade] ?? optionsByGrade[REWARD_GRADES.NORMAL]).map(Object.freeze));
+  return Object.freeze((optionsByGrade[normalizedGrade] ?? optionsByGrade.NORMAL).map((option) =>
+    Object.freeze({
+      ...option,
+      grade: denormalizeRewardGrade(normalizedGrade, grade),
+      effect: Object.freeze(option.effect),
+    }),
+  ));
 }
 
-export function applyReward(rewardType, gameState) {
-  const reward =
-    typeof rewardType === 'string'
-      ? getRewardOptions(gameState.rewardGrade ?? REWARD_GRADES.NORMAL).find((option) => option.type === rewardType)
-      : rewardType;
-  const effect = reward?.effect ?? reward;
+export function applyReward(rewardEffect, gameState) {
+  const selectedReward =
+    typeof rewardEffect === 'string'
+      ? getRewardOptions(gameState.rewardGrade ?? 'NORMAL', gameState).find((option) => (
+          option.type === rewardEffect || option.id === rewardEffect
+        ))
+      : rewardEffect;
+  const effect = normalizeRewardEffect(selectedReward?.effect ?? selectedReward);
 
   if (!effect) {
     return gameState;
   }
 
-  if (effect.type === 'healthFull') {
-    return Object.freeze({ ...gameState, health: gameState.maxHealth ?? 10 });
+  const state = { ...gameState };
+
+  switch (effect.type) {
+    case 'HEALTH':
+      state.health = Math.min((state.health ?? 0) + effect.amount, state.maxHealth ?? 10);
+      break;
+    case 'HEALTH_FULL':
+      state.health = rewardHealthRecovery('LEGEND', state.maxHealth ?? 10);
+      break;
+    case 'QUALITY':
+      state.quality = (state.quality ?? 0) + effect.amount;
+      if (state.maxQuality !== undefined) state.maxQuality += effect.amount;
+      break;
+    case 'BRAND':
+      state.brand = Math.min((state.brand ?? 0) + effect.amount, 10);
+      break;
+    case 'AWARENESS': {
+      const currentAwareness = state.awareness ?? 0;
+      const amount = effect.amount > 1 ? effect.amount : effect.amount * 100;
+      const maxAwareness = Math.min(100, (state.brand ?? 0) * 10);
+      state.awareness = Math.min(currentAwareness + amount, maxAwareness);
+      break;
+    }
+    case 'CAPITAL':
+      state.capital = (state.capital ?? 0) + effect.amount;
+      break;
+    case 'CREDIT':
+      state.creditScore = Math.min((state.creditScore ?? 70) + effect.amount, 100);
+      break;
+    case 'TEMP_COST_DOWN':
+      state.activeEffects = Object.freeze([
+        ...(state.activeEffects ?? []),
+        Object.freeze({
+          type: 'COST_MULTIPLIER',
+          costMultiplier: 1 - effect.amount,
+          remainingTurns: effect.duration,
+          duration: effect.duration,
+        }),
+      ]);
+      break;
+    case 'UNIT_COST_MULTIPLIER':
+      state.unitCost = Math.max(1, Math.round((state.unitCost ?? state.cost ?? 1) * effect.multiplier));
+      if (state.cost !== undefined) state.cost = Math.max(1, Math.round(state.cost * effect.multiplier));
+      break;
+    default:
+      break;
   }
 
-  if (effect.type === 'health') {
-    return Object.freeze({
-      ...gameState,
-      health: Math.min(gameState.maxHealth ?? 10, (gameState.health ?? 0) + effect.amount),
-    });
+  return Object.freeze(state);
+}
+
+export function getClearGrade(gameState) {
+  const capital = gameState.capital ?? gameState.player?.capital ?? 0;
+  const creditScore = gameState.creditScore ?? 70;
+  const health = gameState.health ?? gameState.player?.health ?? 0;
+  const creditGrade = getCreditGrade(creditScore);
+
+  if (capital >= 50000000 && creditGrade === 'A' && health >= 6) return 'S';
+  if (capital >= 20000000 && ['A', 'B'].includes(creditGrade)) return 'A';
+  if (capital >= 5000000) return 'B';
+  if (capital > 0) return 'C';
+  return 'C';
+}
+
+function createRewardOption(id, label, description, effect, legacyType) {
+  return {
+    id,
+    type: legacyType,
+    title: label,
+    label,
+    description,
+    effect,
+  };
+}
+
+function normalizeRewardGrade(grade) {
+  return String(grade ?? 'NORMAL').toUpperCase();
+}
+
+function denormalizeRewardGrade(normalizedGrade, originalGrade) {
+  const original = String(originalGrade ?? '');
+
+  if (original && original === original.toLowerCase()) {
+    return REWARD_GRADES[normalizedGrade] ?? original;
   }
 
-  if (effect.type === 'capital') {
-    return Object.freeze({ ...gameState, capital: (gameState.capital ?? 0) + effect.amount });
-  }
+  return normalizedGrade;
+}
 
-  if (effect.type === 'quality') {
-    return Object.freeze({ ...gameState, quality: Math.min(100, (gameState.quality ?? 0) + effect.amount) });
-  }
+function normalizeRewardEffect(effect) {
+  if (!effect) return null;
 
-  if (effect.type === 'brand') {
-    return Object.freeze({ ...gameState, brand: (gameState.brand ?? 0) + effect.amount });
-  }
+  const typeMap = {
+    health: 'HEALTH',
+    healthFull: 'HEALTH_FULL',
+    capital: 'CAPITAL',
+    quality: 'QUALITY',
+    brand: 'BRAND',
+    creditScore: 'CREDIT',
+    awareness: 'AWARENESS',
+    unitCostMultiplier: 'UNIT_COST_MULTIPLIER',
+  };
 
-  if (effect.type === 'creditScore') {
-    return Object.freeze({
-      ...gameState,
-      creditScore: Math.min(100, (gameState.creditScore ?? 70) + effect.amount),
-    });
-  }
+  return {
+    ...effect,
+    type: typeMap[effect.type] ?? effect.type,
+  };
+}
 
-  if (effect.type === 'awareness') {
-    return Object.freeze({ ...gameState, awareness: Math.min(1.5, (gameState.awareness ?? 0) + effect.amount) });
-  }
-
-  if (effect.type === 'unitCostMultiplier') {
-    return Object.freeze({
-      ...gameState,
-      unitCost: Math.max(1, Math.round((gameState.unitCost ?? gameState.cost ?? 1) * effect.multiplier)),
-    });
-  }
-
-  return gameState;
+function getCreditGrade(score) {
+  if (score >= 80) return 'A';
+  if (score >= 60) return 'B';
+  if (score >= 40) return 'C';
+  return 'D';
 }

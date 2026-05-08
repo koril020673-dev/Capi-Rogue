@@ -6,6 +6,7 @@ import {
   loadGame,
   loadSaveSlotsFromLocalStorage,
 } from '../logic/saveEngine';
+import { playBGM } from '../logic/audioEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import logoImage from '../assets/optimized/logo/logo_image.png';
 import boomImage from '../assets/optimized/bg_phase_pack/bg_phase_boom.jpg';
@@ -62,6 +63,10 @@ export default function TitleScreen() {
   );
   const accountName = session.mode === 'guest' ? TEXT.guest : session.userId;
   const background = PHASE_BACKGROUNDS[phase] ?? PHASE_BACKGROUNDS[ECONOMIC_PHASES.STABLE];
+
+  useEffect(() => {
+    playBGM('main');
+  }, []);
 
   useEffect(() => {
     refreshSlots();

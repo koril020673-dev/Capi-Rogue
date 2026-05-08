@@ -1,6 +1,7 @@
 import { EXTERNAL_EVENTS } from '../constants/events/external';
 import { CHOICE_TIERS, INTERNAL_EVENTS } from '../constants/events/internal';
 import { RIVAL_EVENTS, RIVAL_EVENT_TIERS } from '../constants/events/rival';
+import { FIXED_EVENT_FLOORS } from '../constants/economy';
 import { getAdvisorById } from './advisorEngine';
 
 const EXTERNAL_EVENT_CHANCE = 0.4;
@@ -8,7 +9,23 @@ const INTERNAL_EVENT_CHANCE = 0.6;
 const RIVAL_EVENT_CHANCE = 0.3;
 const CASH_RATIOS = Object.freeze({ SM: 0.05, MD: 0.15, LG: 0.3 });
 
-export function rollExternalEvent(floor, randomValue = Math.random()) {
+export function rollExternalEvent(floor, randomOrActiveEffects = Math.random()) {
+  const randomValue = Array.isArray(randomOrActiveEffects) ? Math.random() : randomOrActiveEffects;
+
+  if (FIXED_EVENT_FLOORS.includes(floor)) {
+    const forceEvents = EXTERNAL_EVENTS.filter((event) => {
+      const effect = event.effect ?? event.effects ?? {};
+
+      return Boolean(effect.forcePhase);
+    });
+
+    if (forceEvents.length) {
+      const index = Math.floor(Math.min(Math.max(randomValue, 0), 0.999999) * forceEvents.length);
+
+      return normalizeExternalEvent(forceEvents[index], floor);
+    }
+  }
+
   if (randomValue >= EXTERNAL_EVENT_CHANCE) {
     return null;
   }
@@ -22,7 +39,7 @@ export function rollRivalEvent(rivals, randomValue = Math.random()) {
     return null;
   }
 
-  const activeRivals = rivals.filter((rival) => rival.active && !rival.bankrupt && !rival.respawning);
+  const activeRivals = rivals.filter((rival) => rival.active !== false && !rival.bankrupt && !rival.respawning);
 
   if (!activeRivals.length) {
     return null;
@@ -79,6 +96,26 @@ export function resolveChoice(choice, gameState, advisorId, randomValue = Math.r
 }
 
 export function applyExternalEffect(effect, gameState) {
+  if (Array.isArray(gameState)) {
+    return Object.freeze([
+      ...gameState,
+      Object.freeze({
+        ...effect,
+        remainingTurns: effect.duration ?? effect.remainingTurns ?? 1,
+      }),
+    ]);
+  }
+
+  if (gameState?.activeEffects && !gameState?.marketEffects) {
+    return Object.freeze([
+      ...(gameState.activeEffects ?? []),
+      Object.freeze({
+        ...effect,
+        remainingTurns: effect.duration ?? effect.remainingTurns ?? 1,
+      }),
+    ]);
+  }
+
   return Object.freeze({
     ...gameState,
     marketEffects: addEffectToActiveList(gameState.marketEffects ?? [], {
@@ -105,11 +142,34 @@ export function applyRivalEvent(effect, rivalState) {
 }
 
 export function tickActiveEffects(gameState) {
+  const activeEffects = Array.isArray(gameState)
+    ? gameState
+    : gameState.activeEffects ?? [];
+
   return Object.freeze(
-    (gameState.activeEffects ?? [])
-      .map((effect) => Object.freeze({ ...effect, duration: effect.duration - 1 }))
-      .filter((effect) => effect.duration > 0),
+    activeEffects
+      .map((effect) => {
+        const remaining = (effect.remainingTurns ?? effect.duration ?? 1) - 1;
+
+        return Object.freeze({
+          ...effect,
+          duration: remaining,
+          remainingTurns: remaining,
+        });
+      })
+      .filter((effect) => (effect.remainingTurns ?? effect.duration ?? 0) > 0),
   );
+}
+
+export function resolveCashAmount(cashKey, capital) {
+  if (!cashKey) {
+    return 0;
+  }
+
+  const sign = String(cashKey).startsWith('-') ? -1 : 1;
+  const size = String(cashKey).replace(/[+-]/g, '');
+
+  return Math.floor(Math.max(0, Number(capital) || 0) * (CASH_RATIOS[size] ?? 0) * sign);
 }
 
 export function selectExternalEvent({ floor, randomValue = Math.random() }) {

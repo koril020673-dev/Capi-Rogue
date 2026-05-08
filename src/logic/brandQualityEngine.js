@@ -60,6 +60,14 @@ export function calcAwarenessGain(investAmount, currentAwareness) {
   return Math.max(0.5, investAmount / divisor);
 }
 
+export function updateAwareness(current, investAmount, brand) {
+  const maxAwareness = getMaxAwareness(brand);
+  const decayed = applyAwarenessDecay(current);
+  const gained = investAmount > 0 ? calcAwarenessGain(investAmount, decayed) : 0;
+
+  return Math.min(decayed + gained, maxAwareness);
+}
+
 export function updateBrand(brand, netProfit, qualityChange = 0) {
   let nextBrand = brand;
 
@@ -76,4 +84,14 @@ export function updateBrand(brand, netProfit, qualityChange = 0) {
   }
 
   return Math.max(0, Math.min(10, nextBrand));
+}
+
+export function getMarketingLimit(capital, mode = 'ratio') {
+  const safeCapital = Math.max(0, Number(capital) || 0);
+
+  if (mode === 'fixed') {
+    return Math.min(Math.floor(safeCapital * 0.2), 5000000);
+  }
+
+  return Math.floor(safeCapital * 0.3);
 }

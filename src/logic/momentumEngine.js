@@ -74,6 +74,7 @@ export function updateMomentum(history, isProfit, advisorId = null) {
 
   return Object.freeze({
     history: nextHistory,
+    newHistory: nextHistory,
     momentum: adjustedMomentum,
   });
 }
@@ -125,4 +126,22 @@ export function checkStreakBonus(history, advisorId) {
   }
 
   return recentTurns.every(Boolean) ? 1 : null;
+}
+
+export function getRewardGradeProbabilities(momentum, momentumHistory = []) {
+  const isStreaking = momentumHistory.length >= 5 && momentumHistory.slice(-5).every(Boolean);
+
+  if (isStreaking) {
+    return Object.freeze({ NORMAL: 0.15, RARE: 0.35, EPIC: 0.35, LEGEND: 0.15 });
+  }
+
+  if (momentum >= 3) {
+    return Object.freeze({ NORMAL: 0.3, RARE: 0.4, EPIC: 0.22, LEGEND: 0.08 });
+  }
+
+  if (momentum >= 0) {
+    return Object.freeze({ NORMAL: 0.5, RARE: 0.35, EPIC: 0.12, LEGEND: 0.03 });
+  }
+
+  return Object.freeze({ NORMAL: 0.7, RARE: 0.25, EPIC: 0.04, LEGEND: 0.01 });
 }

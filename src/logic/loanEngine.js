@@ -77,8 +77,11 @@ export function processInterest(gameState) {
   const maturedUnresolvedCount = loans.filter((loan) => (loan.remainingTurns ?? 0) <= 0).length;
 
   return Object.freeze({
+    interestAmount: totalInterest,
     interestDue: totalInterest,
+    isLate: overdue,
     overdue,
+    interestPaid: !overdue,
     creditScoreDelta: (overdue ? -4 : 0) + (maturedUnresolvedCount > 0 ? -4 : 0),
     capitalAfter: nextCapital,
     player: Object.freeze({
@@ -99,6 +102,18 @@ export function tickLoans(loans = []) {
   );
 }
 
+export function tickLoanDurations(loans = []) {
+  return tickLoans(loans);
+}
+
+export function getMaturedLoans(loans = []) {
+  return Object.freeze(loans.filter((loan) => (loan.remainingTurns ?? 0) <= 0));
+}
+
+export function getUpcomingMaturityLoans(loans = []) {
+  return Object.freeze(loans.filter((loan) => (loan.remainingTurns ?? 0) > 0 && (loan.remainingTurns ?? 0) <= 3));
+}
+
 export function checkLoanMaturity(gameState) {
   const maturedLoans = (gameState.loans ?? []).filter((loan) => (loan.remainingTurns ?? 0) <= 0);
 
@@ -113,6 +128,10 @@ export function checkLoanMaturity(gameState) {
 }
 
 export function repayLoan(gameState, loanId) {
+  if (typeof gameState === 'string') {
+    return repayLoanResult(gameState, loanId);
+  }
+
   const loan = (gameState.loans ?? []).find((item) => item.id === loanId);
 
   if (!loan) {
@@ -140,6 +159,10 @@ export function repayLoan(gameState, loanId) {
 }
 
 export function extendLoan(gameState, loanId) {
+  if (typeof gameState === 'string') {
+    return extendLoanResult(gameState, loanId);
+  }
+
   const creditGrade = getGrade(gameState.creditScore ?? 70);
 
   return Object.freeze({
@@ -160,6 +183,89 @@ export function extendLoan(gameState, loanId) {
         });
       }),
     ),
+  });
+}
+
+export function forceRepayMaturedLoans(gameState) {
+  const matured = getMaturedLoans(gameState.loans ?? []);
+
+  if (!matured.length) {
+    return Object.freeze({ changed: false });
+  }
+
+  let capital = gameState.capital ?? gameState.player?.capital ?? 0;
+  let debt = gameState.debt ?? gameState.player?.debt ?? 0;
+  let creditDelta = 0;
+  const remaining = [];
+
+  (gameState.loans ?? []).forEach((loan) => {
+    if ((loan.remainingTurns ?? 0) <= 0) {
+      if (capital >= loan.principal) {
+        capital -= loan.principal;
+        debt -= loan.principal;
+      } else {
+        creditDelta -= 20;
+        remaining.push(loan);
+      }
+    } else {
+      remaining.push(loan);
+    }
+  });
+
+  return Object.freeze({
+    changed: true,
+    newCapital: capital,
+    newDebt: Math.max(0, debt),
+    newLoans: Object.freeze(remaining),
+    creditDelta,
+  });
+}
+
+function repayLoanResult(loanId, gameState = {}) {
+  const loan = (gameState.loans ?? []).find((item) => item.id === loanId);
+
+  if (!loan) {
+    return Object.freeze({ success: false, error: '대출을 찾을 수 없습니다.' });
+  }
+
+  const capital = gameState.capital ?? gameState.player?.capital ?? 0;
+
+  if (capital < loan.principal) {
+    return Object.freeze({ success: false, error: '자본이 부족합니다.' });
+  }
+
+  return Object.freeze({
+    success: true,
+    capitalDecrease: loan.principal,
+    newCapital: capital - loan.principal,
+    newLoans: Object.freeze((gameState.loans ?? []).filter((item) => item.id !== loanId)),
+    newDebt: Math.max(0, (gameState.debt ?? gameState.player?.debt ?? 0) - loan.principal),
+    loanRepaid: true,
+  });
+}
+
+function extendLoanResult(loanId, gameState = {}) {
+  const loan = (gameState.loans ?? []).find((item) => item.id === loanId);
+
+  if (!loan) {
+    return Object.freeze({ success: false, error: '대출을 찾을 수 없습니다.' });
+  }
+
+  const loanType = getLoanType(loan.type);
+  const grade = getGrade(gameState.creditScore ?? 70);
+
+  if (!canExtendLoan(grade, loanType.extensionGrade)) {
+    return Object.freeze({
+      success: false,
+      error: `연장 조건 미충족 - ${loanType.extensionGrade}등급 이상 필요`,
+    });
+  }
+
+  return Object.freeze({
+    success: true,
+    newLoans: Object.freeze((gameState.loans ?? []).map((item) =>
+      item.id === loanId ? Object.freeze({ ...item, remainingTurns: loanType.duration }) : item,
+    )),
   });
 }
 

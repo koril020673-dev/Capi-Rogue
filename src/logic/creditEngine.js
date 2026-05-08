@@ -50,20 +50,68 @@ export function getInterestRate(score, activeEffects = [], advisorId = null) {
   return Math.max(0, roundRate(grade.annualInterestRate + eventDelta + advisorDelta));
 }
 
-export function updateScore(gameState = {}, advisorId = null) {
+export function updateScore(gameState = {}, settlementOrAdvisor = null, advisorId = null) {
+  if (settlementOrAdvisor && typeof settlementOrAdvisor === 'object' && !Array.isArray(settlementOrAdvisor)) {
+    return updateScoreFromSettlement(gameState, settlementOrAdvisor, advisorId);
+  }
+
+  const actualAdvisorId = settlementOrAdvisor ?? advisorId;
   const currentScore = clampScore(gameState.creditScore ?? CREDIT_SCORE_START);
   const rawReasons = getScoreReasons(gameState);
   const rawDelta = rawReasons.reduce((total, reason) => total + reason.delta, 0);
-  const delta = applyAdvisorScoreModifier(rawDelta, advisorId);
+  const delta = applyAdvisorScoreModifier(rawDelta, actualAdvisorId);
   const newScore = clampScore(currentScore + delta);
 
   return Object.freeze({
     previousScore: currentScore,
     newScore,
     delta,
+    newGrade: getGrade(newScore),
     gradeChange: checkGradeChange(currentScore, newScore),
-    analystPreview: advisorId === ADVISOR_IDS.ANALYST,
+    gradeChanged: getGrade(newScore) !== getGrade(currentScore),
+    analystPreview: actualAdvisorId === ADVISOR_IDS.ANALYST,
     reasons: Object.freeze(rawReasons),
+  });
+}
+
+function updateScoreFromSettlement(gameState = {}, settlementResult = {}, advisorId = null) {
+  const currentScore = clampScore(gameState.creditScore ?? CREDIT_SCORE_START);
+  let delta = 0;
+
+  if (settlementResult.isProfit) {
+    delta += 1;
+  } else {
+    delta -= 2;
+  }
+
+  if (settlementResult.interestPaid) delta += 2;
+  if (settlementResult.loanRepaid) delta += 5;
+  if ((gameState.stats?.profitStreak ?? 0) >= 3) delta += 1;
+  if ((settlementResult.shareAfter ?? 0) >= 0.5) delta += 1;
+
+  if ((gameState.capital ?? gameState.player?.capital ?? 0) < 0) delta -= 5;
+  if (settlementResult.interestLate) delta -= 4;
+  if (settlementResult.loanOverdue) delta -= 3;
+  if ((gameState.bankruptcyTurns ?? 0) >= 3) delta -= 10;
+
+  (gameState.activeEffects ?? gameState.marketEffects ?? []).forEach((effect) => {
+    const effects = effect.effects ?? effect.effect ?? effect;
+    delta += effects.creditScoreChange ?? 0;
+  });
+
+  delta = applyAdvisorScoreModifier(delta, advisorId);
+
+  const newScore = clampScore(currentScore + delta);
+
+  return Object.freeze({
+    previousScore: currentScore,
+    newScore,
+    delta,
+    newGrade: getGrade(newScore),
+    gradeChange: checkGradeChange(currentScore, newScore),
+    gradeChanged: getGrade(newScore) !== getGrade(currentScore),
+    analystPreview: advisorId === ADVISOR_IDS.ANALYST,
+    reasons: Object.freeze([]),
   });
 }
 

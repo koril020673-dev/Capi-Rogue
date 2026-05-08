@@ -12,6 +12,25 @@ export const CLEAR_GRADE_COLORS = Object.freeze({
   C: '#DC143C',
 });
 
+const LABELS = Object.freeze({
+  playtime: '\uD50C\uB808\uC774\uD0C0\uC784',
+  clearFloor: '\uB3C4\uB2EC \uCE35\uC218',
+  advisor: '\uC5B4\uB4DC\uBC14\uC774\uC800',
+  finalCapital: '\uCD5C\uC885 \uC790\uBCF8',
+  creditGrade: '\uCD5C\uC885 \uC2E0\uC6A9\uB4F1\uAE09',
+  finalHealth: '\uCD5C\uC885 \uCCB4\uB825',
+  profitTurns: '\uCD1D \uD751\uC790 \uD134',
+  lossTurns: '\uCD1D \uC801\uC790 \uD134',
+  maxShare: '\uCD5C\uACE0 \uC810\uC720\uC728',
+  bankruptcyCount: '\uD30C\uC0B0 \uC704\uAE30',
+  externalEvents: '\uC678\uBD80 \uC774\uBCA4\uD2B8',
+  eventSuccessRate: '\uC774\uBCA4\uD2B8 \uC131\uACF5\uB960',
+  rivalDominated: '\uB77C\uC774\uBC8C \uC555\uB3C4',
+  turn: '\uD134',
+  count: '\uAC1C',
+  won: '\uC6D0',
+});
+
 export function buildRunRecord(state = {}, resultType = RECORD_RESULT_TYPES.BANKRUPT) {
   const timeline = state.timeline ?? [];
   const player = state.player ?? {};
@@ -30,6 +49,7 @@ export function buildRunRecord(state = {}, resultType = RECORD_RESULT_TYPES.BANK
   return Object.freeze({
     result_type: resultType,
     clear_grade: clearGrade,
+    advisor_profile_id: state.selectedAdvisorId ?? state.selectedAdvisor?.id ?? null,
     playtime: state.playtime ?? state.playTimeSeconds ?? Math.max(0, timeline.length * 45),
     clear_floor: state.floor ?? 1,
     advisor_id: state.selectedAdvisorId ?? state.selectedAdvisor?.id ?? null,
@@ -57,6 +77,7 @@ export function normalizeRecord(record = {}) {
     ...record,
     result_type: record.result_type ?? record.resultType ?? RECORD_RESULT_TYPES.CLEAR,
     clear_grade: record.clear_grade ?? record.clearGrade ?? null,
+    advisor_profile_id: record.advisor_profile_id ?? record.advisorProfileId ?? record.advisor_id ?? null,
     playtime: record.playtime ?? record.playTimeSeconds ?? 0,
     clear_floor: record.clear_floor ?? record.clearFloor ?? 0,
     advisor_name: record.advisor_name ?? record.advisorName ?? record.advisor_id ?? '-',
@@ -97,22 +118,22 @@ export function getRecordRows(record) {
   const normalized = normalizeRecord(record);
   const credit = normalized.credit_score === null
     ? normalized.credit_grade
-    : `${normalized.credit_grade} (${normalized.credit_score}점)`;
+    : `${normalized.credit_grade} (${normalized.credit_score})`;
 
   return Object.freeze([
-    ['플레이타임', formatTime(normalized.playtime)],
-    ['도달 층수', `${normalized.clear_floor}층`],
-    ['어드바이저', normalized.advisor_name],
-    ['최종 자본', formatNumberWon(normalized.final_capital)],
-    ['최종 신용등급', credit],
-    ['최종 체력', `${normalized.final_health} / ${normalized.max_health}`],
-    ['총 흑자 턴', `${normalized.profit_turns}턴`],
-    ['총 적자 턴', `${normalized.loss_turns}턴`],
-    ['최고 점유율', `${Math.round(normalized.max_share * 100)}%`],
-    ['파산 위기', `${normalized.bankruptcy_count}회`],
-    ['외부 이벤트', `${normalized.external_events}개`],
-    ['이벤트 성공률', `${Math.round(normalized.event_success_rate * 100)}%`],
-    ['라이벌 압도', `${normalized.rival_dominated}회`],
+    [LABELS.playtime, formatTime(normalized.playtime)],
+    [LABELS.clearFloor, `${normalized.clear_floor}${LABELS.turn}`],
+    [LABELS.advisor, normalized.advisor_name],
+    [LABELS.finalCapital, formatNumberWon(normalized.final_capital)],
+    [LABELS.creditGrade, credit],
+    [LABELS.finalHealth, `${normalized.final_health} / ${normalized.max_health}`],
+    [LABELS.profitTurns, `${normalized.profit_turns}${LABELS.turn}`],
+    [LABELS.lossTurns, `${normalized.loss_turns}${LABELS.turn}`],
+    [LABELS.maxShare, `${Math.round(normalized.max_share * 100)}%`],
+    [LABELS.bankruptcyCount, `${normalized.bankruptcy_count}${LABELS.turn}`],
+    [LABELS.externalEvents, `${normalized.external_events}${LABELS.count}`],
+    [LABELS.eventSuccessRate, `${Math.round(normalized.event_success_rate * 100)}%`],
+    [LABELS.rivalDominated, `${normalized.rival_dominated}${LABELS.count}`],
   ]);
 }
 
@@ -139,5 +160,5 @@ export function formatTime(totalSeconds = 0) {
 }
 
 export function formatNumberWon(value = 0) {
-  return `${Math.round(Number(value) || 0).toLocaleString()}원`;
+  return `${Math.round(Number(value) || 0).toLocaleString()}${LABELS.won}`;
 }

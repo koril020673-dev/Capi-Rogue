@@ -2,7 +2,9 @@ import {
   ECONOMIC_PHASE_CONSUMER_RATIOS,
   ECONOMIC_PHASES,
 } from '../constants/economy';
+import { calcAttraction, calcShare } from './demandEngine';
 import { getDemandMultiplierForPhase } from './econEngine';
+import { calcRivalAttraction, checkChampionUnlock, getActiveRivalsForFloor, selectRivalStrategy } from './rivalEngine';
 
 export function calculateAttraction(participant) {
   const quality = Math.max(0.1, participant.quality);
@@ -20,6 +22,62 @@ export function calculateAttraction(participant) {
     attractionMultiplier
   );
 }
+
+export function calcAllAttractions(gameState) {
+  const floor = gameState.floor ?? 1;
+  const econPhase = gameState.econPhase ?? gameState.phase ?? ECONOMIC_PHASES.STABLE;
+  const previousShare = gameState.playerShareHistory?.at?.(-1) ?? gameState.currentSettlement?.demandSplit?.find?.((item) => item.id === 'player')?.marketShare ?? 0;
+  const activeRivals = gameState.rivals?.length
+    ? gameState.rivals.filter((rival) => rival.active && !rival.bankrupt && !rival.respawning)
+    : getActiveRivalsForFloor(floor, previousShare);
+  const player = gameState.player ?? gameState;
+  const strategy = gameState.currentStrategy ?? gameState.strategy ?? {};
+  const price = strategy.price ?? strategy.selectedPrice ?? strategy.customPrice ?? (player.unitCost ?? gameState.cost ?? 3000) * 2;
+  const quality = gameState.quality ?? player.maxQuality ?? player.quality ?? 8;
+  const brand = gameState.brand ?? player.brand ?? 2;
+  const awareness = gameState.awareness ?? player.awareness ?? 10;
+  const playerAttractions = ['quality', 'brand', 'price', 'general'].map((group) =>
+    calcAttraction({ quality, brand, awareness, price, econPhase }, group),
+  );
+  const playerAverage = playerAttractions.reduce((sum, value) => sum + value, 0) / playerAttractions.length;
+
+  return Object.freeze([
+    Object.freeze({ id: 'player', value: playerAverage }),
+    ...activeRivals.map((rival) => {
+      const rivalStrategy = selectRivalStrategy(rival, econPhase);
+
+      return Object.freeze({
+        id: rival.id,
+        value: calcRivalAttraction(rival, rivalStrategy, econPhase),
+        rival,
+        strategy: rivalStrategy,
+      });
+    }),
+  ]);
+}
+
+export function calcPlayerShare(gameState) {
+  const allAttractions = calcAllAttractions(gameState);
+  const playerAttraction = allAttractions.find((item) => item.id === 'player')?.value ?? 0;
+
+  return calcShare(playerAttraction, allAttractions.map((item) => item.value));
+}
+
+export function calcRivalShares(gameState) {
+  const allAttractions = calcAllAttractions(gameState);
+  const attractionValues = allAttractions.map((item) => item.value);
+
+  return Object.freeze(
+    allAttractions
+      .filter((item) => item.id !== 'player')
+      .map((item) => Object.freeze({
+        rivalId: item.id,
+        share: calcShare(item.value, attractionValues),
+      })),
+  );
+}
+
+export { checkChampionUnlock };
 
 export function calculateMarketShares(participants) {
   const attractions = participants.map((participant) => {

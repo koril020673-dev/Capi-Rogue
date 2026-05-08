@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import DemandMap from '../components/DemandMap';
 import RightPanel from '../components/RightPanel';
 import StatusBar from '../components/StatusBar';
 import StrategyWarning from '../components/StrategyWarning';
 import TabBar from '../components/TabBar';
 import { ECONOMIC_PHASE_LABELS, ECONOMIC_PHASES } from '../constants/economy';
+import { playBGM } from '../logic/audioEngine';
 import { selectMarketPreview, useGameStore } from '../store/useGameStore';
 import { formatWon } from '../utils/formatMoney';
 import boomImage from '../assets/optimized/bg_phase_16bit_named_pack/bg_phase_boom.jpg';
@@ -42,6 +43,10 @@ export default function MainScreen() {
   const floor = useGameStore((state) => state.floor);
   const expectedDebt = preview.playerAfterOperation?.debt ?? player.debt;
   const expectedInterest = Math.round((expectedDebt * 0.012) * preview.marketModifiers.debtCostMultiplier);
+
+  useEffect(() => {
+    playBGM(phase);
+  }, [phase]);
 
   return (
     <main className="cr2-main-screen">

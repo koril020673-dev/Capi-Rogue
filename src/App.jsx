@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import AchievementToast from './components/AchievementToast';
 import AudioController from './components/AudioController';
 import BackgroundScene from './components/BackgroundScene';
+import CheatPanel from './components/CheatPanel';
 import PauseMenu from './components/PauseMenu';
 import Tutorial from './components/Tutorial';
 import AdvisorSelectScreen from './screens/AdvisorSelectScreen';
@@ -17,10 +19,11 @@ import SlotSelectScreen from './screens/SlotSelectScreen';
 import TitleScreen from './screens/TitleScreen';
 import { SCREEN_IDS, useGameStore } from './store/useGameStore';
 import { getAdvisorThemeColor } from './logic/advisorEngine';
-import { getGameSettings } from './logic/audioEngine';
+import { applyAudioSettings, getGameSettings, playBGM } from './logic/audioEngine';
 import { tryAutoLogin } from './logic/authEngine';
 import { loadSettings } from './logic/settingsEngine';
 import { installViewportGuard } from './logic/viewportGuard';
+import { supabase } from './lib/supabase';
 
 const BASE_WIDTH = 1080;
 const BASE_HEIGHT = 720;
@@ -47,6 +50,23 @@ function updateScale() {
   root.style.top = `${offsetY}px`;
 }
 
+async function checkConnection() {
+  if (!supabase) {
+    return false;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('player_accounts')
+      .select('id')
+      .limit(1);
+
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export default function App() {
   const screen = useGameStore((state) => state.screen);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
@@ -57,6 +77,7 @@ export default function App() {
   const setStoreSettings = useGameStore((state) => state.setSettings);
   const setCurrentScreen = useGameStore((state) => state.setCurrentScreen);
   const [settings, setSettings] = useState(() => getGameSettings());
+  const [serverNotice, setServerNotice] = useState('');
   const themeColor = getAdvisorThemeColor(selectedAdvisorId);
   const pauseEnabled = isPauseEnabled(screen);
 
@@ -85,9 +106,22 @@ export default function App() {
     setSettings(initialSettings);
     setStoreSettings(initialSettings);
     setTutorialEnabled(initialSettings.tutorialEnabled);
+    applyAudioSettings(initialSettings);
 
-    tryAutoLogin().then((success) => {
+    checkConnection().then(async (connected) => {
+      if (!connected) {
+        setServerNotice('서버 연결 실패. 게스트 모드로 시작합니다.');
+        useGameStore.getState().enterGuestMode();
+        playBGM('main');
+        return;
+      }
+
+      const success = await tryAutoLogin();
+
       setCurrentScreen(success ? SCREEN_IDS.TITLE : SCREEN_IDS.LOGIN);
+      if (success) {
+        playBGM('main');
+      }
     });
   }, [setCurrentScreen, setStoreSettings, setTutorialEnabled]);
 
@@ -122,6 +156,7 @@ export default function App() {
 
       setSettings(nextSettings);
       setTutorialEnabled(nextSettings.tutorialEnabled);
+      applyAudioSettings(nextSettings);
     }
 
     window.addEventListener('storage', handleSettingsChange);
@@ -153,9 +188,12 @@ export default function App() {
         </button>
       ) : null}
       <BackgroundScene screen={screen}>{renderScreen(screen)}</BackgroundScene>
+      {serverNotice ? <div className="cr2-server-notice">{serverNotice}</div> : null}
       {pauseEnabled ? <PauseMenu /> : null}
       <Tutorial />
+      <AchievementToast />
       <AudioController />
+      <CheatPanel />
     </div>
   );
 }

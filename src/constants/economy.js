@@ -115,6 +115,8 @@ export const ECO_PHASES = Object.freeze(
 
 export const MARKOV_MATRIX = ECONOMIC_PHASE_TRANSITIONS;
 
+export const FIXED_EVENT_FLOORS = Object.freeze([10, 20, 30, 45, 60, 80, 100]);
+
 export const BASE_MONTHLY_DEMAND = 1000;
 
 export const DEMAND_RANDOM_RANGE = Object.freeze({

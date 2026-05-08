@@ -5,6 +5,7 @@ import {
   ECONOMIC_PHASE_TRANSITIONS,
   ECONOMIC_PHASES,
 } from '../constants/economy';
+import { onPhaseChange } from './audioEngine';
 
 export function getEconomicPhaseIndex(phase) {
   return ECONOMIC_PHASE_ORDER.indexOf(phase);
@@ -86,7 +87,13 @@ export function getForcedPhase(activeEffects = []) {
 }
 
 export function transitionPhase(currentPhase, activeEffects = [], randomValue = Math.random()) {
-  return applyEconomicPhaseShift(currentPhase, randomValue, activeEffects).nextPhase;
+  const nextPhase = applyEconomicPhaseShift(currentPhase, randomValue, activeEffects).nextPhase;
+
+  if (nextPhase !== currentPhase) {
+    onPhaseChange(nextPhase);
+  }
+
+  return nextPhase;
 }
 
 export function tickEffects(activeEffects = []) {
@@ -102,6 +109,22 @@ export function tickEffects(activeEffects = []) {
   );
 }
 
+export function tickActiveEffects(activeEffects = []) {
+  return Object.freeze(
+    activeEffects
+      .map((effect) => {
+        const remainingTurns = (effect.remainingTurns ?? effect.duration ?? 1) - 1;
+
+        return Object.freeze({
+          ...effect,
+          remainingTurns,
+          duration: remainingTurns,
+        });
+      })
+      .filter((effect) => effect.remainingTurns > 0),
+  );
+}
+
 export function getDemandMultiplier(phase) {
   return getDemandMultiplierForPhase(phase);
 }
@@ -110,6 +133,37 @@ export function getConsumerRatio(phase) {
   return ECONOMIC_PHASE_CONSUMER_RATIOS[phase] ?? ECONOMIC_PHASE_CONSUMER_RATIOS[ECONOMIC_PHASES.STABLE];
 }
 
+export function getNextPhaseHint(currentPhase, advisorId) {
+  if (advisorId !== 'analyst') {
+    return null;
+  }
+
+  const transitions =
+    ECONOMIC_PHASE_TRANSITIONS[currentPhase] ??
+    ECONOMIC_PHASE_TRANSITIONS[ECONOMIC_PHASES.STABLE];
+  const sorted = Object.entries(transitions)
+    .filter(([, probability]) => probability > 0)
+    .sort(([, a], [, b]) => b - a);
+  const [likelyPhase, likelyProbability] =
+    sorted.find(([phase]) => phase !== currentPhase) ?? sorted[0] ?? [currentPhase, 1];
+
+  return Object.freeze({
+    phase: likelyPhase,
+    probability: likelyProbability,
+    message: `다음 달 ${phaseKorean(likelyPhase)} 국면 전환 가능성 ${Math.round(likelyProbability * 100)}%`,
+  });
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function phaseKorean(phase) {
+  return {
+    boom: '호황',
+    growth: '성장',
+    stable: '평시',
+    contraction: '위축',
+    recession: '불황',
+  }[phase] ?? phase;
 }

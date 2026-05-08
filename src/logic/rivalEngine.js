@@ -1,5 +1,6 @@
-import { ECONOMIC_PHASES } from '../constants/economy';
+import { ECO_PHASES, ECONOMIC_PHASES } from '../constants/economy';
 import {
+  RIVAL_LIST,
   RIVAL_FOCUSES,
   RIVAL_PROFILES,
   RIVAL_TIER_LABELS,
@@ -44,6 +45,18 @@ export function activateRivalsForFloor(rivals, floor, championUnlocked = false, 
 
 export function checkChampionUnlock(floor, playerShare) {
   return floor >= 80 && playerShare >= 0.4;
+}
+
+export function getActiveRivalsForFloor(floor, playerShare = 0) {
+  return Object.freeze(
+    RIVAL_LIST.filter((rival) => {
+      if (rival.tier === RIVAL_TIERS.CHAMPION) {
+        return checkChampionUnlock(floor, playerShare);
+      }
+
+      return (rival.floorUnlock ?? 1) <= floor;
+    }),
+  );
 }
 
 export function getActiveRivals(rivals, floor) {
@@ -345,6 +358,77 @@ export function calcRivalStrategy(rival, econPhase) {
   });
 }
 
+export function selectRivalStrategy(rival, econPhase) {
+  const normalizedRival = normalizeRivalForStrategy(rival);
+  const strategy = calcRivalStrategy(normalizedRival, econPhase);
+
+  return Object.freeze({
+    ...strategy,
+    marketingBudget: normalizedRival.strategyPreset?.marketingBudget ?? normalizedRival.strategy?.marketingBudget ?? 0,
+    orderMultiplier: normalizedRival.strategyPreset?.orderMultiplier ?? normalizedRival.strategy?.orderMultiplier ?? strategy.scopePower ?? 1,
+  });
+}
+
+export function calcRivalAttraction(rival, strategy = selectRivalStrategy(rival, ECONOMIC_PHASES.STABLE), econPhase = ECONOMIC_PHASES.STABLE) {
+  const stats = rival.stats ?? {};
+  const phase = ECO_PHASES[econPhase] ?? ECO_PHASES.stable;
+  const quality = stats.quality ?? rival.qualityScore ?? getInitialQuality(rival.tier);
+  const brand = stats.brand ?? rival.brandValue ?? getInitialBrand(rival.tier);
+  const awareness = stats.awareness ?? rival.awareness ?? 0;
+  const normalizedAwareness = awareness > 1 ? awareness / 100 : awareness;
+  const price = Math.max(1, strategy.sellPrice ?? quality * (strategy.priceMultiplier ?? 1) * 1000);
+  const attraction = ((quality + brand) * phase.demandMultiplier * (1 + normalizedAwareness)) / price;
+
+  return Math.max(attraction, 0.001);
+}
+
+export function applyRivalEvent(rivalId, effect, rivalStates = []) {
+  return Object.freeze(
+    rivalStates.map((rival) => {
+      if (rival.id !== rivalId && rival.profileId !== rivalId) {
+        return rival;
+      }
+
+      return Object.freeze({
+        ...rival,
+        activeEffects: Object.freeze([
+          ...(rival.activeEffects ?? []),
+          Object.freeze({
+            ...effect,
+            remainingTurns: effect.duration ?? effect.remainingTurns ?? 1,
+          }),
+        ]),
+      });
+    }),
+  );
+}
+
+export function tickRivalEffects(rivalStates = []) {
+  return Object.freeze(
+    rivalStates.map((rival) =>
+      Object.freeze({
+        ...rival,
+        activeEffects: Object.freeze(
+          (rival.activeEffects ?? [])
+            .map((effect) => Object.freeze({
+              ...effect,
+              remainingTurns: (effect.remainingTurns ?? effect.duration ?? 1) - 1,
+            }))
+            .filter((effect) => effect.remainingTurns > 0),
+        ),
+      }),
+    ),
+  );
+}
+
+export function markRivalMet(rivalId, metRivals = []) {
+  if (!rivalId || metRivals.includes(rivalId)) {
+    return metRivals;
+  }
+
+  return Object.freeze([...metRivals, rivalId]);
+}
+
 export function getInitialQuality(tier) {
   return {
     [RIVAL_TIERS.VALUE]: 25,
@@ -404,6 +488,23 @@ function createRival(tier, nameIndex, focus, randomValue = Math.random()) {
     joinFloor: floorUnlock,
     active: tier !== RIVAL_TIERS.CHAMPION && floorUnlock !== null && floorUnlock <= 1,
   });
+}
+
+function normalizeRivalForStrategy(rival) {
+  if (rival.qualityScore !== undefined && rival.brandValue !== undefined) {
+    return rival;
+  }
+
+  const stats = rival.stats ?? {};
+
+  return {
+    ...rival,
+    qualityScore: stats.quality ?? getInitialQuality(rival.tier),
+    brandValue: stats.brand ?? getInitialBrand(rival.tier),
+    awareness: stats.awareness ?? rival.awareness,
+    strategyPreset: rival.strategy ?? rival.strategyPreset,
+    focus: rival.focus ?? RIVAL_FOCUSES.ALL,
+  };
 }
 
 function buildStrategy({ id, priceMul, qualityBonus, brandBonus, scopePower }) {

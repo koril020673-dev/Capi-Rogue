@@ -29,7 +29,7 @@ export const ACHIEVEMENTS = Object.freeze([
   economyAchievement('profit_silver', 'SILVER', '흑자 경영인', '10턴 연속 흑자', { type: 'PROFIT_STREAK', count: 10 }, '수요와 공급'),
   economyAchievement('profit_gold', 'GOLD', '수요 지배자', '불황 국면에서 5턴 연속 흑자', { type: 'PROFIT_STREAK_RECESSION', count: 5 }, '수요와 공급'),
 
-  economyAchievement('price_bronze', 'BRONZE', '가격 실험', '원가보다 낮지 않은 판매가로 흑자 달성', { type: 'PROFIT_ONCE' }, '가격 탄력성'),
+  economyAchievement('price_bronze', 'BRONZE', '가격 실험', '원가보다 너무 낮지 않은 판매가로 흑자 달성', { type: 'PROFIT_ONCE' }, '가격 탄력성'),
   economyAchievement('price_silver', 'SILVER', '탄력성 이해', '점유율 30% 이상 달성', { type: 'SHARE_OVER', value: 0.3 }, '가격 탄력성'),
   economyAchievement('price_gold', 'GOLD', '가격 설계자', '점유율 50% 이상 달성', { type: 'SHARE_OVER', value: 0.5 }, '가격 탄력성'),
 
@@ -69,16 +69,16 @@ export const ACHIEVEMENTS = Object.freeze([
   economyAchievement('opportunity_silver', 'SILVER', '위험 계산', '이벤트 성공 3회', { type: 'EVENT_SUCCESS_COUNT', count: 3 }, '기회비용'),
   economyAchievement('opportunity_gold', 'GOLD', '대담한 선택', '도박형 이벤트 성공', { type: 'GAMBLE_SUCCESS' }, '기회비용'),
 
-  economyAchievement('competition_bronze', 'BRONZE', '첫 경쟁', '라이벌을 만남', { type: 'RIVAL_MET', count: 1 }, '시장경쟁'),
+  economyAchievement('competition_bronze', 'BRONZE', '첫 경쟁', '라이벌 1명 조우', { type: 'RIVAL_MET', count: 1 }, '시장경쟁'),
   economyAchievement('competition_silver', 'SILVER', '경쟁 우위', '라이벌 압도 3회', { type: 'RIVAL_DOMINATED', count: 3 }, '시장경쟁'),
-  economyAchievement('competition_gold', 'GOLD', '시장 독주', '라이벌 압도 10회', { type: 'RIVAL_DOMINATED', count: 10 }, '시장경쟁'),
+  economyAchievement('competition_gold', 'GOLD', '시장 압주', '라이벌 압도 10회', { type: 'RIVAL_DOMINATED', count: 10 }, '시장경쟁'),
 
   economyAchievement('profit_manage_bronze', 'BRONZE', '손익 파악', '순이익 100만원 이상', { type: 'NET_PROFIT_OVER', value: 1000000 }, '손익관리'),
   economyAchievement('profit_manage_silver', 'SILVER', '수익 구조', '자본 1천만원 이상', { type: 'CAPITAL_OVER', value: 10000000 }, '손익관리'),
   economyAchievement('profit_manage_gold', 'GOLD', '강한 현금흐름', '자본 5천만원 이상', { type: 'CAPITAL_OVER', value: 50000000 }, '손익관리'),
 
   economyAchievement('risk_bronze', 'BRONZE', '위험 감지', '체력 3 이하에서 생존', { type: 'LOW_HEALTH_SURVIVE', value: 3 }, '리스크관리'),
-  economyAchievement('risk_silver', 'SILVER', '위기 회복', '음수 자본 후 회복', { type: 'BANKRUPTCY_RECOVER' }, '리스크관리'),
+  economyAchievement('risk_silver', 'SILVER', '위기 회복', '음수 자본에서 회복', { type: 'BANKRUPTCY_RECOVER' }, '리스크관리'),
   economyAchievement('risk_gold', 'GOLD', '안전 경영', '파산 위기 없이 클리어', { type: 'CLEAR_NO_BANKRUPTCY' }, '리스크관리'),
 
   economyAchievement('education_bronze', 'BRONZE', '경제 입문', '경제 업적 15개 달성', { type: 'ECONOMY_UNLOCK_COUNT', count: 15 }, '종합경제'),
@@ -91,13 +91,13 @@ export const ACHIEVEMENTS = Object.freeze([
   gameAchievement('game_analyst', '애널리스트 클리어', 'The Analyst로 클리어', { type: 'ADVISOR', advisorId: 'analyst' }),
   gameAchievement('game_gambler', '갬블러 클리어', 'The Gambler로 클리어', { type: 'ADVISOR', advisorId: 'gambler' }),
   gameAchievement('game_over', '실패의 기록', '게임 오버 경험', { type: 'GAME_OVER' }),
-  gameAchievement('game_phoenix', '재기', '체력 2 이하에서 10층 이상 생존', { type: 'LOW_HEALTH_SURVIVE', value: 2 }),
+  gameAchievement('game_phoenix', '오기', '체력 2 이하에서 10층 이상 생존', { type: 'LOW_HEALTH_SURVIVE', value: 2 }),
   gameAchievement('game_king', '시장 왕', '점유율 70% 이상', { type: 'SHARE_OVER', value: 0.7 }),
   gameAchievement('game_legend', '전설의 기업', 'S등급 클리어', { type: 'CLEAR_GRADE', grade: 'S' }),
-  gameAchievement('game_rival', '라이벌 사냥꾼', '라이벌 10명 만남', { type: 'RIVAL_MET', count: 10 }),
+  gameAchievement('game_rival', '라이벌 사냥꾼', '라이벌 10명 조우', { type: 'RIVAL_MET', count: 10 }),
   gameAchievement('game_allin', '올인', '자본 30% 이상 마케팅 투자', { type: 'TODO' }),
   gameAchievement('game_speed', '스피드런', '짧은 플레이타임으로 클리어', { type: 'TODO' }),
   gameAchievement('game_retry', '다시 시작', '새 게임 3회 이상', { type: 'TODO' }),
-  gameAchievement('game_perfect', '완벽 경영', '적자 없이 클리어', { type: 'CLEAR_NO_LOSS' }),
-  gameAchievement('game_collector', '수집가', '전체 업적 수집', { type: 'ACHIEVEMENT_COUNT', count: 59 }),
+  gameAchievement('game_perfect', '완전 경영', '적자 없이 클리어', { type: 'CLEAR_NO_LOSS' }),
+  gameAchievement('game_collector', '수집가', '전체 업적 수집', { type: 'ACHIEVEMENT_COUNT', count: 60 }),
 ]);

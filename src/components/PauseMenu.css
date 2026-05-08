@@ -428,7 +428,22 @@
 }
 
 .cr2-pause-advisor-card {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
   border-color: var(--cr2-advisor-color);
+}
+
+.cr2-pause-advisor-image {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.cr2-pause-passive-list p span {
+  font-weight: 800;
 }
 
 .cr2-pause-passive-list--good strong,
@@ -441,10 +456,31 @@
   color: var(--cr2-danger);
 }
 
+.cr2-pause-passive-list--gold strong,
+.cr2-pause-passive-list--gold p {
+  color: #ffd700;
+}
+
+.cr2-rival-dex-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cr2-rival-dex-head strong {
+  color: var(--cr2-accent);
+  font-size: var(--cr2-ui-font-sm);
+}
+
 .cr2-rival-dex-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  touch-action: pan-y;
 }
 
 .cr2-rival-dex-card {
@@ -477,7 +513,7 @@
 }
 
 .cr2-rival-dex-card--unknown .cr2-rival-dex-image {
-  filter: grayscale(1) brightness(0.55);
+  filter: grayscale(100%) brightness(0.3);
 }
 
 @keyframes cr2-pause-slide-in {

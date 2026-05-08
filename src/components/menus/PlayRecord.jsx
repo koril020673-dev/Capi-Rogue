@@ -11,6 +11,29 @@ import { loadAllRecords } from '../../logic/saveEngine';
 import '../../styles/playRecord.css';
 
 const PAGE_COUNT = 3;
+const EMPTY_SLOT_COUNT = 10;
+
+const TEXT = Object.freeze({
+  title: '\uD50C\uB808\uC774 \uAE30\uB85D',
+  back: '\uB4A4\uB85C\uAC00\uAE30',
+  loading: '\uAE30\uB85D \uBD88\uB7EC\uC624\uB294 \uC911...',
+  empty: '\uAE30\uB85D \uC5C6\uC74C',
+  capital: '\uC790\uBCF8',
+  floor: 'Floor',
+  previous: '\uC774\uC804',
+  next: '\uB2E4\uC74C',
+  reviewTitle: '\uACB0\uC815 \uBCF5\uAE30',
+  worstLoss: '\uAC00\uC7A5 \uD070 \uC801\uC790',
+  noRecord: '\uAE30\uB85D \uC5C6\uC74C',
+  settlementDone: '\uC804\uB7B5 \uC815\uC0B0 \uC644\uB8CC',
+  clearStats: '\uD074\uB9AC\uC5B4 \uD1B5\uACC4',
+  finalStats: '\uCD5C\uC885 \uD1B5\uACC4',
+  archiveTitle: '\uAE30\uB85D \uC694\uC57D',
+  playtime: '\uD50C\uB808\uC774\uD0C0\uC784',
+  savedAt: '\uC800\uC7A5\uC77C',
+  clear: '\uB4F1\uAE09 \uD074\uB9AC\uC5B4',
+  bankrupt: '\uD30C\uC0B0',
+});
 
 export default function PlayRecord({ onBack = null }) {
   const [records, setRecords] = useState([]);
@@ -39,48 +62,56 @@ export default function PlayRecord({ onBack = null }) {
     return (
       <div className="cr2-play-record">
         <button className="cr2-record-back-button" type="button" onClick={() => setSelectedRecord(null)}>
-          뒤로가기
+          {TEXT.back}
         </button>
         <RecordDetail record={selectedRecord} page={page} setPage={setPage} />
       </div>
     );
   }
 
+  const emptySlots = Math.max(0, EMPTY_SLOT_COUNT - records.length);
+
   return (
     <div className="cr2-play-record">
       <header className="cr2-play-record-head">
-        <h2>플레이 기록</h2>
+        <h2>{TEXT.title}</h2>
         {onBack ? (
           <button className="cr2-record-back-button" type="button" onClick={onBack}>
-            뒤로가기
+            {TEXT.back}
           </button>
         ) : null}
       </header>
-      {loading ? <div className="cr2-record-empty-slot">기록 불러오는 중...</div> : null}
-      {!loading && records.length === 0 ? <div className="cr2-record-empty-slot">아직 플레이 기록이 없습니다.</div> : null}
-      <div className="cr2-record-slot-list">
-        {records.map((record) => (
-          <button
-            className={[
-              'cr2-record-slot',
-              record.result_type === RECORD_RESULT_TYPES.CLEAR
-                ? 'cr2-record-slot--clear'
-                : 'cr2-record-slot--bankrupt',
-            ].join(' ')}
-            key={`${record.created_at}-${record.clear_floor}-${record.result_type}`}
-            type="button"
-            onClick={() => {
-              setSelectedRecord(record);
-              setPage(0);
-            }}
-          >
-            <strong>{getRecordTitle(record)}</strong>
-            <span>{record.advisor_name} · Floor {record.clear_floor}</span>
-            <span>자본 {formatNumberWon(record.final_capital)}</span>
-            <small>{formatRecordDate(record.created_at)} · {formatTime(record.playtime)}</small>
-          </button>
-        ))}
-      </div>
+      {loading ? <div className="cr2-record-empty-slot">{TEXT.loading}</div> : null}
+      {!loading ? (
+        <div className="cr2-record-slot-list">
+          {records.map((record) => (
+            <button
+              className={[
+                'cr2-record-slot',
+                record.result_type === RECORD_RESULT_TYPES.CLEAR
+                  ? 'cr2-record-slot--clear'
+                  : 'cr2-record-slot--bankrupt',
+              ].join(' ')}
+              key={`${record.created_at}-${record.clear_floor}-${record.result_type}`}
+              type="button"
+              onClick={() => {
+                setSelectedRecord(record);
+                setPage(0);
+              }}
+            >
+              <strong>{getRecordTitle(record)}</strong>
+              <span>{record.advisor_name} | {TEXT.floor} {record.clear_floor}</span>
+              <span>{TEXT.capital} {formatNumberWon(record.final_capital)}</span>
+              <small>{formatRecordDate(record.created_at)} | {formatTime(record.playtime)}</small>
+            </button>
+          ))}
+          {Array.from({ length: emptySlots }, (_, index) => (
+            <div className="cr2-record-empty-slot" key={`empty-${index}`}>
+              {TEXT.empty}
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -91,7 +122,7 @@ function RecordDetail({ record, page, setPage }) {
 
   return (
     <section className="cr2-record-detail">
-      <div className="cr2-page-body">
+      <div className="cr2-page-body cr2-scrollable">
         {page === 0 ? (
           isClear ? <RecordStatsPage record={record} /> : <RecordReviewPage review={review} />
         ) : null}
@@ -105,16 +136,16 @@ function RecordDetail({ record, page, setPage }) {
           type="button"
           onClick={() => setPage((current) => Math.max(0, current - 1))}
         >
-          이전
+          {TEXT.previous}
         </button>
-        <span>{Array.from({ length: PAGE_COUNT }, (_, index) => (index === page ? '●' : '○')).join(' ')}</span>
+        <span>{Array.from({ length: PAGE_COUNT }, (_, index) => (index === page ? '\u25CF' : '\u25CB')).join(' ')}</span>
         <button
           className="cr2-secondary-button"
           disabled={page === PAGE_COUNT - 1}
           type="button"
           onClick={() => setPage((current) => Math.min(PAGE_COUNT - 1, current + 1))}
         >
-          다음
+          {TEXT.next}
         </button>
       </footer>
     </section>
@@ -124,21 +155,21 @@ function RecordDetail({ record, page, setPage }) {
 function RecordReviewPage({ review }) {
   return (
     <article className="cr2-record-page">
-      <h2>결정 복기</h2>
+      <h2>{TEXT.reviewTitle}</h2>
       <div className="cr2-review-highlight">
-        <strong>가장 큰 적자</strong>
+        <strong>{TEXT.worstLoss}</strong>
         <p>
           {review.worstProfit
-            ? `Floor ${review.worstProfit.floor} - ${formatNumberWon(review.worstProfit.profit)}`
-            : '기록 없음'}
+            ? `${TEXT.floor} ${review.worstProfit.floor} - ${formatNumberWon(review.worstProfit.profit)}`
+            : TEXT.noRecord}
         </p>
       </div>
-      <div className="cr2-run-scroll">
+      <div className="cr2-run-scroll cr2-scrollable">
         {review.recent.map((turn) => (
           <div className="cr2-review-row" key={`${turn.floor}-${turn.profit}`}>
-            <strong>Floor {turn.floor}</strong>
+            <strong>{TEXT.floor} {turn.floor}</strong>
             <span>{formatNumberWon(turn.profit)}</span>
-            <small>{turn.eventTitle || '전략 정산 완료'}</small>
+            <small>{turn.eventTitle || TEXT.settlementDone}</small>
           </div>
         ))}
       </div>
@@ -149,8 +180,8 @@ function RecordReviewPage({ review }) {
 function RecordStatsPage({ record }) {
   return (
     <article className="cr2-record-page">
-      <h2>{record.result_type === RECORD_RESULT_TYPES.CLEAR ? '클리어 통계' : '최종 통계'}</h2>
-      <div className="cr2-run-scroll">
+      <h2>{record.result_type === RECORD_RESULT_TYPES.CLEAR ? TEXT.clearStats : TEXT.finalStats}</h2>
+      <div className="cr2-run-scroll cr2-scrollable">
         <dl className="cr2-record-table">
           {getRecordRows(record).map(([label, value]) => (
             <div key={label}>
@@ -167,12 +198,12 @@ function RecordStatsPage({ record }) {
 function RecordArchivePage({ record }) {
   return (
     <article className="cr2-record-page">
-      <h2>기록 요약</h2>
+      <h2>{TEXT.archiveTitle}</h2>
       <div className="cr2-record-archive">
         <strong>{getRecordTitle(record)}</strong>
-        <p>{record.advisor_name} · Floor {record.clear_floor}</p>
-        <p>플레이타임 {formatTime(record.playtime)}</p>
-        <p>저장일 {formatRecordDate(record.created_at)}</p>
+        <p>{record.advisor_name} | {TEXT.floor} {record.clear_floor}</p>
+        <p>{TEXT.playtime} {formatTime(record.playtime)}</p>
+        <p>{TEXT.savedAt} {formatRecordDate(record.created_at)}</p>
       </div>
     </article>
   );
@@ -180,10 +211,10 @@ function RecordArchivePage({ record }) {
 
 function getRecordTitle(record) {
   if (record.result_type === RECORD_RESULT_TYPES.CLEAR) {
-    return `${record.clear_grade ?? 'C'}등급 클리어`;
+    return `${record.clear_grade ?? 'C'}${TEXT.clear}`;
   }
 
-  return '파산';
+  return TEXT.bankrupt;
 }
 
 function formatRecordDate(value) {

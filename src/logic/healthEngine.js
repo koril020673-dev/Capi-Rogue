@@ -34,11 +34,15 @@ export function calculateHealthDeltaFromProfit(profit, capitalBeforeSettlement) 
   return -1;
 }
 
-export function rewardHealthRecovery(grade) {
+export function rewardHealthRecovery(grade, maxHealth = null) {
   const recovery = REWARD_HEALTH_RECOVERY[String(grade).toLowerCase()];
 
   if (!recovery) {
     return null;
+  }
+
+  if (recovery === FULL_RECOVERY && maxHealth !== null) {
+    return maxHealth;
   }
 
   return recovery;
@@ -76,14 +80,22 @@ export function checkStreakBonus(gameState, advisorId) {
     return null;
   }
 
-  const history = gameState.history ?? gameState.timeline ?? [];
+  const history = Array.isArray(gameState)
+    ? gameState
+    : gameState.history ?? gameState.timeline ?? [];
   const recentTurns = history.slice(-rule.turns);
 
   if (recentTurns.length < rule.turns) {
     return null;
   }
 
-  const hasProfitStreak = recentTurns.every((turn) => (turn.netProfit ?? turn.profit ?? 0) > 0);
+  const hasProfitStreak = recentTurns.every((turn) => {
+    if (typeof turn === 'boolean') {
+      return turn;
+    }
+
+    return (turn.netProfit ?? turn.profit ?? 0) > 0;
+  });
 
   return hasProfitStreak ? rule.amount : null;
 }

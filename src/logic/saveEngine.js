@@ -337,7 +337,10 @@ export async function saveRecord(recordData) {
 
 export async function loadAllRecords(resultType = null) {
   if (!supabase) {
-    const localRecords = loadRecordsFromLocalStorage();
+    const localRecords = loadRecordsFromLocalStorage()
+      .filter((record) => ['CLEAR', 'BANKRUPT'].includes(record.result_type))
+      .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
+      .slice(0, 10);
 
     return resultType
       ? localRecords.filter((record) => record.result_type === resultType)
@@ -355,7 +358,9 @@ export async function loadAllRecords(resultType = null) {
       .from('records')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .in('result_type', ['CLEAR', 'BANKRUPT'])
+      .order('created_at', { ascending: false })
+      .limit(10);
 
     if (resultType) {
       query = query.eq('result_type', resultType);

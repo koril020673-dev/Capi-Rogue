@@ -1,60 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ECONOMIC_PHASES } from '../constants/economy';
+import { useEffect, useRef, useState } from 'react';
 import { getAudioSettings } from '../logic/audioEngine';
-import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
-import mainBgm from '../assets/bgm/bg_music_main.wav';
-import tensionBgm from '../assets/bgm/bg_music_tension.wav';
-import boomBgm from '../assets/bgm/boom_bgm.wav';
-import businessDecisionBgm from '../assets/bgm/business_decision_bgm.wav';
-import contractionBgm from '../assets/bgm/contraction_bgm.wav';
-import growthBgm from '../assets/bgm/growth_bgm.wav';
-import recessionBgm from '../assets/bgm/recession_bgm.wav';
-import stableBgm from '../assets/bgm/stable_bgm.wav';
+import { useGameStore } from '../store/useGameStore';
 import clickSfx from '../assets/sfx/sfx_click.wav';
 import nextFloorSfx from '../assets/sfx/sfx_nextfloor.wav';
 
-const PHASE_BGM = Object.freeze({
-  [ECONOMIC_PHASES.BOOM]: boomBgm,
-  [ECONOMIC_PHASES.GROWTH]: growthBgm,
-  [ECONOMIC_PHASES.STABLE]: stableBgm,
-  [ECONOMIC_PHASES.CONTRACTION]: contractionBgm,
-  [ECONOMIC_PHASES.RECESSION]: recessionBgm,
-});
-
-const DECISION_SCREENS = new Set([
-  SCREEN_IDS.ADVISOR_SELECT,
-  SCREEN_IDS.CHARACTER_CREATE,
-  SCREEN_IDS.SETTLEMENT,
-  SCREEN_IDS.RESULT,
-  SCREEN_IDS.REWARD,
-]);
-
 export default function AudioController() {
-  const screen = useGameStore((state) => state.screen);
-  const phase = useGameStore((state) => state.phase);
   const floor = useGameStore((state) => state.floor);
   const [settings, setSettings] = useState(() => getAudioSettings());
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
-  const bgmRef = useRef(null);
   const clickRef = useRef(null);
   const nextFloorRef = useRef(null);
-  const previousBgmRef = useRef(null);
   const previousFloorRef = useRef(floor);
-  const bgmSrc = useMemo(() => getBgmForScreen(screen, phase), [phase, screen]);
-
-  useEffect(() => {
-    function unlockAudio() {
-      setAudioUnlocked(true);
-    }
-
-    window.addEventListener('pointerdown', unlockAudio, { once: true });
-    window.addEventListener('keydown', unlockAudio, { once: true });
-
-    return () => {
-      window.removeEventListener('pointerdown', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
-    };
-  }, []);
 
   useEffect(() => {
     function handleSettingsChange() {
@@ -71,38 +26,6 @@ export default function AudioController() {
   }, []);
 
   useEffect(() => {
-    const bgm = bgmRef.current;
-
-    if (!bgm) {
-      return;
-    }
-
-    bgm.volume = getBgmVolume(settings);
-    if (!settings.bgmEnabled || getBgmVolume(settings) <= 0) {
-      bgm.pause();
-    }
-  }, [settings]);
-
-  useEffect(() => {
-    const bgm = bgmRef.current;
-
-    if (!bgm || !audioUnlocked || !settings.bgmEnabled || getBgmVolume(settings) <= 0) {
-      return;
-    }
-
-    if (previousBgmRef.current !== bgmSrc) {
-      bgm.pause();
-      bgm.src = bgmSrc;
-      bgm.currentTime = 0;
-      previousBgmRef.current = bgmSrc;
-    }
-
-    bgm.loop = true;
-    bgm.volume = getBgmVolume(settings);
-    bgm.play().catch(() => {});
-  }, [audioUnlocked, bgmSrc, settings]);
-
-  useEffect(() => {
     function handleClick(event) {
       if (!settings.sfxEnabled || getSfxVolume(settings) <= 0 || !event.target?.closest?.('button')) {
         return;
@@ -114,7 +37,7 @@ export default function AudioController() {
     document.addEventListener('click', handleClick, true);
 
     return () => document.removeEventListener('click', handleClick, true);
-  }, [settings.sfxEnabled]);
+  }, [settings.sfxEnabled, settings.masterVolume, settings.sfxVolume]);
 
   useEffect(() => {
     if (floor > previousFloorRef.current && settings.sfxEnabled && getSfxVolume(settings) > 0) {
@@ -122,31 +45,14 @@ export default function AudioController() {
     }
 
     previousFloorRef.current = floor;
-  }, [floor, settings.sfxEnabled]);
+  }, [floor, settings.sfxEnabled, settings.masterVolume, settings.sfxVolume]);
 
   return (
     <>
-      <audio ref={bgmRef} preload="auto" />
       <audio ref={clickRef} preload="auto" src={clickSfx} />
       <audio ref={nextFloorRef} preload="auto" src={nextFloorSfx} />
     </>
   );
-}
-
-function getBgmForScreen(screen, phase) {
-  if (screen === SCREEN_IDS.MAIN) {
-    return PHASE_BGM[phase] ?? stableBgm;
-  }
-
-  if (screen === SCREEN_IDS.EVENT || screen === SCREEN_IDS.GAME_OVER) {
-    return tensionBgm;
-  }
-
-  if (DECISION_SCREENS.has(screen)) {
-    return businessDecisionBgm;
-  }
-
-  return mainBgm;
 }
 
 function playOneShot(audio, volume) {
@@ -158,10 +64,6 @@ function playOneShot(audio, volume) {
   audio.currentTime = 0;
   audio.volume = volume;
   audio.play().catch(() => {});
-}
-
-function getBgmVolume(settings) {
-  return clampVolume(settings.masterVolume) * clampVolume(settings.bgmVolume);
 }
 
 function getSfxVolume(settings) {

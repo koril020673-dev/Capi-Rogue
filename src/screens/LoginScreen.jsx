@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { signIn, signUp, tryAutoLogin } from '../logic/authEngine';
 import { SCREEN_IDS, useGameStore } from '../store/useGameStore';
 import logoImage from '../assets/optimized/logo/logo_image.png';
@@ -8,6 +8,7 @@ const TEXT = Object.freeze({
   copy: '\uACC4\uC815\uC73C\uB85C \uC2DC\uC791\uD558\uAC70\uB098 \uAC8C\uC2A4\uD2B8 \uBAA8\uB4DC\uB85C \uBC14\uB85C \uD50C\uB808\uC774\uD558\uC138\uC694.',
   id: '\uC544\uC774\uB514',
   password: '\uBE44\uBC00\uBC88\uD638',
+  passwordConfirm: '\uBE44\uBC00\uBC88\uD638 \uD655\uC778',
   login: '\uB85C\uADF8\uC778',
   guest: '\uAC8C\uC2A4\uD2B8',
   signup: '\uD68C\uC6D0\uAC00\uC785',
@@ -31,7 +32,21 @@ const TEXT = Object.freeze({
   signupFailed: '\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.',
   idHelp: '\uC544\uC774\uB514 3\uC790 \uC774\uC0C1',
   passwordHelp: '\uBE44\uBC00\uBC88\uD638 6\uC790 \uC774\uC0C1',
+  passwordMismatch: '\uBE44\uBC00\uBC88\uD638 \uD655\uC778\uC774 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.',
+  accountType: '\uACC4\uC815 \uC720\uD615 \uC120\uD0DD',
+  student: '\uD559\uC0DD',
+  teacher: '\uAD50\uC0AC',
+  general: '\uC77C\uBC18',
+  studentGuide: '\uD559\uC0DD \uACC4\uC815\uC740 \uC131\uCDE8\uAE30\uC900 \uB2EC\uC131 \uD604\uD669\uC774 \uC800\uC7A5\uB429\uB2C8\uB2E4.',
+  teacherGuide: '\uAD50\uC0AC \uACC4\uC815\uC740 \uD5A5\uD6C4 \uD559\uC0DD \uAD00\uB9AC \uAE30\uB2A5\uC774 \uC81C\uACF5\uB420 \uC608\uC815\uC785\uB2C8\uB2E4.',
+  generalGuide: '\uC77C\uBC18 \uACC4\uC815\uC740 \uAE30\uBCF8 \uC800\uC7A5 \uAE30\uB2A5\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.',
 });
+
+const USER_TYPE_OPTIONS = Object.freeze([
+  Object.freeze({ id: 'student', label: TEXT.student, guide: TEXT.studentGuide }),
+  Object.freeze({ id: 'teacher', label: TEXT.teacher, guide: TEXT.teacherGuide }),
+  Object.freeze({ id: 'general', label: TEXT.general, guide: TEXT.generalGuide }),
+]);
 
 function getSignupErrorMessage(error) {
   if (error?.code === 'INVALID_SUPABASE_URL') {
@@ -136,6 +151,8 @@ export default function LoginScreen() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [signupId, setSignupId] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
+  const [signupUserType, setSignupUserType] = useState('general');
   const [signupError, setSignupError] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [rememberLogin, setRememberLogin] = useState(true);
@@ -189,13 +206,18 @@ export default function LoginScreen() {
   async function handleSignup() {
     setSignupError('');
 
-    if (!signupId.trim() || !signupPassword.trim()) {
+    if (!signupId.trim() || !signupPassword.trim() || !signupPasswordConfirm.trim()) {
       setSignupError(TEXT.missingInput);
       return;
     }
 
+    if (signupPassword !== signupPasswordConfirm) {
+      setSignupError(TEXT.passwordMismatch);
+      return;
+    }
+
     setIsBusy(true);
-    const { user, error } = await signUp(signupId, signupPassword);
+    const { user, error } = await signUp(signupId, signupPassword, signupUserType);
     setIsBusy(false);
 
     if (error || !user) {
@@ -207,6 +229,8 @@ export default function LoginScreen() {
     setLoginField('password', '');
     setSignupId('');
     setSignupPassword('');
+    setSignupPasswordConfirm('');
+    setSignupUserType('general');
     setSignupOpen(false);
     setMessage(TEXT.signupSuccess);
   }
@@ -215,6 +239,8 @@ export default function LoginScreen() {
     setSignupError('');
     setSignupId(loginForm.userId);
     setSignupPassword('');
+    setSignupPasswordConfirm('');
+    setSignupUserType('general');
     setSignupOpen(true);
   }
 
@@ -312,6 +338,36 @@ export default function LoginScreen() {
             />
             <small className="cr2-field-help">{TEXT.passwordHelp}</small>
           </label>
+          <label className="cr2-field">
+            <span>{TEXT.passwordConfirm}</span>
+            <input
+              className="cr2-input"
+              type="password"
+              value={signupPasswordConfirm}
+              onChange={(event) => {
+                setSignupError('');
+                setSignupPasswordConfirm(event.target.value);
+              }}
+            />
+          </label>
+          <div className="cr2-field">
+            <span>{TEXT.accountType}</span>
+            <div className="cr2-signup-type-grid">
+              {USER_TYPE_OPTIONS.map((option) => (
+                <button
+                  className={signupUserType === option.id ? 'cr2-signup-type-button cr2-signup-type-button--active' : 'cr2-signup-type-button'}
+                  key={option.id}
+                  type="button"
+                  onClick={() => setSignupUserType(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <small className="cr2-field-help">
+              {USER_TYPE_OPTIONS.find((option) => option.id === signupUserType)?.guide}
+            </small>
+          </div>
           {signupError ? <p className="cr2-error-text">{signupError}</p> : null}
           <button className="cr2-primary-button" type="button" onClick={handleSignup} disabled={isBusy}>
             {TEXT.register}

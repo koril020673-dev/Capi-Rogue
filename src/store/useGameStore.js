@@ -242,6 +242,10 @@ export const useGameStore = create((set, get) => ({
     set({ playerId: id ?? null });
   },
 
+  setUserType(type) {
+    set({ userType: ['student', 'teacher', 'general'].includes(type) ? type : 'general' });
+  },
+
   setAuthenticatedSession(user) {
     set({
       playerId: user?.id ?? null,
