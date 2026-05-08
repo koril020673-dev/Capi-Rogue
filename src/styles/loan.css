@@ -44,7 +44,7 @@
 }
 
 .cr2-loan-modal {
-  width: min(460px, calc(100vw - 40px));
+  width: min(460px, calc(100% - 40px));
   display: grid;
   gap: 14px;
   border: 2px solid var(--cr2-warning);

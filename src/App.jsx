@@ -22,6 +22,31 @@ import { tryAutoLogin } from './logic/authEngine';
 import { loadSettings } from './logic/settingsEngine';
 import { installViewportGuard } from './logic/viewportGuard';
 
+const BASE_WIDTH = 1080;
+const BASE_HEIGHT = 720;
+
+function updateScale() {
+  const root = document.getElementById('root');
+
+  if (!root) {
+    return;
+  }
+
+  const scaleX = window.innerWidth / BASE_WIDTH;
+  const scaleY = window.innerHeight / BASE_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+  const offsetX = (window.innerWidth - BASE_WIDTH * scale) / 2;
+  const offsetY = (window.innerHeight - BASE_HEIGHT * scale) / 2;
+
+  root.style.width = `${BASE_WIDTH}px`;
+  root.style.height = `${BASE_HEIGHT}px`;
+  root.style.transform = `scale(${scale})`;
+  root.style.transformOrigin = 'top left';
+  root.style.position = 'absolute';
+  root.style.left = `${offsetX}px`;
+  root.style.top = `${offsetY}px`;
+}
+
 export default function App() {
   const screen = useGameStore((state) => state.screen);
   const selectedAdvisorId = useGameStore((state) => state.selectedAdvisorId);
@@ -37,6 +62,21 @@ export default function App() {
 
   useEffect(() => {
     return installViewportGuard();
+  }, []);
+
+  useEffect(() => {
+    function handleOrientationChange() {
+      window.setTimeout(updateScale, 100);
+    }
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    window.addEventListener('orientationchange', handleOrientationChange);
+
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
   }, []);
 
   useEffect(() => {

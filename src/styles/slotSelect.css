@@ -1,8 +1,8 @@
 .cr2-slot-select-screen {
   position: relative;
   z-index: 1;
-  width: min(var(--cr2-stage-w), calc(100vw - 24px));
-  height: min(var(--cr2-stage-h), calc(100vh - 24px));
+  width: var(--cr2-stage-w);
+  height: var(--cr2-stage-h);
   display: grid;
   place-items: center;
   color: var(--cr2-text);

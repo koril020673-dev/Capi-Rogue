@@ -55,7 +55,7 @@
   margin: 6px 0 0;
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(var(--cr2-ui-font-lg), min(2.4vw, 3.6vh), 24px);
+  font-size: 24px;
   line-height: 1.45;
   word-break: keep-all;
 }

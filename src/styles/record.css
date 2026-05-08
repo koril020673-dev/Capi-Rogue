@@ -5,7 +5,7 @@
   height: var(--cr2-stage-h);
   min-height: 0;
   background: #000000;
-  padding: clamp(12px, 2vw, 22px);
+  padding: 20px;
   overflow: hidden;
   font-size: var(--cr2-ui-font-md);
 }
@@ -18,7 +18,7 @@
   border-radius: 8px;
   background: rgba(0, 10, 0, 0.92);
   box-shadow: 0 0 0 4px rgba(0, 255, 65, 0.08);
-  padding: clamp(14px, 2vw, 22px);
+  padding: 22px;
   overflow: hidden;
 }
 
@@ -32,7 +32,7 @@
   margin: 0;
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(var(--cr2-ui-font-lg), min(3vw, 4.5vh), 34px);
+  font-size: 34px;
   line-height: 1.45;
 }
 

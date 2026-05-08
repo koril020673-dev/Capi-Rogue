@@ -12,32 +12,39 @@
   --cr2-advisor: #00ff41;
   --cr2-font-readable: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
   --cr2-font-pixel: 'Press Start 2P', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --cr2-ui-font: clamp(8px, min(1.3vw, 1.95vh), 14px);
+  --cr2-ui-font: 14px;
   --cr2-ui-font-xs: calc(var(--cr2-ui-font) * 0.72);
   --cr2-ui-font-sm: calc(var(--cr2-ui-font) * 0.86);
   --cr2-ui-font-md: var(--cr2-ui-font);
   --cr2-ui-font-lg: calc(var(--cr2-ui-font) * 1.28);
   --cr2-ui-font-xl: calc(var(--cr2-ui-font) * 1.72);
-  --cr2-stage-ratio: 1.5;
-  --cr2-stage-margin: 8px;
-  --cr2-stage-w: min(1080px, calc(100dvw - (var(--cr2-stage-margin) * 2)), calc((100dvh - (var(--cr2-stage-margin) * 2)) * var(--cr2-stage-ratio)));
-  --cr2-stage-h: calc(var(--cr2-stage-w) / var(--cr2-stage-ratio));
+  --cr2-stage-w: 1080px;
+  --cr2-stage-h: 720px;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
-body,
-#root {
+body {
   width: 100%;
   height: 100%;
-  min-height: 100%;
   margin: 0;
   overflow: hidden;
+  background: #000000;
   overscroll-behavior: none;
   touch-action: manipulation;
+}
+
+#root {
+  position: absolute;
+  width: 1080px;
+  height: 720px;
+  overflow: hidden;
+  background: #000000;
 }
 
 body {
@@ -67,9 +74,9 @@ button:disabled {
 }
 
 .cr2-app {
-  width: 100dvw;
-  height: 100dvh;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
   color: var(--cr2-text);
   overflow: hidden;
 }
@@ -151,9 +158,9 @@ button:disabled {
 
 .cr2-bg-scene {
   position: relative;
-  width: 100dvw;
-  height: 100dvh;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
   overflow: hidden;
   background: #000000;
 }
@@ -231,9 +238,9 @@ button:disabled {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 100dvw;
-  height: 100dvh;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
   padding: 0;
   overflow: hidden;
 }
@@ -281,7 +288,7 @@ button:disabled {
   place-items: center;
   gap: 20px;
   background: #8a8a8a;
-  padding: clamp(18px, 3vw, 34px);
+  padding: 28px;
 }
 
 .cr2-login-logo {
@@ -465,7 +472,7 @@ button:disabled {
   margin: 8px 0 22px;
   color: var(--cr2-accent);
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(22px, 4vw, 44px);
+  font-size: 42px;
   line-height: 1.35;
   word-break: keep-all;
 }
@@ -713,7 +720,7 @@ button:disabled {
 
 .cr2-fixed-action {
   position: fixed;
-  right: calc((100dvw - var(--cr2-stage-w)) / 2 + 24px);
+  right: 24px;
   bottom: 24px;
   z-index: 4;
 }
@@ -750,7 +757,7 @@ button:disabled {
 
 .cr2-status-value {
   color: var(--cr2-accent);
-  font-size: clamp(10px, 1.2vw, 12px);
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -897,11 +904,11 @@ button:disabled {
   max-width: 104px;
   overflow-wrap: anywhere;
   font-family: var(--cr2-font-pixel);
-  font-size: clamp(11px, 1.5vw, 15px);
+  font-size: 15px;
 }
 
 .cr2-demand-label {
-  font-size: clamp(11px, 1.3vw, 13px);
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -951,7 +958,7 @@ button:disabled {
 
 .cr2-demand-player-row {
   display: grid;
-  grid-template-columns: clamp(42px, 5.4vw, 56px) minmax(0, 1fr) clamp(42px, 5.4vw, 56px);
+  grid-template-columns: 56px minmax(0, 1fr) 56px;
   gap: 8px;
   align-items: center;
   min-width: 0;
@@ -967,7 +974,7 @@ button:disabled {
 .cr2-demand-advisor-portrait {
   display: grid;
   place-items: center;
-  width: clamp(42px, 5.4vw, 56px);
+  width: 56px;
   aspect-ratio: 1;
   border: 2px solid var(--cr2-advisor);
   border-radius: 4px;
@@ -997,7 +1004,7 @@ button:disabled {
 
 .cr2-demand-rival-row {
   display: grid;
-  grid-template-columns: clamp(38px, 4.8vw, 48px) minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 8px;
   align-items: center;
   min-width: 0;
@@ -1012,7 +1019,7 @@ button:disabled {
 .cr2-demand-rival-portrait {
   display: grid;
   place-items: center;
-  width: clamp(38px, 4.8vw, 48px);
+  width: 48px;
   aspect-ratio: 1;
   border: 2px solid var(--cr2-grid);
   border-radius: 4px;
@@ -1073,7 +1080,7 @@ button:disabled {
 
 .cr2-demand-card span,
 .cr2-demand-card small {
-  font-size: clamp(10px, 1.15vw, 12px);
+  font-size: 12px;
 }
 
 .cr2-rival-health {
@@ -2193,7 +2200,7 @@ button:disabled {
 .cr2-result-panel h1,
 .cr2-reward-panel h1,
 .cr2-gameover-panel h1 {
-  font-size: clamp(calc(var(--cr2-ui-font-xl) * 1.1), min(3.4vw, 5vh), 42px) !important;
+  font-size: 42px !important;
 }
 
 .cr2-panel-title h2,

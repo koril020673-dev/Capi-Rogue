@@ -16,7 +16,7 @@
   border-radius: 8px;
   background: #1A1A2E;
   box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.18);
-  padding: clamp(16px, 2vw, 24px);
+  padding: 22px;
 }
 
 .cr2-tutorial-head h2 {

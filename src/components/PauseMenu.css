@@ -1,12 +1,12 @@
 .cr2-pause-mobile-button {
   position: fixed;
-  top: calc((100dvh - var(--cr2-stage-h)) / 2 + 8px);
-  right: calc((100dvw - var(--cr2-stage-w)) / 2 + 8px);
+  top: 8px;
+  right: 8px;
   z-index: 30;
   display: grid;
   place-items: center;
-  width: clamp(28px, min(4vw, 6vh), 40px);
-  height: clamp(28px, min(4vw, 6vh), 40px);
+  width: 40px;
+  height: 40px;
   border: 2px solid var(--cr2-danger);
   background: rgba(26, 26, 46, 0.92);
   color: var(--cr2-accent);
@@ -68,7 +68,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: clamp(8px, 1.4vw, 16px);
+  padding: 15px;
   border-bottom: 2px solid var(--cr2-danger);
 }
 
@@ -102,7 +102,7 @@
   display: grid;
   align-content: start;
   gap: 4px;
-  padding: clamp(6px, 1.1vw, 12px);
+  padding: 12px;
 }
 
 .cr2-pause-danger-list {
@@ -140,7 +140,7 @@
 .cr2-pause-content {
   min-width: 0;
   overflow: hidden;
-  padding: clamp(8px, 1.6vw, 18px);
+  padding: 17px;
 }
 
 .cr2-save-slot-picker {
