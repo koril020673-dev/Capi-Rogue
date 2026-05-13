@@ -35,7 +35,7 @@ export default function AchievementToast() {
 
   useEffect(() => {
     if (current || !queue.length) {
-      return undefined;
+      return;
     }
 
     const [nextAchievement, ...rest] = queue;
@@ -44,6 +44,12 @@ export default function AchievementToast() {
     setQueue(rest);
     setLeaving(false);
     playSFX('profit', 0.85);
+  }, [current, queue]);
+
+  useEffect(() => {
+    if (!current) {
+      return undefined;
+    }
 
     const leaveTimer = window.setTimeout(() => setLeaving(true), 2700);
     const clearTimer = window.setTimeout(() => {
@@ -55,14 +61,28 @@ export default function AchievementToast() {
       window.clearTimeout(leaveTimer);
       window.clearTimeout(clearTimer);
     };
-  }, [current, queue]);
+  }, [current]);
 
   if (!current) {
     return null;
   }
 
+  const dismissToast = () => {
+    setQueue([]);
+    setCurrent(null);
+    setLeaving(false);
+  };
+
   return (
     <aside className={leaving ? 'cr2-toast cr2-toast-leaving' : 'cr2-toast'} role="status">
+      <button
+        aria-label="업적 알림 닫기"
+        className="cr2-toast-close"
+        type="button"
+        onClick={dismissToast}
+      >
+        X
+      </button>
       <span>{TEXT.title}</span>
       <div className="cr2-toast-body">
         <i>{getBadgeLabel(current)}</i>

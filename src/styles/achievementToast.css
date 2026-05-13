@@ -31,9 +31,36 @@
   background: #1a1a2e;
   box-shadow: 0 8px 0 rgba(0, 0, 0, 0.35);
   color: #00ff41;
-  padding: 14px;
+  padding: 16px 48px 16px 14px;
   font-family: var(--cr2-font-readable);
   animation: cr2-toast-in 0.3s ease forwards;
+}
+
+.cr2-toast-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #dc143c;
+  border-radius: 2px;
+  background: #dc143c;
+  color: #050505;
+  font-family: var(--cr2-font-pixel);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cr2-toast-close:hover,
+.cr2-toast-close:focus-visible {
+  border-color: #ff6b7a;
+  background: #ff304f;
+  color: #ffffff;
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .cr2-toast.cr2-toast-leaving {
